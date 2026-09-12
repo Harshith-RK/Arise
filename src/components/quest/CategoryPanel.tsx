@@ -3,7 +3,7 @@
 import { AnimatePresence, m } from "motion/react";
 import type { ReactNode } from "react";
 import { EASE } from "@/lib/motion";
-import { IconDown } from "@/components/icons";
+import { IconDown, IconLock } from "@/components/icons";
 
 /**
  * A quest category. Finished categories collapse to one summary line so the
@@ -18,6 +18,7 @@ export function CategoryPanel({
   open,
   onToggle,
   summary,
+  locked = false,
   children,
 }: {
   title: string;
@@ -28,6 +29,9 @@ export function CategoryPanel({
   open: boolean;
   onToggle: () => void;
   summary?: string;
+  /** Visible but not yet earned: a lock replaces the count. It still opens,
+   *  so the reason it is locked can be read. */
+  locked?: boolean;
   children: ReactNode;
 }) {
   const panelId = `quest-panel-${title.toLowerCase().replace(/\s+/g, "-")}`;
@@ -41,11 +45,15 @@ export function CategoryPanel({
           aria-controls={panelId}
           className="pressable flex w-full items-center gap-3 px-4 py-4 text-left transition-none hov:bg-ink-2"
         >
-          <Icon size={18} className={complete ? "text-ember" : "text-frost-2"} />
-          <span className="t-readout flex-1 text-frost-0">{title}</span>
-          <span className={`t-micro ${complete ? "text-ember" : "text-frost-2"}`}>
-            {done}/{total}
-          </span>
+          <Icon size={18} className={complete && !locked ? "text-ember" : "text-frost-2"} />
+          <span className={`t-readout flex-1 ${locked ? "text-frost-1" : "text-frost-0"}`}>{title}</span>
+          {locked ? (
+            <IconLock size={15} className="text-frost-2" />
+          ) : (
+            <span className={`t-micro ${complete ? "text-ember" : "text-frost-2"}`}>
+              {done}/{total}
+            </span>
+          )}
           <m.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.18, ease: EASE.out }} className="text-frost-2">
             <IconDown size={16} />
           </m.span>

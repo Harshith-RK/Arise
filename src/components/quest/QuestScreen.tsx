@@ -15,7 +15,7 @@ import { IconBack, IconBonus, IconCalendar, IconCardio, IconDumbbell, IconForwar
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { addDays, formatReadout } from "@/lib/engine/dates";
 import { evaluateDay, isRestDay, makePlanLookup, mealLocked, trainingDayFor } from "@/lib/engine/day";
-import { lastSessionFor } from "@/lib/engine/derive";
+import { lastSessionFor, VITALITY_UNLOCK_LEVEL } from "@/lib/engine/derive";
 import { sendHeat } from "@/lib/heat-transfer";
 import { xpGained } from "@/lib/store/apply-outcome";
 import type { Outcome } from "@/lib/store/game-store";
@@ -44,6 +44,7 @@ export function QuestScreen({ date }: { date: string }) {
 
   const isFuture = date > today;
   const readOnly = isFuture;
+  const recoverySealed = (progress?.level ?? 1) < VITALITY_UNLOCK_LEVEL;
 
   const view = useMemo(() => {
     if (!snapshot || !progress) return null;
@@ -291,29 +292,34 @@ export function QuestScreen({ date }: { date: string }) {
         </CategoryPanel>
       </div>
 
-      {progress.level >= 5 ? (
-        <div className="mt-4">
-          <CategoryPanel
-            title="Recovery"
-            Icon={IconSleep}
-            done={log?.sleep?.hours != null ? 1 : 0}
-            total={1}
-            complete={log?.sleep?.hours != null}
-            open={openCategory === "recovery"}
-            onToggle={() => setChosenCategory(openCategory === "recovery" ? null : "recovery")}
-            summary={`${log?.sleep?.hours ?? 0} h logged.`}
-          >
-            <RecoveryRow
-              key={`recovery-${date}`}
-              level={progress.level}
-              hours={log?.sleep?.hours ?? null}
-              waterL={log?.sleep?.waterL ?? null}
-              readOnly={readOnly}
-              onSave={(h, w) => void run(() => actions.setSleep(date, h, w))}
-            />
-          </CategoryPanel>
-        </div>
-      ) : null}
+      {/* Always present, sealed until VITALITY unlocks: the stat told you sleep
+          grows it, so there has to be somewhere that sleep visibly goes. */}
+      <div className="mt-4">
+        <CategoryPanel
+          title="Recovery"
+          Icon={IconSleep}
+          done={log?.sleep?.hours != null ? 1 : 0}
+          total={1}
+          complete={log?.sleep?.hours != null}
+          locked={recoverySealed}
+          open={openCategory === "recovery"}
+          onToggle={() => setChosenCategory(openCategory === "recovery" ? null : "recovery")}
+          summary={
+            recoverySealed
+              ? `Unlocks at level ${VITALITY_UNLOCK_LEVEL}.`
+              : `${log?.sleep?.hours ?? 0} h logged.`
+          }
+        >
+          <RecoveryRow
+            key={`recovery-${date}`}
+            level={progress.level}
+            hours={log?.sleep?.hours ?? null}
+            waterL={log?.sleep?.waterL ?? null}
+            readOnly={readOnly}
+            onSave={(h, w) => void run(() => actions.setSleep(date, h, w))}
+          />
+        </CategoryPanel>
+      </div>
 
       <RestTimer
         key={restKey ?? "idle"}

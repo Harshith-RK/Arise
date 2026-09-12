@@ -578,6 +578,11 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **Recovery is sealed, not hidden.** It used to render only at level 5 and up, so while Status
+  said VITALITY grows from logged sleep there was nowhere to log any. The panel is now always
+  present: a padlock instead of the count, the reason and the levels remaining on the row, and the
+  real steppers shown inert underneath. A control you can see is a goal; a control that is absent
+  is a missing feature.
 - **The calorie target is a training-day number.** Rest days drop the Calories meter entirely
   (protein, carbs and fat keep their targets) and say so, rather than showing a ceiling that does
   not apply on a day with no session. Meals still count and still earn diet XP: a rest day is not

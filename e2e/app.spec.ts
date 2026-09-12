@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { awaken, watchErrors } from "./helpers";
+import { buildLevel5Backup } from "./level5-backup";
 
 const APP_ROUTES = [
   "/app/quest",
@@ -157,6 +158,40 @@ test.describe("app", () => {
 
     // Meals still count either way: a rest day is not a day off from the diet.
     await expect(page.getByText(/\d+ \/ \d+ MEALS/)).toBeVisible();
+  });
+
+  test("Recovery is visible but sealed below level 5, and opens at it", async ({ page }) => {
+    await page.goto("/app/quest");
+    const header = page.getByRole("button", { name: /^Recovery/ });
+
+    // Present from day one, so the stat that says sleep grows VITALITY has a
+    // visible home. Sealed, with the reason on it.
+    await expect(header).toBeVisible();
+    await header.click();
+    await expect(page.getByText(/SEALED UNTIL LEVEL 5/)).toBeVisible();
+    await expect(page.getByRole("button", { name: /Increase Hours slept/i })).toBeDisabled();
+
+    // Past level 5 the same panel becomes a real control.
+    const { json } = buildLevel5Backup();
+    await page.goto("/app/system");
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "backup.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(json),
+    });
+    await page.getByRole("button", { name: "Replace", exact: true }).click();
+    await page.waitForTimeout(1200);
+
+    await page.goto("/app/quest");
+    await page.getByRole("button", { name: /^Recovery/ }).click();
+    await expect(page.getByText(/SEALED UNTIL LEVEL 5/)).toHaveCount(0);
+    const hours = page.getByRole("button", { name: /Increase Hours slept/i });
+    await expect(hours).toBeEnabled();
+
+    // And it logs.
+    await page.locator("[data-quest-row]").last().click();
+    await page.waitForTimeout(700);
+    await expect(page.getByText(/H SLEEP \/ .* L WATER/)).toBeVisible();
   });
 
   test("the supplies list persists a new item", async ({ page }) => {

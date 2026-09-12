@@ -76,6 +76,7 @@ export function WeightStepper({
   min = 0,
   max = 500,
   label,
+  disabled = false,
 }: {
   value: number;
   onChange: (v: number) => void;
@@ -85,6 +86,8 @@ export function WeightStepper({
   min?: number;
   max?: number;
   label: string;
+  /** Shown but inert, so a locked control still reads as the thing it will be. */
+  disabled?: boolean;
 }) {
   const hold = useRef<{ timer?: ReturnType<typeof setTimeout>; interval?: ReturnType<typeof setInterval> }>({});
   const clamp = (v: number) => Math.min(max, Math.max(min, Math.round(v * 100) / 100));
@@ -112,10 +115,15 @@ export function WeightStepper({
   useEffect(() => stop, []);
 
   return (
-    <div className="flex items-stretch border border-line-2" role="group" aria-label={label}>
+    <div
+      className={`flex items-stretch border ${disabled ? "border-line-1" : "border-line-2"}`}
+      role="group"
+      aria-label={label}
+    >
       <button
         type="button"
-        className="pressable flex h-11 w-11 items-center justify-center text-frost-1 transition-none hov:bg-ink-3 hov:text-frost-0"
+        disabled={disabled}
+        className="pressable flex h-11 w-11 items-center justify-center text-frost-1 transition-none hov:bg-ink-3 hov:text-frost-0 disabled:text-frost-2"
         onPointerDown={() => start(-1)}
         onPointerUp={stop}
         onPointerLeave={stop}
@@ -127,7 +135,10 @@ export function WeightStepper({
       <button
         type="button"
         onClick={onOpenKeypad}
-        className="t-readout flex h-11 min-w-[92px] items-center justify-center gap-1 border-x border-line-2 px-2 text-frost-0 transition-none hov:bg-ink-3"
+        disabled={disabled}
+        className={`t-readout flex h-11 min-w-[92px] items-center justify-center gap-1 border-x px-2 transition-none hov:bg-ink-3 ${
+          disabled ? "border-line-1 text-frost-2" : "border-line-2 text-frost-0"
+        }`}
         aria-label={`${label}: ${value} ${suffix}. Edit`}
       >
         {value === 0 ? "BW" : value}
@@ -135,7 +146,8 @@ export function WeightStepper({
       </button>
       <button
         type="button"
-        className="pressable flex h-11 w-11 items-center justify-center text-frost-1 transition-none hov:bg-ink-3 hov:text-frost-0"
+        disabled={disabled}
+        className="pressable flex h-11 w-11 items-center justify-center text-frost-1 transition-none hov:bg-ink-3 hov:text-frost-0 disabled:text-frost-2"
         onPointerDown={() => start(1)}
         onPointerUp={stop}
         onPointerLeave={stop}
