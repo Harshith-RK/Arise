@@ -144,6 +144,80 @@ test.describe("app", () => {
     await expect(panel).toHaveCount(0);
   });
 
+  test("meals cannot be ticked before their time, but past days stay editable", async ({ page }) => {
+    await page.goto("/app/quest");
+    await page.waitForTimeout(600);
+    const diet = page.locator("button[aria-expanded]").filter({ hasText: /Diet/i }).first();
+    if ((await diet.getAttribute("aria-expanded")) === "false") await diet.click();
+    await page.waitForTimeout(400);
+
+    // Each meal's locked state must match the clock: locked until 30 min before.
+    const rows = await page.evaluate(() => {
+      const toMinutes = (t: string) => {
+        const m = /(\d+):(\d+)\s*(AM|PM)/i.exec(t);
+        if (!m) return null;
+        let h = Number(m[1]) % 12;
+        if (/pm/i.test(m[3])) h += 12;
+        return h * 60 + Number(m[2]);
+      };
+      const now = new Date();
+      const mins = now.getHours() * 60 + now.getMinutes();
+      return [...document.querySelectorAll<HTMLButtonElement>("[data-quest-row]")]
+        .filter((b) => b.innerText.includes("KCAL"))
+        .map((b) => {
+          const row = b.closest("div")?.parentElement?.innerText ?? "";
+          const at = toMinutes(row);
+          return { disabled: b.disabled, shouldLock: at === null ? null : mins < at - 30 };
+        });
+    });
+
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      if (r.shouldLock !== null) expect(r.disabled).toBe(r.shouldLock);
+    }
+
+    // A past day can always be back-filled.
+    await page.goto("/app/quest/2026-09-10");
+    await page.waitForTimeout(600);
+    const diet2 = page.locator("button[aria-expanded]").filter({ hasText: /Diet/i }).first();
+    if ((await diet2.getAttribute("aria-expanded")) === "false") await diet2.click();
+    await page.waitForTimeout(400);
+    const anyLocked = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLButtonElement>("[data-quest-row]")]
+        .filter((b) => b.innerText.includes("KCAL"))
+        .some((b) => b.disabled),
+    );
+    expect(anyLocked).toBe(false);
+  });
+
+  test("returning from a trophy lands back on the trophies tab", async ({ page }) => {
+    await page.goto("/app/progress");
+    await page.getByRole("tab", { name: "Trophies" }).click();
+    await expect(page).toHaveURL(/tab=trophies/);
+
+    await page.locator('a[href*="/app/progress/trophies/"]').first().click();
+    await expect(page).toHaveURL(/\/app\/progress\/trophies\//);
+
+    // The in-app link returns to the tab you were on, not the default.
+    await page.getByRole("link", { name: /back to trophies/i }).click();
+    await expect(page.getByRole("tab", { name: "Trophies" })).toHaveAttribute("aria-selected", "true");
+
+    // And so does the browser back button.
+    await page.locator('a[href*="/app/progress/trophies/"]').first().click();
+    await page.goBack();
+    await expect(page.getByRole("tab", { name: "Trophies" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  test("the log tab survives a round trip to supplies", async ({ page }) => {
+    await page.goto("/app/log");
+    await page.getByRole("tab", { name: "Diet" }).click();
+    await expect(page).toHaveURL(/tab=diet/);
+    await page.getByRole("link", { name: /supplies/i }).click();
+    await expect(page).toHaveURL(/supplies/);
+    await page.goBack();
+    await expect(page.getByRole("tab", { name: "Diet" })).toHaveAttribute("aria-selected", "true");
+  });
+
   test("skin preference applies and survives a reload", async ({ page }) => {
     await page.goto("/app/system");
     await page.getByRole("group", { name: "Skin" }).getByRole("button", { name: "Whiteout" }).click();

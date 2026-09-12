@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SETTINGS, seedDietPlan, seedProfile, seedSupplies, seedWorkoutPlan } from "@/lib/data/seed";
 import { addDays, dayKeyOf, toKey } from "./dates";
-import { evaluateDay, makePlanLookup } from "./day";
+import { evaluateDay, makePlanLookup, mealLocked, MEAL_GRACE_MINUTES } from "./day";
 import { deriveProgress } from "./derive";
 import { diffProgress } from "./events";
 import { epley, setScore } from "./pr";
@@ -253,6 +253,34 @@ describe("undo and events", () => {
     expect(b.level).toBe(1);
     expect(a.level).toBe(2);
     expect(diffProgress(b, a, MONDAY).some((e) => e.type === "level_up")).toBe(true);
+  });
+});
+
+/* ---------- Meal time gate ---------- */
+
+describe("meal time gate", () => {
+  const at = (h: number, m = 0) => new Date(2026, 9, 5, h, m);
+
+  it("locks a meal before its time on today", () => {
+    expect(mealLocked(MONDAY, MONDAY, "21:30", at(7))).toBe(true);
+    expect(mealLocked(MONDAY, MONDAY, "13:00", at(9))).toBe(true);
+  });
+
+  it("unlocks at its time, and a little before", () => {
+    expect(mealLocked(MONDAY, MONDAY, "13:00", at(13))).toBe(false);
+    expect(mealLocked(MONDAY, MONDAY, "13:00", at(14))).toBe(false);
+    // the grace window
+    expect(mealLocked(MONDAY, MONDAY, "13:00", at(12, 60 - MEAL_GRACE_MINUTES))).toBe(false);
+    expect(mealLocked(MONDAY, MONDAY, "13:00", at(12, 0))).toBe(true);
+  });
+
+  it("never locks a past day, so a missed day can be back-filled", () => {
+    expect(mealLocked(addDays(MONDAY, -1), MONDAY, "21:30", at(7))).toBe(false);
+  });
+
+  it("locks the earliest meal only in the small hours", () => {
+    expect(mealLocked(MONDAY, MONDAY, "07:00", at(3))).toBe(true);
+    expect(mealLocked(MONDAY, MONDAY, "07:00", at(6, 30))).toBe(false);
   });
 });
 

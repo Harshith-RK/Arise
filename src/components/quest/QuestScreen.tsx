@@ -14,7 +14,7 @@ import { RecoveryRow } from "./RecoveryRow";
 import { IconBack, IconBonus, IconCalendar, IconCardio, IconDumbbell, IconForward, IconMeal, IconSleep } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { addDays, formatReadout } from "@/lib/engine/dates";
-import { evaluateDay, isRestDay, makePlanLookup, trainingDayFor } from "@/lib/engine/day";
+import { evaluateDay, isRestDay, makePlanLookup, mealLocked, trainingDayFor } from "@/lib/engine/day";
 import { lastSessionFor } from "@/lib/engine/derive";
 import { sendHeat } from "@/lib/heat-transfer";
 import { xpGained } from "@/lib/store/apply-outcome";
@@ -32,6 +32,12 @@ export function QuestScreen({ date }: { date: string }) {
   // undefined means "not chosen yet", which falls back to the derived default.
   const [chosenCategory, setChosenCategory] = useState<Category | null | undefined>(undefined);
   const [restKey, setRestKey] = useState<number | null>(null);
+  // Ticks so a meal unlocks itself the moment its time arrives.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
   const [prExercises, setPrExercises] = useState<Set<string>>(new Set());
   const lastUndo = useRef<(() => Promise<void>) | null>(null);
   const rowRefs = useRef<HTMLElement[]>([]);
@@ -255,6 +261,7 @@ export function QuestScreen({ date }: { date: string }) {
               eaten={!!log?.meals[meal.id]?.eaten}
               override={log?.meals[meal.id]?.override ?? null}
               readOnly={readOnly}
+              locked={mealLocked(date, today, meal.time, now)}
               onToggle={() => void run(() => actions.toggleMeal(date, meal.id), document.activeElement)}
               onOverride={(macros) => void run(() => actions.setMealOverride(date, meal.id, macros))}
             />

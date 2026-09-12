@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Tabs } from "@/components/system/Tabs";
 import { Button, EmptyState, Panel, Placeholder, Readout } from "@/components/system/primitives";
 import { SystemWindow } from "@/components/system/SystemWindow";
@@ -19,7 +20,15 @@ import { addDays, formatShort } from "@/lib/engine/dates";
 type Range = "4w" | "12w" | "all";
 
 export function ProgressScreen() {
-  const [tab, setTab] = useState<"telemetry" | "trophies">("telemetry");
+  // The tab lives in the URL so a trophy link, a bookmark and the browser
+  // back button all return to the section you were actually in.
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const tab = params.get("tab") === "trophies" ? "trophies" : "telemetry";
+  const setTab = (v: "telemetry" | "trophies") =>
+    router.replace(`${pathname}?tab=${v}`, { scroll: false });
+
   return (
     <>
       <Tabs

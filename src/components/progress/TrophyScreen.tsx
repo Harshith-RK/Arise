@@ -20,7 +20,7 @@ export function TrophyScreen({ id }: { id: string }) {
         <EmptyState
           title="NO SUCH TROPHY"
           body="That award does not exist."
-          action={<ButtonLink href="/app/progress" size="sm">Back to trophies</ButtonLink>}
+          action={<ButtonLink href="/app/progress?tab=trophies" size="sm">Back to trophies</ButtonLink>}
         />
       </Panel>
     );
@@ -32,7 +32,7 @@ export function TrophyScreen({ id }: { id: string }) {
 
   return (
     <>
-      <Link href="/app/progress" className="t-micro mb-4 inline-block text-frost-2 transition-none hov:text-frost-0">
+      <Link href="/app/progress?tab=trophies" className="t-micro mb-4 inline-block text-frost-2 transition-none hov:text-frost-0">
         BACK TO TROPHIES
       </Link>
 

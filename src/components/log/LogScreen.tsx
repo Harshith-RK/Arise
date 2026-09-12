@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Tabs } from "@/components/system/Tabs";
 import { Meter, Panel, Placeholder, Readout } from "@/components/system/primitives";
 import { SystemWindow } from "@/components/system/SystemWindow";
@@ -12,7 +13,12 @@ import { makePlanLookup, planTotals } from "@/lib/engine/day";
 import type { DayKey } from "@/lib/engine/types";
 
 export function LogScreen() {
-  const [tab, setTab] = useState<"workout" | "diet">("workout");
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const tab = params.get("tab") === "diet" ? "diet" : "workout";
+  const setTab = (v: "workout" | "diet") => router.replace(`${pathname}?tab=${v}`, { scroll: false });
+
   return (
     <>
       <Tabs

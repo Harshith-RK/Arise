@@ -4,6 +4,7 @@ import { m, useMotionValue, useTransform } from "motion/react";
 import { useRef, useState } from "react";
 import { Drawer } from "vaul";
 import { CompletionSquare, StrikeLabel } from "./QuestBits";
+import { IconLock } from "@/components/icons";
 import { SPRING, vibrate } from "@/lib/motion";
 import { formatTime } from "@/lib/engine/dates";
 import type { Macros, MealDef } from "@/lib/engine/types";
@@ -15,6 +16,7 @@ export function MealRow({
   eaten,
   override,
   readOnly,
+  locked = false,
   onToggle,
   onOverride,
 }: {
@@ -22,6 +24,8 @@ export function MealRow({
   eaten: boolean;
   override: Macros | null;
   readOnly: boolean;
+  /** Not yet its time. Already-eaten meals stay untickable so mistakes can be undone. */
+  locked?: boolean;
   onToggle: () => void;
   onOverride: (m: Macros | null) => void;
 }) {
@@ -32,6 +36,7 @@ export function MealRow({
   const tint = useTransform(x, [0, COMMIT_PX], [0, 1]);
   const detailTint = useTransform(x, [-COMMIT_PX, 0], [1, 0]);
   const macros = override ?? { protein: meal.protein, carbs: meal.carbs, fat: meal.fat, kcal: meal.kcal };
+  const shut = locked && !eaten;
 
   return (
     <>
@@ -39,7 +44,7 @@ export function MealRow({
         <m.span className="pointer-events-none absolute inset-0 bg-ember-3" style={{ opacity: tint }} aria-hidden />
         <m.span className="pointer-events-none absolute inset-0 bg-ink-3" style={{ opacity: detailTint }} aria-hidden />
         <m.div
-          drag={readOnly ? false : "x"}
+          drag={readOnly || shut ? false : "x"}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.35}
           dragSnapToOrigin
@@ -64,17 +69,23 @@ export function MealRow({
             <button
               type="button"
               onClick={onToggle}
-              disabled={readOnly}
+              disabled={readOnly || shut}
               aria-pressed={eaten}
               data-quest-row
               className="pressable flex min-w-0 flex-1 items-center gap-3 text-left"
             >
-              <CompletionSquare done={eaten} />
+              {shut ? (
+                <IconLock size={20} className="shrink-0 text-frost-2" />
+              ) : (
+                <CompletionSquare done={eaten} />
+              )}
               <span className="min-w-0 flex-1">
                 <StrikeLabel done={eaten} className="t-body">
                   {meal.name}
                 </StrikeLabel>
                 <span className="t-micro mt-0.5 block text-frost-2">
+                  {shut ? `OPENS AT ${formatTime(meal.time)}` : null}
+                  {shut ? <span aria-hidden> / </span> : null}
                   {macros.protein}P / {macros.carbs}C / {macros.fat}F / {macros.kcal} KCAL
                   {override ? " / SWAPPED" : ""}
                 </span>

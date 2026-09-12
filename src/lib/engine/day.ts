@@ -1,4 +1,4 @@
-import { dayKeyOf } from "./dates";
+import { dayKeyOf, timeToMinutes } from "./dates";
 import type { DayLog, DietPlan, ExerciseDef, Macros, MealDef, Profile, TrainingDay, WorkoutPlan } from "./types";
 import { XP } from "./xp";
 
@@ -138,6 +138,24 @@ export function planTotals(plan: DietPlan): Macros {
     (t, m) => ({ protein: t.protein + m.protein, carbs: t.carbs + m.carbs, fat: t.fat + m.fat, kcal: t.kcal + m.kcal }),
     { protein: 0, carbs: 0, fat: 0, kcal: 0 },
   );
+}
+
+/**
+ * Meals cannot be ticked before they happen: the 9:30 PM plate should not be
+ * markable at 7 AM. A small grace window allows eating slightly early.
+ * Past days are exempt so a missed day can still be back-filled honestly.
+ */
+export const MEAL_GRACE_MINUTES = 30;
+
+export function mealLocked(date: string, today: string, mealTime: string, now: Date): boolean {
+  if (date !== today) return false;
+  const minutesNow = now.getHours() * 60 + now.getMinutes();
+  return minutesNow < timeToMinutes(mealTime) - MEAL_GRACE_MINUTES;
+}
+
+/** When a meal becomes tickable, as minutes after midnight. */
+export function mealUnlockMinutes(mealTime: string): number {
+  return Math.max(0, timeToMinutes(mealTime) - MEAL_GRACE_MINUTES);
 }
 
 /** Estimated total daily energy expenditure for a daily-training lifter. */
