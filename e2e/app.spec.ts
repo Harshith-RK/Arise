@@ -9,7 +9,7 @@ const APP_ROUTES = [
   "/app/log/workout/mon",
   "/app/log/exercise/squat",
   "/app/progress",
-  "/app/progress/trophies/first-gate",
+  "/app/progress/badges/first-gate",
   "/app/system",
   "/app/system/plan/workout",
   "/app/system/plan/diet",
@@ -190,22 +190,22 @@ test.describe("app", () => {
     expect(anyLocked).toBe(false);
   });
 
-  test("returning from a trophy lands back on the trophies tab", async ({ page }) => {
+  test("returning from a badge lands back on the badges tab", async ({ page }) => {
     await page.goto("/app/progress");
-    await page.getByRole("tab", { name: "Trophies" }).click();
-    await expect(page).toHaveURL(/tab=trophies/);
+    await page.getByRole("tab", { name: "Badges" }).click();
+    await expect(page).toHaveURL(/tab=badges/);
 
-    await page.locator('a[href*="/app/progress/trophies/"]').first().click();
-    await expect(page).toHaveURL(/\/app\/progress\/trophies\//);
+    await page.locator('a[href*="/app/progress/badges/"]').first().click();
+    await expect(page).toHaveURL(/\/app\/progress\/badges\//);
 
     // The in-app link returns to the tab you were on, not the default.
-    await page.getByRole("link", { name: /back to trophies/i }).click();
-    await expect(page.getByRole("tab", { name: "Trophies" })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("link", { name: /back to badges/i }).click();
+    await expect(page.getByRole("tab", { name: "Badges" })).toHaveAttribute("aria-selected", "true");
 
     // And so does the browser back button.
-    await page.locator('a[href*="/app/progress/trophies/"]').first().click();
+    await page.locator('a[href*="/app/progress/badges/"]').first().click();
     await page.goBack();
-    await expect(page.getByRole("tab", { name: "Trophies" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("tab", { name: "Badges" })).toHaveAttribute("aria-selected", "true");
   });
 
   test("the log tab survives a round trip to supplies", async ({ page }) => {

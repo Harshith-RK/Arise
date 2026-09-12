@@ -14,7 +14,7 @@ export type SystemEvent =
   | { type: "rank_up"; from: Rank; to: Rank }
   | { type: "streak_milestone"; category: StreakCategory; count: number }
   | { type: "pr"; record: PersonalRecord }
-  | { type: "trophy"; id: string }
+  | { type: "badge"; id: string }
   | { type: "day_cleared"; date: string; arcDay: number; dayXp: number };
 
 export const STREAK_MILESTONES = [3, 7, 14, 30, 60, 90] as const;
@@ -49,9 +49,9 @@ export function diffProgress(before: Progress, after: Progress, date: string): S
     if (!seen.has(`${r.date}:${r.variantId}`)) events.push({ type: "pr", record: r });
   }
 
-  for (const id of Object.keys(after.trophies)) {
-    if (after.trophies[id].unlockedOn && !before.trophies[id]?.unlockedOn) {
-      events.push({ type: "trophy", id });
+  for (const id of Object.keys(after.badges)) {
+    if (after.badges[id].unlockedOn && !before.badges[id]?.unlockedOn) {
+      events.push({ type: "badge", id });
     }
   }
 

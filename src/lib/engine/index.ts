@@ -5,4 +5,4 @@ export * from "./pr";
 export * from "./day";
 export * from "./derive";
 export * from "./events";
-export * from "./trophies";
+export * from "./badges";

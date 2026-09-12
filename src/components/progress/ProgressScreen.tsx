@@ -10,23 +10,23 @@ import dynamic from "next/dynamic";
 import type { Point } from "@/components/charts/LineChart";
 
 const LineChart = dynamic(() => import("@/components/charts/LineChart").then((m) => m.LineChart), { ssr: false });
-import { RankPlaque } from "@/components/system/RankPlaque";
+import { Badge } from "@/components/system/Badge";
 import { WeighInSheet } from "@/components/status/WeighInSheet";
-import { IconLock, IconScale } from "@/components/icons";
+import { IconScale } from "@/components/icons";
 import { useGame } from "@/lib/store/GameProvider";
-import { TROPHIES } from "@/lib/engine/trophies";
+import { BADGES } from "@/lib/engine/badges";
 import { addDays, formatShort } from "@/lib/engine/dates";
 
 type Range = "4w" | "12w" | "all";
 
 export function ProgressScreen() {
-  // The tab lives in the URL so a trophy link, a bookmark and the browser
+  // The tab lives in the URL so a badge link, a bookmark and the browser
   // back button all return to the section you were actually in.
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const tab = params.get("tab") === "trophies" ? "trophies" : "telemetry";
-  const setTab = (v: "telemetry" | "trophies") =>
+  const tab = params.get("tab") === "badges" ? "badges" : "telemetry";
+  const setTab = (v: "telemetry" | "badges") =>
     router.replace(`${pathname}?tab=${v}`, { scroll: false });
 
   return (
@@ -37,10 +37,10 @@ export function ProgressScreen() {
         onChange={setTab}
         options={[
           { value: "telemetry", label: "Telemetry" },
-          { value: "trophies", label: "Trophies" },
+          { value: "badges", label: "Badges" },
         ]}
       />
-      {tab === "telemetry" ? <Telemetry /> : <Trophies />}
+      {tab === "telemetry" ? <Telemetry /> : <Badges />}
     </>
   );
 }
@@ -132,42 +132,34 @@ function Telemetry() {
   );
 }
 
-function Trophies() {
+function Badges() {
   const progress = useGame((s) => s.progress);
   if (!progress) return <Placeholder height={320} />;
 
-  const unlocked = TROPHIES.filter((t) => progress.trophies[t.id]?.unlockedOn).length;
+  const unlocked = BADGES.filter((t) => progress.badges[t.id]?.unlockedOn).length;
 
   return (
     <>
       <div className="mb-4 flex items-baseline justify-between">
         <Readout className="text-frost-1">
-          {unlocked} of {TROPHIES.length} earned
+          {unlocked} of {BADGES.length} earned
         </Readout>
         <span className="t-micro text-frost-2">TAP FOR DETAIL</span>
       </div>
       <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-        {TROPHIES.map((t) => {
-          const state = progress.trophies[t.id];
+        {BADGES.map((t) => {
+          const state = progress.badges[t.id];
           const isUnlocked = !!state?.unlockedOn;
           const target = t.id === "arc-complete" ? Math.max(t.target, state?.current ?? t.target) : t.target;
           return (
             <li key={t.id}>
               <Link
-                href={`/app/progress/trophies/${t.id}`}
+                href={`/app/progress/badges/${t.id}`}
                 className={`pressable flex aspect-square flex-col items-center justify-center gap-2 border px-2 text-center transition-none ${
                   isUnlocked ? "border-brass bg-ink-1 hov:bg-ink-2" : "border-line-2 hov:border-frost-2"
                 }`}
               >
-                {t.rank ? (
-                  <RankPlaque rank={t.rank} tone={isUnlocked ? "brass" : "locked"} size={40} />
-                ) : isUnlocked ? (
-                  <span className="t-num text-brass" style={{ fontSize: 26 }}>
-                    {t.target}
-                  </span>
-                ) : (
-                  <IconLock size={18} className="text-line-2" />
-                )}
+                <Badge id={t.id} earned={isUnlocked} size={44} />
                 <span className={`t-micro leading-tight ${isUnlocked ? "text-frost-0" : "text-frost-2"}`}>{t.name}</span>
                 <span className="t-micro text-frost-2">
                   {isUnlocked ? formatShort(state!.unlockedOn!).toUpperCase() : `${state?.current ?? 0} / ${target}`}

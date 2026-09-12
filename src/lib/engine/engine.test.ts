@@ -173,8 +173,8 @@ describe("streaks", () => {
   it("awards a Streak Shield and 200 XP once for seven cleared days", () => {
     const six = deriveProgress(snap(clearDays(MONDAY, 6)), addDays(MONDAY, 6));
     const seven = deriveProgress(snap(clearDays(MONDAY, 7)), addDays(MONDAY, 6));
-    expect(six.trophies["shield-7"].unlockedOn).toBeNull();
-    expect(seven.trophies["shield-7"].unlockedOn).toBe(addDays(MONDAY, 6));
+    expect(six.badges["shield-7"].unlockedOn).toBeNull();
+    expect(seven.badges["shield-7"].unlockedOn).toBe(addDays(MONDAY, 6));
     const day7 = seven.days[addDays(MONDAY, 6)].xp;
     expect(seven.xp - six.xp).toBe(day7 + XP.shield);
   });
@@ -242,7 +242,7 @@ describe("undo and events", () => {
     const types = events.map((e) => e.type);
     expect(types).toContain("xp");
     expect(types).toContain("day_cleared");
-    expect(types).toContain("trophy"); // First Gate
+    expect(types).toContain("badge"); // First Gate
     expect(b.level).toBe(2);
     expect(a.level).toBe(2);
   });

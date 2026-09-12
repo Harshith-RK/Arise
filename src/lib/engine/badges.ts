@@ -1,11 +1,11 @@
 import type { Rank } from "./types";
 
-export type TrophyKind = "rank" | "shield" | "record" | "milestone" | "body";
+export type BadgeKind = "rank" | "shield" | "record" | "milestone" | "body";
 
-export type TrophyDef = {
+export type BadgeDef = {
   id: string;
   name: string;
-  kind: TrophyKind;
+  kind: BadgeKind;
   /** How it is earned, in the System's voice. */
   rule: string;
   target: number;
@@ -13,7 +13,7 @@ export type TrophyDef = {
   rank?: Rank;
 };
 
-export const TROPHIES: TrophyDef[] = [
+export const BADGES: BadgeDef[] = [
   { id: "first-gate", name: "First Gate", kind: "milestone", rule: "Clear every mandatory quest in a single day.", target: 1, unit: "DAY" },
   { id: "shield-7", name: "Streak Shield", kind: "shield", rule: "Clear seven consecutive days. Awards 200 XP.", target: 7, unit: "DAYS" },
   { id: "week-one", name: "Clean Week", kind: "milestone", rule: "Clear all seven days of one Monday to Sunday week.", target: 7, unit: "DAYS" },
@@ -34,9 +34,9 @@ export const TROPHIES: TrophyDef[] = [
   { id: "rank-S", name: "Rank S", kind: "rank", rule: "Reach level 50.", target: 50, unit: "LEVEL", rank: "S" },
 ];
 
-export const TROPHY_BY_ID = Object.fromEntries(TROPHIES.map((t) => [t.id, t])) as Record<string, TrophyDef>;
+export const BADGE_BY_ID = Object.fromEntries(BADGES.map((t) => [t.id, t])) as Record<string, BadgeDef>;
 
-export type TrophyState = {
+export type BadgeState = {
   id: string;
   current: number;
   unlockedOn: string | null;

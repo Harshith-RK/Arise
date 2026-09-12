@@ -43,7 +43,7 @@ export default function PrivacyPage() {
             "Your Hunter profile: name, height, weights, body composition readings and targets.",
             "Your workout and diet plans, including every earlier version of them.",
             "Daily logs: which quests you cleared, weights and reps used, meals eaten, cardio and sleep entries.",
-            "Weigh-ins, levels, streaks and trophies derived from those logs.",
+            "Weigh-ins, levels, streaks and badges derived from those logs.",
             "Interface preferences: skin, motion, sound, haptics and rest timer length.",
           ].map((t) => (
             <li key={t} className="t-body flex gap-3 text-frost-1">

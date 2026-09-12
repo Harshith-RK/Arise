@@ -59,7 +59,7 @@ const PAIRS: [string, string, number, string][] = [
   ["ember", "ink-1", 4.5, "ember text on panel"],
   ["on-ember", "ember", 4.5, "primary button label"],
   ["glacier", "ink-1", 4.5, "cold state text"],
-  ["brass", "ink-1", 4.5, "trophy / PR text"],
+  ["brass", "ink-1", 4.5, "badge / PR text"],
   ["fault", "ink-1", 4.5, "penalty text"],
   ["core", "ink-1", 4.5, "white heat numerals"],
   ["line-2", "ink-1", 1.8, "focal frame visibility"],

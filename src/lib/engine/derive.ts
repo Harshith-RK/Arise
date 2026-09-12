@@ -1,7 +1,7 @@
 import { dayKeyOf, diffDays, eachDay, weekStart } from "./dates";
 import { evaluateDay, makePlanLookup, type DayResult } from "./day";
 import { round1, setScore } from "./pr";
-import { TROPHIES, type TrophyState } from "./trophies";
+import { BADGES, type BadgeState } from "./badges";
 import type { DayLog, Rank, Snapshot, WeighIn } from "./types";
 import { levelForXp, levelProgress, rankForLevel, XP } from "./xp";
 
@@ -64,7 +64,7 @@ export type Progress = {
   days: Record<string, DayResult>;
   records: PersonalRecord[];
   bestByVariant: Record<string, PersonalRecord>;
-  trophies: Record<string, TrophyState>;
+  badges: Record<string, BadgeState>;
   xpHistory: XpPoint[];
   totals: { sets: number; cardio: number; fullDietDays: number; goodSleep: number; weighInWeeks: number };
   latestWeighIn: WeighIn | null;
@@ -113,9 +113,9 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
   const bestByVariant: Record<string, PersonalRecord> = {};
   const xpHistory: XpPoint[] = [];
 
-  const trophyAt: Record<string, string | null> = Object.fromEntries(TROPHIES.map((t) => [t.id, null]));
+  const badgeAt: Record<string, string | null> = Object.fromEntries(BADGES.map((t) => [t.id, null]));
   const unlock = (id: string, date: string) => {
-    if (!trophyAt[id]) trophyAt[id] = date;
+    if (!badgeAt[id]) badgeAt[id] = date;
   };
 
   const weighInWeeks = new Set<string>();
@@ -315,7 +315,7 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     },
   };
 
-  const trophyCurrent: Record<string, number> = {
+  const badgeCurrent: Record<string, number> = {
     "first-gate": Object.values(days).some((d) => d.cleared) ? 1 : 0,
     "shield-7": bestFullStreak,
     "shield-14": bestFullStreak,
@@ -328,17 +328,17 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     "weigh-4": weighInWeeks.size,
     "cardio-30": cardio,
     "iron-500": sets,
-    "phase-one": trophyAt["phase-one"] ? 1 : 0,
+    "phase-one": badgeAt["phase-one"] ? 1 : 0,
     "rank-D": level,
     "rank-C": level,
     "rank-B": level,
     "rank-A": level,
     "rank-S": level,
   };
-  const trophies: Record<string, TrophyState> = {};
-  for (const t of TROPHIES) {
+  const badges: Record<string, BadgeState> = {};
+  for (const t of BADGES) {
     const target = t.id === "arc-complete" && profile ? profile.arcLength : t.target;
-    trophies[t.id] = { id: t.id, current: Math.min(target, trophyCurrent[t.id] ?? 0), unlockedOn: trophyAt[t.id] };
+    badges[t.id] = { id: t.id, current: Math.min(target, badgeCurrent[t.id] ?? 0), unlockedOn: badgeAt[t.id] };
   }
 
   const latestWeighIn = weighIns.filter((w) => w.date <= today).at(-1) ?? null;
@@ -360,7 +360,7 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     days,
     records,
     bestByVariant,
-    trophies,
+    badges,
     xpHistory,
     totals: { sets, cardio, fullDietDays, goodSleep, weighInWeeks: weighInWeeks.size },
     latestWeighIn,

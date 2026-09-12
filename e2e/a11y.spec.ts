@@ -27,7 +27,9 @@ test.describe("accessibility", () => {
       test(`${route} has no violations (${skin})`, async ({ page }) => {
         await page.goto(route);
         await page.evaluate((s) => document.documentElement.setAttribute("data-skin", s), skin);
-        await page.waitForTimeout(700);
+        // The thermal tokens transition over 1.2s. Sampling colour before that
+        // settles makes axe read mid-transition values and fail at random.
+        await page.waitForTimeout(1600);
 
         const results = await new AxeBuilder({ page })
           .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])

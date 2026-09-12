@@ -67,7 +67,7 @@ export const IconBonus = make("Bonus", ["M3 10h14", "M10 3v14", "M5.5 5.5l9 9M14
 export const IconStreak = make("Streak", ["M5.5 17.5 10 2.5l4.5 15Z", "M8.5 17.5 10 12.5l1.5 5"]);
 export const IconShield = make("Shield", "M10 2.5 16.5 5v5.5L10 17.5l-6.5-7V5Z");
 export const IconSeal = make("Seal", ["M7 2.5h6L17.5 7v6L13 17.5H7L2.5 13V7Z", "M7.5 10h5"]);
-export const IconTrophy = make("Trophy", ["M10 2.5l5.5 3.25v6.5L10 15.5l-5.5-3.25v-6.5Z", "M7 17.5h6"]);
+export const IconBadge = make("Badge", ["M10 2.5l5.5 3.25v6.5L10 15.5l-5.5-3.25v-6.5Z", "M7 17.5h6"]);
 export const IconLock = make("Lock", ["M5 9h10v8H5Z", "M7 9V6l1.5-2.5h3L13 6v3"]);
 export const IconRecord = make("Record", ["M4 16.5h12", "M6 16.5V9l4-5.5L14 9v7.5", "M8.5 12h3"]);
 
