@@ -45,6 +45,9 @@ export function mealMacros(meal: MealDef, log: DayLog | undefined): Macros {
 export type DayResult = {
   date: string;
   dayTitle: string;
+  /** A scheduled rest day. Distinct from workoutMandatory, which is also false
+   *  on a training day whose plan happens to be empty. */
+  isRest: boolean;
   workoutMandatory: boolean;
   exerciseTotal: number;
   exercisesDone: number;
@@ -113,6 +116,7 @@ export function evaluateDay(
   return {
     date,
     dayTitle: rest ? "Rest" : tday.title,
+    isRest: rest,
     workoutMandatory,
     exerciseTotal: defs.length,
     exercisesDone,

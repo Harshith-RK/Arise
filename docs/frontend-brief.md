@@ -578,6 +578,12 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **The calorie target is a training-day number.** Rest days drop the Calories meter entirely
+  (protein, carbs and fat keep their targets) and say so, rather than showing a ceiling that does
+  not apply on a day with no session. Meals still count and still earn diet XP: a rest day is not
+  a day off from the diet. Status and Awaken label the figure TRAINING DAY INTAKE / DEFICIT so the
+  two agree. `DayResult.isRest` carries this; `workoutMandatory` could not, since it is also false
+  on a training day whose plan is empty.
 - **The command palette needs a tap target, not only a shortcut.** The CMD K button was
   `lg:` only, so on a phone -- which has no Cmd key either -- there was no way to open the palette
   at all. The button now shows at every width and drops the "CMD K" label below `lg`, so the hint

@@ -120,11 +120,17 @@ function DietTab() {
   const kcalTarget = profile?.kcalTarget ?? totals.kcal;
   const proteinTarget = profile?.proteinTarget ?? totals.protein;
 
+  // The calorie target is a training-day number. On a rest day there is no
+  // ceiling to be over, so the row comes off rather than showing a figure that
+  // does not apply. Meals still count, and the macros still have targets.
+  const restDay = today?.isRest ?? false;
   const macros = [
     { key: "protein", label: "Protein", value: eaten.protein, target: proteinTarget, unit: "G", brassAtTarget: true },
     { key: "carbs", label: "Carbs", value: eaten.carbs, target: totals.carbs, unit: "G", brassAtTarget: false },
     { key: "fat", label: "Fat", value: eaten.fat, target: totals.fat, unit: "G", brassAtTarget: false },
-    { key: "kcal", label: "Calories", value: eaten.kcal, target: kcalTarget, unit: "KCAL", brassAtTarget: false },
+    ...(restDay
+      ? []
+      : [{ key: "kcal", label: "Calories", value: eaten.kcal, target: kcalTarget, unit: "KCAL", brassAtTarget: false }]),
   ];
 
   return (
@@ -164,6 +170,11 @@ function DietTab() {
             );
           })}
         </div>
+        {restDay ? (
+          <p className="t-micro mt-4 border-t border-line-1 pt-3 text-frost-2">
+            REST DAY. NO CALORIE TARGET TODAY. EAT THE PLAN AND CLEAR THE GATE.
+          </p>
+        ) : null}
       </SystemWindow>
 
       <Panel

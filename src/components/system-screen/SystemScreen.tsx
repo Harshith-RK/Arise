@@ -59,7 +59,7 @@ export function SystemScreen() {
           <Field label="TARGET WEIGHT" suffix="KG" type="number" step={0.1} value={profile.targetWeightKg} onChange={(v) => void saveProfile({ targetWeightKg: Number(v) })} />
           <Field label="PHASE 1 TARGET" suffix="KG" type="number" step={0.1} value={profile.phase1TargetKg} onChange={(v) => void saveProfile({ phase1TargetKg: Number(v) })} helper="The first milestone on the Status rule." />
           <Field label="BMR" suffix="KCAL" type="number" value={profile.bmr} onChange={(v) => void saveProfile({ bmr: Number(v) })} />
-          <Field label="CALORIE TARGET" suffix="KCAL" type="number" value={profile.kcalTarget} onChange={(v) => void saveProfile({ kcalTarget: Number(v) })} />
+          <Field label="CALORIE TARGET" suffix="KCAL" type="number" value={profile.kcalTarget} onChange={(v) => void saveProfile({ kcalTarget: Number(v) })} helper="Training days only. Rest days carry no calorie target." />
           <Field label="PROTEIN TARGET" suffix="G" type="number" value={profile.proteinTarget} onChange={(v) => void saveProfile({ proteinTarget: Number(v) })} />
           <Field label="GYM FROM" type="time" value={profile.gymStart} onChange={(v) => void saveProfile({ gymStart: v })} />
           <Field label="GYM UNTIL" type="time" value={profile.gymEnd} onChange={(v) => void saveProfile({ gymEnd: v })} />
@@ -74,6 +74,9 @@ export function SystemScreen() {
                   key={d}
                   type="button"
                   aria-pressed={on}
+                  // The visible letter is ambiguous on its own: Saturday and
+                  // Sunday are both "S", and Tuesday and Thursday both "T".
+                  aria-label={`${DAY_TITLES[d]} is a rest day`}
                   onClick={() => void saveProfile({ restDays: on ? profile.restDays.filter((x) => x !== d) : [...profile.restDays, d] })}
                   className="pressable t-micro h-12 border border-line-2 text-frost-2 transition-none aria-pressed:border-glacier aria-pressed:bg-ink-3 aria-pressed:text-glacier"
                 >

@@ -135,6 +135,30 @@ test.describe("app", () => {
     }
   });
 
+  test("the calorie target shows on training days and not on rest days", async ({ page }) => {
+    const dayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
+    const toggle = () => page.getByRole("button", { name: `${dayName} is a rest day` });
+    const calories = page.getByText(/^CALORIES$/i);
+
+    await page.goto("/app/system");
+    const wasRest = (await toggle().getAttribute("aria-pressed")) === "true";
+
+    // Whatever today is, flipping its rest state flips the calorie row.
+    await page.goto("/app/log?tab=diet");
+    await expect(calories).toHaveCount(wasRest ? 0 : 1);
+    await expect(page.getByText(/NO CALORIE TARGET TODAY/)).toHaveCount(wasRest ? 1 : 0);
+
+    await page.goto("/app/system");
+    await toggle().click();
+    await page.waitForTimeout(500);
+    await page.goto("/app/log?tab=diet");
+    await expect(calories).toHaveCount(wasRest ? 1 : 0);
+    await expect(page.getByText(/NO CALORIE TARGET TODAY/)).toHaveCount(wasRest ? 0 : 1);
+
+    // Meals still count either way: a rest day is not a day off from the diet.
+    await expect(page.getByText(/\d+ \/ \d+ MEALS/)).toBeVisible();
+  });
+
   test("the supplies list persists a new item", async ({ page }) => {
     await page.goto("/app/log/diet/supplies");
     await page.getByLabel("Add a supply item").fill("Oats");

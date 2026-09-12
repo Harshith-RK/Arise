@@ -218,9 +218,11 @@ export function StatusScreen() {
 
           <div className="mt-6 grid gap-px border border-line-1 bg-line-1 sm:grid-cols-3">
             <Cell label="ESTIMATED TDEE" value={`${tdee} KCAL`} />
-            <Cell label="PLANNED INTAKE" value={`${profile.kcalTarget} KCAL`} />
+            {/* The target applies on training days only, so these two are
+                labelled for the days they actually govern. */}
+            <Cell label="TRAINING DAY INTAKE" value={`${profile.kcalTarget} KCAL`} />
             <Cell
-              label="DAILY DEFICIT"
+              label="TRAINING DAY DEFICIT"
               value={`${deficit} KCAL`}
               tone={deficit < 250 ? "var(--glacier)" : "var(--ember)"}
             />
@@ -228,6 +230,7 @@ export function StatusScreen() {
           {deficit < 250 ? (
             <p className="t-micro mt-3 text-glacier">
               A deficit under 250 kcal moves slowly. Lower the calorie target in System to speed the arc up.
+              Rest days carry no target.
             </p>
           ) : null}
         </div>

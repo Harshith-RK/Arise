@@ -398,6 +398,7 @@ export function AwakenFlow() {
                       value={draft.kcalTarget}
                       onChange={(v) => set("kcalTarget", v)}
                       error={errors.kcalTarget}
+                      helper="Training days only."
                     />
                     <Field
                       label="PROTEIN TARGET"
@@ -466,9 +467,9 @@ function Summary({ draft }: { draft: Draft }) {
     ["BMI", Number.isFinite(bmi) ? bmi.toFixed(1) : "-"],
     ["GYM WINDOW", `${draft.gymStart} TO ${draft.gymEnd}`],
     ["REST DAYS", draft.restDays.length ? draft.restDays.map((d) => d.toUpperCase()).join(" ") : "NONE"],
-    ["INTAKE TARGET", `${draft.kcalTarget} KCAL / ${draft.proteinTarget} G PROTEIN`],
+    ["TRAINING DAY INTAKE", `${draft.kcalTarget} KCAL / ${draft.proteinTarget} G PROTEIN`],
     ["ESTIMATED TDEE", `${tdee} KCAL`],
-    ["DAILY DEFICIT", `${deficit} KCAL`],
+    ["TRAINING DAY DEFICIT", `${deficit} KCAL`],
   ];
   return (
     <div>

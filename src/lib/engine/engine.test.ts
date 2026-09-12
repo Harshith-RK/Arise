@@ -286,6 +286,27 @@ describe("meal time gate", () => {
 
 /* ---------- Weigh-ins ---------- */
 
+describe("rest days", () => {
+  it("marks a scheduled rest day, separately from whether a workout is mandatory", () => {
+    const plans = makePlanLookup([workoutPlan], [dietPlan]);
+    const profile = { restDays: ["sat", "sun"] as const };
+    const sat = evaluateDay(addDays(MONDAY, 5), undefined, plans, { restDays: [...profile.restDays] });
+    const mon = evaluateDay(MONDAY, undefined, plans, { restDays: [...profile.restDays] });
+    expect(sat.isRest).toBe(true);
+    expect(sat.workoutMandatory).toBe(false);
+    expect(mon.isRest).toBe(false);
+    expect(mon.workoutMandatory).toBe(true);
+  });
+
+  it("still counts meals and diet XP on a rest day", () => {
+    const sat = addDays(MONDAY, 5);
+    const p = deriveProgress(snap([dayLog(sat, { workout: false, cardio: false })]), sat);
+    expect(p.days[sat].isRest).toBe(true);
+    expect(p.days[sat].dietComplete).toBe(true);
+    expect(p.days[sat].xp).toBeGreaterThan(0);
+  });
+});
+
 describe("weigh-ins", () => {
   const w = (date: string, kg: number): WeighIn => ({ date, weightKg: kg, bodyFatPct: null, muscleKg: null, visceral: null });
   // seedProfile starts at 95.5 kg and targets 72.7, so down is toward the goal.
