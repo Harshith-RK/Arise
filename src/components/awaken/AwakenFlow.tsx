@@ -16,7 +16,6 @@ import { EASE } from "@/lib/motion";
 import { estimateTdee } from "@/lib/engine/day";
 
 const DRAFT_KEY = "wa:awaken-draft";
-const BOOT_KEY = "wa:booted";
 const STEPS = ["Identity", "Body scan", "Training", "Diet", "Confirm"] as const;
 
 type Draft = {
@@ -87,15 +86,16 @@ export function AwakenFlow() {
   const router = useRouter();
   const status = useGame((s) => s.status);
   const { actions } = useGameActions();
-  const [restored, setRestored] = useState<{ draft: Draft | null; booted: boolean } | null>(null);
-  const [skippedBoot, setSkippedBoot] = useState(false);
+  const [restored, setRestored] = useState<{ draft: Draft | null } | null>(null);
   const [step, setStep] = useState(0);
+  // The System speaks once it has someone to speak to: the boot plays after
+  // the profile is accepted, on the way to the first quest.
+  const [awakening, setAwakening] = useState(false);
   const [edits, setEdits] = useState<Partial<Draft> | null>(null);
   const draft: Draft = useMemo(
     () => ({ ...INITIAL, ...(restored?.draft ?? {}), ...(edits ?? {}) }),
     [restored, edits],
   );
-  const booting = !skippedBoot && !restored?.booted;
   const setDraft = (next: Draft | ((d: Draft) => Draft)) =>
     setEdits((prev) => {
       const base: Draft = { ...INITIAL, ...(restored?.draft ?? {}), ...(prev ?? {}) };
@@ -110,13 +110,9 @@ export function AwakenFlow() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
-      const booted = localStorage.getItem(BOOT_KEY);
-      if (!raw && !booted) return;
+      if (!raw) return;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring persisted state on mount
-      setRestored({
-        draft: raw ? { ...INITIAL, ...(JSON.parse(raw) as Partial<Draft>) } : null,
-        booted: !!booted,
-      });
+      setRestored({ draft: { ...INITIAL, ...(JSON.parse(raw) as Partial<Draft>) } });
     } catch {
       /* ignore */
     }
@@ -132,8 +128,8 @@ export function AwakenFlow() {
 
   // Already awakened: this route has nothing to do.
   useEffect(() => {
-    if (status === "ready") router.replace("/app/quest");
-  }, [status, router]);
+    if (status === "ready" && !awakening) router.replace("/app/quest");
+  }, [status, router, awakening]);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -203,13 +199,13 @@ export function AwakenFlow() {
       setStep(0);
       return;
     }
+    setAwakening(true);
     await actions.completeOnboarding(parsed.data);
     try {
       localStorage.removeItem(DRAFT_KEY);
     } catch {
       /* ignore */
     }
-    router.replace("/app/quest");
   };
 
   const next = () => {
@@ -221,17 +217,11 @@ export function AwakenFlow() {
   return (
     <main className="mx-auto flex min-h-[100dvh] max-w-[520px] flex-col justify-center px-4 py-10">
       <AnimatePresence>
-        {booting ? (
+        {awakening ? (
           <BootSequence
             key="boot"
-            onDone={() => {
-              setSkippedBoot(true);
-              try {
-                localStorage.setItem(BOOT_KEY, "1");
-              } catch {
-                /* ignore */
-              }
-            }}
+            name={draft.name.trim()}
+            onDone={() => router.replace("/app/quest")}
           />
         ) : null}
       </AnimatePresence>

@@ -6,11 +6,14 @@ import { gsap, registerGsap } from "@/lib/gsap";
 import { motionReduced } from "@/lib/motion";
 
 /**
- * AWAKENING BOOT (brief motion graphic A). First run only.
- * A single line ignites and splits, the System window opens between the
- * halves, its frame draws, and the System speaks. Tap to skip.
+ * AWAKENING BOOT (brief motion graphic A). Plays once, after the Hunter has
+ * been registered: a single line ignites and splits, the System window opens
+ * between the halves, its frame draws, and the System names who it selected.
+ * Tap to skip.
  */
-export function BootSequence({ onDone }: { onDone: () => void }) {
+export function BootSequence({ name, onDone }: { name?: string; onDone: () => void }) {
+  // It can only say who was chosen because it now runs after they said so.
+  const selected = name ? `${name.toUpperCase()} HAS BEEN SELECTED` : "A PLAYER HAS BEEN SELECTED";
   const root = useRef<HTMLDivElement>(null);
   const finished = useRef(false);
 
@@ -39,7 +42,7 @@ export function BootSequence({ onDone }: { onDone: () => void }) {
         .set(q("[data-line-a]"), { opacity: 1 }, 1.1)
         .to(q("[data-line-a]"), { duration: 0.5, scrambleText: { text: "SYSTEM INITIALIZING", chars: "01_/\\", speed: 0.8 } }, 1.1)
         .set(q("[data-line-b]"), { opacity: 1 }, 1.9)
-        .to(q("[data-line-b]"), { duration: 0.6, scrambleText: { text: "A PLAYER HAS BEEN SELECTED", chars: "01_/\\", speed: 0.8 } }, 1.9)
+        .to(q("[data-line-b]"), { duration: 0.6, scrambleText: { text: selected, chars: "01_/\\", speed: 0.8 } }, 1.9)
         .to({}, { duration: 0.5 });
 
       return () => {
@@ -55,7 +58,7 @@ export function BootSequence({ onDone }: { onDone: () => void }) {
       className="fixed inset-0 z-[70] flex items-center justify-center bg-ink-0 px-6"
       onPointerDown={finish}
       role="status"
-      aria-label="System initializing"
+      aria-label={`System initializing. ${selected}.`}
     >
       <span data-seed data-line-top className="absolute left-0 right-0 h-px origin-center bg-frost-2" aria-hidden />
       <span data-seed data-line-bottom className="absolute left-0 right-0 h-px origin-center bg-frost-2" aria-hidden />

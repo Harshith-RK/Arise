@@ -18,13 +18,16 @@ export function watchErrors(page: Page): string[] {
 /** Completes onboarding so the app has a Hunter. Idempotent. */
 export async function awaken(page: Page) {
   await page.goto("/awaken");
-  await page.mouse.click(180, 200); // skip the boot sequence
+  await page.waitForTimeout(200);
   if (page.url().includes("/app/")) return;
   for (let i = 0; i < 4; i++) {
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await page.waitForTimeout(200);
   }
   await page.getByRole("button", { name: "Accept the System" }).click();
+  // The boot sequence plays after the profile is accepted. Tap through it.
+  await page.waitForTimeout(300);
+  await page.mouse.click(180, 200);
   await page.waitForURL("**/app/quest");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 }
