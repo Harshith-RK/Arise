@@ -3,7 +3,7 @@ import { evaluateDay, makePlanLookup, type DayResult } from "./day";
 import { round1, setScore } from "./pr";
 import { BADGES, type BadgeState } from "./badges";
 import type { DayLog, Rank, Snapshot, WeighIn } from "./types";
-import { levelForXp, levelProgress, rankForLevel, XP } from "./xp";
+import { isCutting, levelForXp, levelProgress, rankForLevel, weighInDrift, XP } from "./xp";
 
 /* ==========================================================================
    deriveProgress: one chronological pass over the arc. Pure and
@@ -120,6 +120,11 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
 
   const weighInWeeks = new Set<string>();
   let weighIdx = 0;
+  // The scale is scored on direction, so each reading needs the one before it.
+  // Seeded from the profile's starting weight so the very first weigh-in of the
+  // arc is measured against where the hunter began, not against nothing.
+  const cutting = profile ? isCutting(profile.startWeightKg, profile.targetWeightKg) : true;
+  let prevWeightKg: number | null = profile?.startWeightKg ?? null;
   let clearedThisWeek = 0;
   let bestWeekClears = 0;
   let currentWeek = "";
@@ -142,6 +147,12 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
         xp += XP.weighIn;
         if (weighInWeeks.size >= 4) unlock("weigh-4", w.date);
       }
+      // Direction is scored on every reading, not just the week's first, so
+      // logging twice in a week cannot be used to bank the move twice.
+      if (prevWeightKg !== null) xp += weighInDrift(prevWeightKg, w.weightKg, cutting);
+      prevWeightKg = w.weightKg;
+      // XP is a record of work done, never a debt: the floor is zero.
+      if (xp < 0) xp = 0;
       if (profile && w.weightKg <= profile.phase1TargetKg) unlock("phase-one", w.date);
       weighIdx++;
     }

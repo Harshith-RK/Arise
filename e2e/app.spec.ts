@@ -99,6 +99,42 @@ test.describe("app", () => {
     await expect(page.getByText("1 READINGS")).toBeVisible();
   });
 
+  test("the scale is scored on direction, and a gain costs XP", async ({ page }) => {
+    // Bank what the day allows. XP has a floor of zero, so how much a gain can
+    // actually take depends on what the arc has earned.
+    await page.goto("/app/quest");
+    const open = page.locator("[data-quest-row]:not([disabled])");
+    for (let i = 0; i < Math.min(4, await open.count()); i++) {
+      await open.nth(i).click();
+      await page.waitForTimeout(250);
+    }
+
+    await page.goto("/app/status");
+    await page.getByRole("button", { name: /LOG WEIGH-IN/i }).click();
+    const preview = page.locator("p[aria-live=polite]");
+    const score = async (kg: string) => {
+      await page.getByLabel("WEIGHT").fill(kg);
+      await expect(preview).toContainText(/KG:/);
+      const text = await preview.innerText();
+      return text.includes("NO CHANGE") ? 0 : Number(text.match(/(-?\+?\d+) XP/)![1].replace("+", ""));
+    };
+
+    // The seeded arc starts at 95.5 kg and targets 72.7, so down is toward goal.
+    const lost = await score("93.5");
+    const gained = await score("97.5");
+    expect(lost).toBeGreaterThan(0);
+    // The regression: before this, both directions scored the same flat +20.
+    expect(gained).toBeLessThan(lost);
+
+    await page.getByRole("button", { name: "Log weigh-in", exact: true }).click();
+    if (gained < 0) {
+      await expect(page.getByText("[Penalty]")).toBeVisible();
+      await expect(page.getByText(/The scale moved the wrong way/)).toBeVisible();
+    } else {
+      await expect(page.getByText("[Calibration]")).toBeVisible();
+    }
+  });
+
   test("the supplies list persists a new item", async ({ page }) => {
     await page.goto("/app/log/diet/supplies");
     await page.getByLabel("Add a supply item").fill("Oats");

@@ -445,9 +445,15 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
           const list = cur.weighIns.filter((x) => x.date !== w.date);
           commit({ ...cur, weighIns: prev ? [...list, prev] : list }, w.date);
         };
+        // A gain reads as a penalty, not a neutral reading. The System does not
+        // pretend the number went the right way.
+        const net = xpOf(events);
         return {
           events,
-          notice: { tag: "Calibration", text: `Weigh-in logged. ${w.weightKg.toFixed(1)} KG.${xpText(xpOf(events))}`, tone: "glacier" },
+          notice:
+            net < 0
+              ? { tag: "Penalty", text: `Weigh-in logged. ${w.weightKg.toFixed(1)} KG. The scale moved the wrong way.${xpText(net)}`, tone: "fault" }
+              : { tag: "Calibration", text: `Weigh-in logged. ${w.weightKg.toFixed(1)} KG.${xpText(net)}`, tone: "glacier" },
           undo,
         };
       },

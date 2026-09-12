@@ -6,7 +6,7 @@ import { deriveProgress } from "./derive";
 import { diffProgress } from "./events";
 import { epley, setScore } from "./pr";
 import type { DayLog, Snapshot, WeighIn } from "./types";
-import { levelForXp, rankForLevel, XP, xpForLevel } from "./xp";
+import { isCutting, levelForXp, rankForLevel, weighInDrift, XP, xpForLevel } from "./xp";
 
 /* ---------- fixtures ---------- */
 
@@ -287,12 +287,72 @@ describe("meal time gate", () => {
 /* ---------- Weigh-ins ---------- */
 
 describe("weigh-ins", () => {
-  it("awards XP once per ISO week", () => {
-    const w = (date: string, kg: number): WeighIn => ({ date, weightKg: kg, bodyFatPct: null, muscleKg: null, visceral: null });
-    const p = deriveProgress(snap([], [w(MONDAY, 95), w(addDays(MONDAY, 2), 94.8), w(addDays(MONDAY, 7), 94.2)]), addDays(MONDAY, 7));
+  const w = (date: string, kg: number): WeighIn => ({ date, weightKg: kg, bodyFatPct: null, muscleKg: null, visceral: null });
+  // seedProfile starts at 95.5 kg and targets 72.7, so down is toward the goal.
+  const START = 95.5;
+
+  it("awards the logging bonus once per ISO week", () => {
+    const p = deriveProgress(snap([], [w(MONDAY, START), w(addDays(MONDAY, 2), START), w(addDays(MONDAY, 7), START)]), addDays(MONDAY, 7));
     expect(p.totals.weighInWeeks).toBe(2);
     expect(p.xp).toBe(2 * XP.weighIn);
     expect(p.weighInDue).toBe(false);
+  });
+
+  it("pays for weight lost", () => {
+    const p = deriveProgress(snap([], [w(MONDAY, START - 1)]), MONDAY);
+    expect(p.xp).toBe(XP.weighIn + XP.weighInDriftPerKg);
+  });
+
+  // A week of cleared days, so there is XP banked to take away from. Without a
+  // balance the zero floor absorbs the charge and hides the difference.
+  const banked = Array.from({ length: 7 }, (_, i) => dayLog(addDays(MONDAY, i)));
+  const END = addDays(MONDAY, 7);
+  const xpWith = (...ws: WeighIn[]) => deriveProgress(snap(banked, ws), END).xp;
+
+  it("charges for weight gained", () => {
+    const flat = xpWith(w(MONDAY, START));
+    const gained = xpWith(w(MONDAY, START + 1));
+    const lost = xpWith(w(MONDAY, START - 1));
+    expect(gained).toBe(flat - XP.weighInDriftPerKg);
+    expect(lost).toBe(flat + XP.weighInDriftPerKg);
+  });
+
+  it("ignores movement inside the deadband", () => {
+    const p = deriveProgress(snap([], [w(MONDAY, START - 0.1)]), MONDAY);
+    expect(p.xp).toBe(XP.weighIn);
+  });
+
+  it("scores every reading, so logging twice cannot bank the same move twice", () => {
+    const twice = deriveProgress(snap([], [w(MONDAY, START - 0.5), w(addDays(MONDAY, 2), START - 1)]), addDays(MONDAY, 2));
+    const once = deriveProgress(snap([], [w(addDays(MONDAY, 2), START - 1)]), addDays(MONDAY, 2));
+    expect(twice.xp).toBe(once.xp);
+  });
+
+  it("cannot be dodged by skipping the week the weight went up", () => {
+    const logged = xpWith(w(MONDAY, START + 1), w(addDays(MONDAY, 7), START + 2));
+    const skipped = xpWith(w(addDays(MONDAY, 7), START + 2));
+    // Skipping defers the charge, it does not avoid it: the same 2 kg is paid
+    // for either way. The only difference is the second week's logging bonus.
+    expect(logged - skipped).toBe(XP.weighIn);
+    expect(skipped).toBe(xpWith(w(addDays(MONDAY, 7), START)) - 2 * XP.weighInDriftPerKg);
+  });
+
+  it("caps one reading so a mistyped number cannot wipe the arc", () => {
+    expect(weighInDrift(START, START + 50)).toBe(-XP.weighInDriftCap);
+    expect(weighInDrift(START, START - 50)).toBe(XP.weighInDriftCap);
+  });
+
+  it("reverses direction for a bulk", () => {
+    expect(weighInDrift(80, 81, false)).toBe(XP.weighInDriftPerKg);
+    expect(weighInDrift(80, 79, false)).toBe(-XP.weighInDriftPerKg);
+    expect(isCutting(95.5, 72.7)).toBe(true);
+    expect(isCutting(72.7, 95.5)).toBe(false);
+  });
+
+  it("never lets total XP go negative", () => {
+    const p = deriveProgress(snap([], [w(MONDAY, START + 3)]), MONDAY);
+    expect(p.xp).toBe(0);
+    expect(p.level).toBe(1);
   });
 });
 

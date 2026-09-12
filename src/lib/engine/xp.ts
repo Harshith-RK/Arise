@@ -10,9 +10,38 @@ export const XP = {
   cardio: 15,
   bonusQuest: 20,
   weighIn: 20,
+  /** XP per kg the scale moves toward the target. Negative when it moves away. */
+  weighInDriftPerKg: 30,
+  /** Movement under this is scale noise (water, time of day) and scores nothing. */
+  weighInDeadbandKg: 0.2,
+  /** Ceiling on one weigh-in's drift, so a mistyped number cannot wipe an arc. */
+  weighInDriftCap: 90,
   shield: 200,
   shieldEvery: 7,
 } as const;
+
+/**
+ * XP for the direction the scale moved, measured against the previous weigh-in.
+ * Positive toward the target, negative away from it: the arc cares which way
+ * the number went, not only that you stepped on the scale.
+ *
+ * Because it always compares against the last *logged* reading, skipping a bad
+ * week does not dodge the cost. The gain is still there at the next weigh-in
+ * and is charged then, in one piece.
+ */
+export function weighInDrift(prevKg: number, nextKg: number, cutting = true): number {
+  // Rounded to the 0.1 kg the scale actually reports, so float noise
+  // (95 - 94.8 = 0.19999...) cannot drop a real move into the deadband.
+  const toward = Math.round((cutting ? prevKg - nextKg : nextKg - prevKg) * 10) / 10;
+  if (Math.abs(toward) < XP.weighInDeadbandKg) return 0;
+  const raw = Math.round(toward * XP.weighInDriftPerKg);
+  return Math.max(-XP.weighInDriftCap, Math.min(XP.weighInDriftCap, raw));
+}
+
+/** True when the profile's goal is to lose weight (the usual winter arc). */
+export function isCutting(startKg: number, targetKg: number): boolean {
+  return targetKg <= startKg;
+}
 
 /** Cumulative XP required to *reach* `level` (level 1 starts at 0). */
 export function xpForLevel(level: number): number {

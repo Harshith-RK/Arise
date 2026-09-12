@@ -578,6 +578,16 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **The scale is scored on direction, not on logging.** The brief's flat 20 XP weigh-in rewarded
+  stepping on the scale and ignored what it said, so a gain cost nothing. The 20 still pays for
+  the week's first reading, and on top of it every reading scores 30 XP per kg toward the target
+  and -30 per kg away from it (0.2 kg deadband for scale noise, capped at +/-90 so a mistyped
+  number cannot wipe an arc). Direction comes from the profile, so a bulk reverses the sign.
+  Because each reading is measured against the last one *logged*, skipping a bad week defers the
+  charge rather than dodging it. Total XP has a floor of zero: it is a record of work done, not a
+  debt, which does mean an arc with nothing banked has nothing to lose.
+- **The weigh-in sheet's XP preview runs the real derivation** rather than re-implementing the
+  rules, so the number shown before logging and the notice after it can never disagree.
 - **"Trophies" is called Badges everywhere in code.** The brief's `/app/progress/trophies/[id]`
   is `/app/progress/badges/[id]`, the tab reads BADGES, and the event is `badge_unlocked`. The
   wall already called them badges (spec s.7), so the two names were one thing wearing two labels.
