@@ -119,6 +119,31 @@ test.describe("app", () => {
     await expect(page.getByText("Besan chilla and milk v2")).toBeVisible();
   });
 
+  test("the command palette opens centered and dismisses", async ({ page }) => {
+    await page.goto("/app/quest");
+    await page.waitForTimeout(500);
+    await page.keyboard.press("Meta+k");
+
+    const panel = page.locator("[cmdk-dialog]");
+    await expect(panel).toBeVisible();
+    await expect(page.locator("[cmdk-input]")).toBeVisible();
+
+    // It must sit inside the viewport, not pinned to an edge.
+    const box = (await panel.boundingBox())!;
+    const width = page.viewportSize()!.width;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
+
+    // Clicking blank space closes it.
+    await page.mouse.click(5, Math.round(page.viewportSize()!.height - 10));
+    await expect(panel).toHaveCount(0);
+
+    await page.keyboard.press("Meta+k");
+    await expect(panel).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+  });
+
   test("skin preference applies and survives a reload", async ({ page }) => {
     await page.goto("/app/system");
     await page.getByRole("group", { name: "Skin" }).getByRole("button", { name: "Whiteout" }).click();

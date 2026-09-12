@@ -37,9 +37,11 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       open={open}
       onOpenChange={onOpenChange}
       label="System command"
-      className="fixed inset-0 z-[80] flex items-start justify-center px-4 pt-[12vh]"
-      overlayClassName="fixed inset-0 bg-ink-0/80"
-      contentClassName="relative w-full max-w-[520px] border border-line-2 bg-ink-1"
+      // cmdk puts `className` on the inner <Command>, so the panel's own
+      // position has to live on contentClassName. Anything layout-ish here
+      // becomes a full-screen layer that eats outside clicks.
+      overlayClassName="fixed inset-0 z-[80] bg-ink-0/92"
+      contentClassName="fixed left-1/2 top-[12vh] z-[81] w-[min(92vw,520px)] -translate-x-1/2 border border-line-2 bg-ink-1 outline-none"
     >
       <Command.Input
         placeholder="Type a command"
