@@ -13,7 +13,7 @@ import { RestTimer } from "./RestTimer";
 import { RecoveryRow } from "./RecoveryRow";
 import { IconBack, IconBonus, IconCalendar, IconDumbbell, IconForward, IconMeal, IconSleep } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
-import { addDays, formatReadout } from "@/lib/engine/dates";
+import { addDays, diffDays, formatReadout } from "@/lib/engine/dates";
 import { evaluateDay, isRestDay, makePlanLookup, mealLocked, trainingDayFor } from "@/lib/engine/day";
 import { lastSessionFor, VITALITY_UNLOCK_LEVEL } from "@/lib/engine/derive";
 import { sendHeat } from "@/lib/heat-transfer";
@@ -357,9 +357,22 @@ function GateMeter({ label, done, total, mandatory }: { label: string; done: num
   );
 }
 
+/**
+ * Where you are, in the words you would use out loud. One step either side is
+ * named; past that a name stops helping and the date is what you want.
+ */
+function dayLabel(date: string, today: string): string {
+  const offset = diffDays(today, date);
+  if (offset === 0) return "TODAY";
+  if (offset === 1) return "TOMORROW";
+  if (offset === -1) return "YESTERDAY";
+  return formatReadout(date).toUpperCase();
+}
+
 function DayNav({ date, today }: { date: string; today: string }) {
   const prev = addDays(date, -1);
   const next = addDays(date, 1);
+  const isToday = date === today;
   return (
     <div className="mb-4 flex items-center justify-between gap-2">
       <Link
@@ -370,17 +383,25 @@ function DayNav({ date, today }: { date: string; today: string }) {
         <IconBack size={15} />
         <span className="t-micro hidden sm:inline">PREV</span>
       </Link>
-      <div className="flex items-center gap-2">
-        {date !== today ? (
-          <Link href="/app/quest" className="pressable t-micro flex h-11 items-center gap-2 border border-ember px-3 text-ember transition-none">
+      <div className="flex min-w-0 items-center gap-2">
+        <span
+          className={`t-micro flex h-11 min-w-0 items-center gap-2 px-3 ${
+            isToday ? "text-frost-2" : "border border-line-2 text-frost-1"
+          }`}
+        >
+          <span className="truncate">{dayLabel(date, today)}</span>
+        </span>
+        {isToday ? null : (
+          <Link
+            href="/app/quest"
+            aria-label="Back to today"
+            className="pressable t-micro flex h-11 shrink-0 items-center gap-2 border border-ember px-3 text-ember transition-none"
+          >
+            {/* Calendar, not a chevron: next to PREV two back arrows would be
+                told apart only by colour. */}
             <IconCalendar size={15} />
-            BACK TO TODAY
+            <span className="hidden sm:inline">TODAY</span>
           </Link>
-        ) : (
-          <span className="t-micro flex h-11 items-center gap-2 px-1 text-frost-2">
-            <IconCalendar size={15} />
-            TODAY
-          </span>
         )}
       </div>
       <Link
