@@ -180,6 +180,22 @@ test.describe("app", () => {
     await expect(panel).toHaveCount(0);
   });
 
+  test("the palette has a visible trigger, phone included", async ({ page }) => {
+    // A phone has no Cmd key, so a tap target is the only way in there.
+    await page.goto("/app/quest");
+    await page.waitForTimeout(500);
+    const trigger = page.getByRole("button", { name: /search commands/i });
+    await expect(trigger).toBeVisible();
+
+    // Big enough to hit with a thumb, and inside the viewport.
+    const box = (await trigger.boundingBox())!;
+    expect(box.height).toBeGreaterThanOrEqual(36);
+    expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width + 1);
+
+    await trigger.click();
+    await expect(page.locator("[cmdk-input]")).toBeVisible();
+  });
+
   test("meals cannot be ticked before their time, but past days stay editable", async ({ page }) => {
     await page.goto("/app/quest");
     await page.waitForTimeout(600);

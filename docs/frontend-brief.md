@@ -578,6 +578,10 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **The command palette needs a tap target, not only a shortcut.** The CMD K button was
+  `lg:` only, so on a phone -- which has no Cmd key either -- there was no way to open the palette
+  at all. The button now shows at every width and drops the "CMD K" label below `lg`, so the hint
+  only appears where the shortcut exists.
 - **The scale is scored on direction, not on logging.** The brief's flat 20 XP weigh-in rewarded
   stepping on the scale and ignored what it said, so a gain cost nothing. The 20 still pays for
   the week's first reading, and on top of it every reading scores 30 XP per kg toward the target

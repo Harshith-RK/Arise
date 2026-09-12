@@ -33,14 +33,16 @@ export function AppBar({ onOpenPalette }: { onOpenPalette: () => void }) {
           </span>
         ) : null}
 
+        {/* A phone has no Cmd key, so the icon carries it there and the
+            shortcut hint only appears where the shortcut exists. */}
         <button
           type="button"
           onClick={onOpenPalette}
-          className="pressable hidden h-9 items-center gap-2 border border-line-2 px-3 text-frost-2 transition-none hov:border-frost-2 hov:text-frost-0 lg:inline-flex"
-          aria-label="Open command palette"
+          className="pressable inline-flex h-9 shrink-0 items-center gap-2 border border-line-2 px-2.5 text-frost-2 transition-none hov:border-frost-2 hov:text-frost-0 lg:px-3"
+          aria-label="Search commands"
         >
           <IconSearch size={15} />
-          <span className="t-micro">CMD K</span>
+          <span className="t-micro hidden lg:inline">CMD K</span>
         </button>
       </div>
     </header>
