@@ -1,69 +1,82 @@
-import Image from "next/image";
+import Link from "next/link";
+import { LiveDemo } from "@/components/landing/LiveDemo";
+import dynamic from "next/dynamic";
 
-export default function Home() {
+// Below the fold, and both pull in GSAP ScrollTrigger.
+const HowItWorks = dynamic(() => import("@/components/landing/HowItWorks").then((m) => m.HowItWorks));
+const ArcStrip = dynamic(() => import("@/components/landing/ArcStrip").then((m) => m.ArcStrip));
+import { BeginButton } from "@/components/landing/BeginButton";
+import { APP_VERSION } from "@/lib/version";
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <>
+      <header className="mx-auto flex h-16 max-w-[1100px] items-center justify-between px-4">
+        <span className="t-readout text-frost-0">WINTER ARC</span>
+        <BeginButton variant="ghost" size="sm" />
+      </header>
+
+      <main>
+        {/* Hero: the thesis and the working product, side by side */}
+        <section className="mx-auto max-w-[1180px] px-4 pb-20 pt-8 lg:pt-12">
+          {/* The headline gets the full measure, so it lands on two lines. */}
+          <h1 className="t-display-1 text-[34px] text-frost-0 sm:text-[40px] lg:text-[48px] xl:text-[56px]">
+            <span className="lg:block">Ninety days. One System.</span>{" "}
+            <span className="lg:block">Every rep logged.</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <div className="mt-8 grid gap-10 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-16">
+            <div className="flex flex-col justify-start">
+              <p className="t-body max-w-[48ch] text-frost-1">
+                A training and diet tracker that runs your actual split and your actual meals as daily quests, and pays
+                you in levels, ranks and streaks for clearing them.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <BeginButton variant="primary" size="lg" />
+                <a
+                  href="#demo"
+                  className="pressable t-readout inline-flex h-14 items-center border border-line-2 px-6 text-frost-1 transition-none hov:border-frost-2 hov:text-frost-0"
+                >
+                  Try the demo
+                </a>
+              </div>
+            </div>
+
+            <div id="demo" className="scroll-mt-8">
+              <LiveDemo />
+            </div>
+          </div>
+        </section>
+
+        <HowItWorks />
+        <ArcStrip />
+
+        {/* Close */}
+        <section className="mx-auto max-w-[760px] px-4 pb-28 text-center">
+          <h2 className="t-display-1 text-frost-0">Begin the awakening</h2>
+          <p className="t-body mx-auto mt-4 max-w-[50ch] text-frost-1">
+            Setup takes about a minute. Your plan is already loaded; edit anything you want, then clear day one.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          <div className="mt-8 flex justify-center">
+            <BeginButton variant="primary" size="lg" />
+          </div>
+        </section>
       </main>
-    </div>
+
+      <footer className="border-t border-line-1">
+        <div className="mx-auto flex max-w-[1100px] flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
+          <p className="t-micro text-frost-2">LOCAL-FIRST. YOUR DATA STAYS ON THIS DEVICE.</p>
+          <nav className="flex items-center gap-6" aria-label="Legal">
+            <Link href="/legal/terms" className="t-micro text-frost-2 transition-none hov:text-frost-0">
+              TERMS
+            </Link>
+            <Link href="/legal/privacy" className="t-micro text-frost-2 transition-none hov:text-frost-0">
+              PRIVACY
+            </Link>
+            <span className="t-micro text-frost-2">V{APP_VERSION}</span>
+          </nav>
+        </div>
+      </footer>
+    </>
   );
 }

@@ -1,26 +1,413 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   WINTER ARC : THERMAL SYSTEM TOKENS
+   Skins: Permafrost (dark, default) and Whiteout (light).
+   Rank temperature: html[data-rank] warms the ember family inside the app
+   scope only, so marketing surfaces keep the full brand ember.
+   ========================================================================== */
+
+/* Registered so rank-up can transition the whole UI temperature natively. */
+@property --ember   { syntax: "<color>"; inherits: true; initial-value: #F2551D; }
+@property --ember-2 { syntax: "<color>"; inherits: true; initial-value: #9E3312; }
+@property --ember-3 { syntax: "<color>"; inherits: true; initial-value: #3A1A0E; }
+@property --ink-0   { syntax: "<color>"; inherits: true; initial-value: #0A0D0F; }
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  --ink-0: #0A0D0F;
+  --ink-1: #0F1417;
+  --ink-2: #151C20;
+  --ink-3: #1D262B;
+  --line-1: #222C31;
+  --line-2: #3B4A54;
+  --frost-0: #E4ECEE;
+  --frost-1: #A7B6BC;
+  --frost-2: #7D8D94;
+  --ember: #F2551D;
+  --ember-2: #9E3312;
+  --ember-3: #3A1A0E;
+  --core: #FFD7B5;
+  --glacier: #7FA6B5;
+  --brass: #C8A45A;
+  --fault: #EE5064;
+  --on-ember: #0A0D0F;
+  --temp: 3;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --chamfer: 10px;
+  --rail: 240px;
+  --appbar: 56px;
+  --bottomnav: 64px;
 }
+
+/* Whiteout. Applied by explicit choice or by system preference. */
+:root[data-skin="whiteout"] {
+  color-scheme: light;
+  --ink-0: #E7EAE6;
+  --ink-1: #EEF0EC;
+  --ink-2: #F4F5F2;
+  --ink-3: #DDE1DC;
+  --line-1: #CDD3CE;
+  --line-2: #9BA6A2;
+  --frost-0: #0E1316;
+  --frost-1: #3E4A4F;
+  --frost-2: #4F5C64;
+  --ember: #B63A0C;
+  --ember-2: #E9A184;
+  --ember-3: #F3D3C4;
+  --core: #7A2406;
+  --glacier: #3F6878;
+  --brass: #7D5F1C;
+  --fault: #B8203A;
+  --on-ember: #FFF8F2;
+}
+
+/* --------------------------------------------------------------------------
+   Rank temperature, app scope only. E is ash cold, S is white heat.
+   -------------------------------------------------------------------------- */
+[data-scope="app"] {
+  transition:
+    --ember 1.2s var(--ease-in-out),
+    --ember-2 1.2s var(--ease-in-out),
+    --ember-3 1.2s var(--ease-in-out),
+    --ink-0 1.2s var(--ease-in-out);
+}
+
+:root[data-rank="E"] [data-scope="app"] { --ember: #A07C6C; --ember-2: #57443B; --ember-3: #241C18; --ink-0: #0A0D0F; --temp: 0; }
+:root[data-rank="D"] [data-scope="app"] { --ember: #C9602F; --ember-2: #74341A; --ember-3: #2E1A10; --ink-0: #0B0D0F; --temp: 1; }
+:root[data-rank="C"] [data-scope="app"] { --ember: #E2561F; --ember-2: #8A3413; --ember-3: #36190E; --ink-0: #0C0D0E; --temp: 2; }
+:root[data-rank="B"] [data-scope="app"] { --ember: #F2551D; --ember-2: #9E3312; --ember-3: #3A1A0E; --ink-0: #0D0D0D; --temp: 3; }
+:root[data-rank="A"] [data-scope="app"] { --ember: #FF6A2B; --ember-2: #A83D14; --ember-3: #3D1B0D; --ink-0: #0F0D0C; --temp: 4; }
+:root[data-rank="S"] [data-scope="app"] { --ember: #FF7A36; --ember-2: #B2451A; --ember-3: #40200F; --ink-0: #100D0B; --temp: 5; }
+
+:root[data-skin="whiteout"][data-rank="E"] [data-scope="app"] { --ember: #7C5A4C; --ember-2: #C9B5AB; --ember-3: #E2D8D2; --ink-0: #E7EAE6; }
+:root[data-skin="whiteout"][data-rank="D"] [data-scope="app"] { --ember: #A84A22; --ember-2: #DDA88F; --ember-3: #EFD9CE; --ink-0: #E8EAE6; }
+:root[data-skin="whiteout"][data-rank="C"] [data-scope="app"] { --ember: #B23C0D; --ember-2: #E5A083; --ember-3: #F1D3C5; --ink-0: #E9EAE5; }
+:root[data-skin="whiteout"][data-rank="B"] [data-scope="app"] { --ember: #B0390B; --ember-2: #E9A184; --ember-3: #F3D3C4; --ink-0: #EAE9E4; }
+:root[data-skin="whiteout"][data-rank="A"] [data-scope="app"] { --ember: #B23407; --ember-2: #EC9A7A; --ember-3: #F4CFBE; --ink-0: #ECE9E3; }
+:root[data-skin="whiteout"][data-rank="S"] [data-scope="app"] { --ember: #B23108; --ember-2: #E8906C; --ember-3: #F3C9B4; --ink-0: #EDE8E2; }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink-0: var(--ink-0);
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line-1: var(--line-1);
+  --color-line-2: var(--line-2);
+  --color-frost-0: var(--frost-0);
+  --color-frost-1: var(--frost-1);
+  --color-frost-2: var(--frost-2);
+  --color-ember: var(--ember);
+  --color-ember-2: var(--ember-2);
+  --color-ember-3: var(--ember-3);
+  --color-core: var(--core);
+  --color-glacier: var(--glacier);
+  --color-brass: var(--brass);
+  --color-fault: var(--fault);
+  --color-on-ember: var(--on-ember);
+
+  --font-sans: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  --font-mono: var(--font-martian), "Martian Mono", ui-monospace, monospace;
+
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --blur-*: initial;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Pointer-only hover. Changes are instant: nothing moves on hover. */
+@custom-variant hov {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+@custom-variant reduced ([data-motion="reduced"] &);
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+@layer base {
+  html {
+    background: var(--ink-0);
+    color: var(--frost-0);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--ink-0);
+    color: var(--frost-0);
+    font-family: var(--font-sans);
+    font-variation-settings: "wdth" 100;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  /* T0 grain. Static, 3%, never animated. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  :root[data-skin="whiteout"] body::before { opacity: 0.05; }
+
+  h1, h2, h3, h4 { text-wrap: balance; }
+  p { text-wrap: pretty; }
+
+  ::selection { background: var(--ember-3); color: var(--frost-0); }
+
+  input, textarea { caret-color: var(--ember); }
+
+  :focus { outline: none; }
+  :focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-2) transparent;
+  }
+
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+}
+
+/* ==========================================================================
+   Type roles (brief section 4)
+   ========================================================================== */
+@utility t-hero-num {
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 62;
+  font-weight: 700;
+  font-size: 88px;
+  line-height: 0.85;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  @media (width >= 64rem) { font-size: 128px; }
+}
+@utility t-num {
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 62;
+  font-weight: 700;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+@utility t-display-1 {
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 125;
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  @media (width >= 64rem) { font-size: 56px; }
+}
+@utility t-display-2 {
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 125;
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  @media (width >= 64rem) { font-size: 36px; }
+}
+@utility t-title {
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 100;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  @media (width >= 64rem) { font-size: 22px; }
+}
+@utility t-body {
+  font-size: 16px;
+  line-height: 1.5;
+}
+@utility t-small {
+  font-size: 14px;
+  line-height: 1.45;
+}
+@utility t-readout {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+@utility t-micro {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Surfaces (brief section 5)
+   T1 well, T2 panel, T3 focal (chamfered, drawn with two clipped layers so
+   the 1px border stays crisp on the diagonals).
+   ========================================================================== */
+@utility surface-well {
+  background: var(--ink-2);
+}
+@utility surface-panel {
+  background: var(--ink-1);
+  border: 1px solid var(--line-1);
+}
+@utility chamfer {
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--chamfer)) 0,
+    100% var(--chamfer),
+    100% 100%,
+    var(--chamfer) 100%,
+    0 calc(100% - var(--chamfer))
+  );
+}
+
+/* Press feedback shared by every pressable (brief: press scale 0.97, 90ms). */
+@utility pressable {
+  transition-property: transform;
+  transition-duration: 90ms;
+  transition-timing-function: var(--ease-out);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  &:active:not(:disabled) { transform: scale(0.97); }
+  [data-motion="reduced"] &:active:not(:disabled) { transform: none; }
+}
+
+/* Row divider inset 16px, bottom only. */
+@utility row-rule {
+  position: relative;
+  &:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 0;
+    height: 1px;
+    background: var(--line-1);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Structural loading placeholder with one slow scanline (brief 9.L). */
+@utility placeholder-block {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink-2);
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: var(--line-2);
+    animation: wa-scan 1.4s var(--ease-in-out) infinite;
+  }
+  [data-motion="reduced"] &::after { animation: none; opacity: 0; }
+}
+
+@keyframes wa-scan {
+  from { transform: translateY(0); }
+  to { transform: translateY(var(--scan-h, 120px)); }
+}
+
+@keyframes wa-flicker {
+  0%, 62%, 100% { opacity: 1; }
+  64% { opacity: 0.55; }
+  67% { opacity: 0.85; }
+  70% { opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   Page transitions (brief 9.J). Direction follows nav order; the app bar and
+   CORE gauge are anchored so only the content moves.
+   ========================================================================== */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(.nav-forward) {
+  --slide: -16px;
+  animation: 120ms var(--ease-in) both wa-vt-fade reverse, 180ms var(--ease-out) both wa-vt-slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide: 16px;
+  animation: 180ms var(--ease-out) 60ms both wa-vt-fade, 180ms var(--ease-out) both wa-vt-slide;
+}
+::view-transition-old(.nav-back) {
+  --slide: 16px;
+  animation: 120ms var(--ease-in) both wa-vt-fade reverse, 180ms var(--ease-out) both wa-vt-slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide: -16px;
+  animation: 180ms var(--ease-out) 60ms both wa-vt-fade, 180ms var(--ease-out) both wa-vt-slide;
+}
+
+@keyframes wa-vt-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes wa-vt-slide {
+  from { translate: var(--slide); }
+  to { translate: 0; }
+}
+
+::view-transition-group(wa-appbar) { animation: none; z-index: 100; }
+::view-transition-old(wa-appbar) { display: none; }
+::view-transition-new(wa-appbar) { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) ::view-transition-old(*),
+  :root:not([data-motion="full"]) ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+:root[data-motion="reduced"] ::view-transition-old(*),
+:root[data-motion="reduced"] ::view-transition-new(*) {
+  animation: none !important;
 }

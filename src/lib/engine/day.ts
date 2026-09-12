@@ -1,0 +1,146 @@
+import { dayKeyOf } from "./dates";
+import type { DayLog, DietPlan, ExerciseDef, Macros, MealDef, Profile, TrainingDay, WorkoutPlan } from "./types";
+import { XP } from "./xp";
+
+/* ==========================================================================
+   Evaluate one calendar day against the plan versions it was logged under.
+   ========================================================================== */
+
+export type PlanLookup = {
+  workout: (version?: number) => WorkoutPlan;
+  diet: (version?: number) => DietPlan;
+};
+
+export function makePlanLookup(workoutPlans: WorkoutPlan[], dietPlans: DietPlan[]): PlanLookup {
+  const w = [...workoutPlans].sort((a, b) => a.version - b.version);
+  const d = [...dietPlans].sort((a, b) => a.version - b.version);
+  if (!w.length || !d.length) throw new Error("Plans missing");
+  return {
+    workout: (v) => (v ? w.find((p) => p.version === v) : undefined) ?? w[w.length - 1],
+    diet: (v) => (v ? d.find((p) => p.version === v) : undefined) ?? d[d.length - 1],
+  };
+}
+
+export function isRestDay(date: string, profile: Pick<Profile, "restDays">): boolean {
+  return profile.restDays.includes(dayKeyOf(date));
+}
+
+export function trainingDayFor(date: string, plan: WorkoutPlan): TrainingDay {
+  return plan.days[dayKeyOf(date)] ?? { title: "Rest", exerciseIds: [] };
+}
+
+export function setsDone(log: DayLog | undefined, exerciseId: string): number {
+  return log?.exercises[exerciseId]?.sets.filter((s) => s.done).length ?? 0;
+}
+
+export function exerciseComplete(log: DayLog | undefined, def: ExerciseDef): boolean {
+  return setsDone(log, def.id) >= def.targetSets;
+}
+
+export function mealMacros(meal: MealDef, log: DayLog | undefined): Macros {
+  const o = log?.meals[meal.id]?.override;
+  return o ?? { protein: meal.protein, carbs: meal.carbs, fat: meal.fat, kcal: meal.kcal };
+}
+
+export type DayResult = {
+  date: string;
+  dayTitle: string;
+  workoutMandatory: boolean;
+  exerciseTotal: number;
+  exercisesDone: number;
+  setsDone: number;
+  workoutComplete: boolean;
+  mealTotal: number;
+  mealsEaten: number;
+  dietComplete: boolean;
+  cardioComplete: boolean;
+  bonusDone: boolean;
+  cleared: boolean;
+  logged: boolean;
+  eaten: Macros;
+  xp: number;
+  xpBreakdown: { label: string; xp: number }[];
+  goodSleep: boolean;
+};
+
+export function evaluateDay(
+  date: string,
+  log: DayLog | undefined,
+  plans: PlanLookup,
+  profile: Pick<Profile, "restDays">,
+): DayResult {
+  const wPlan = plans.workout(log?.workoutPlanVersion);
+  const dPlan = plans.diet(log?.dietPlanVersion);
+  const tday = trainingDayFor(date, wPlan);
+  const rest = isRestDay(date, profile);
+  const defs = tday.exerciseIds.map((id) => wPlan.exercises[id]).filter(Boolean);
+  const workoutMandatory = !rest && defs.length > 0;
+
+  let sets = 0;
+  let exercisesDone = 0;
+  for (const def of defs) {
+    sets += Math.min(setsDone(log, def.id), def.targetSets);
+    if (exerciseComplete(log, def)) exercisesDone++;
+  }
+  const workoutComplete = defs.length > 0 && exercisesDone === defs.length;
+
+  const mealsEaten = dPlan.meals.filter((m) => log?.meals[m.id]?.eaten).length;
+  const dietComplete = mealsEaten === dPlan.meals.length;
+  const cardioComplete = !!log?.cardio.done;
+  const bonusDone = !!log?.bonus.done;
+
+  const eaten: Macros = { protein: 0, carbs: 0, fat: 0, kcal: 0 };
+  for (const m of dPlan.meals) {
+    if (!log?.meals[m.id]?.eaten) continue;
+    const mm = mealMacros(m, log);
+    eaten.protein += mm.protein;
+    eaten.carbs += mm.carbs;
+    eaten.fat += mm.fat;
+    eaten.kcal += mm.kcal;
+  }
+
+  const xpBreakdown: { label: string; xp: number }[] = [];
+  if (exercisesDone) xpBreakdown.push({ label: `${exercisesDone} exercise${exercisesDone > 1 ? "s" : ""}`, xp: exercisesDone * XP.exercise });
+  if (workoutComplete) xpBreakdown.push({ label: `${tday.title} cleared`, xp: XP.workoutBonusPerExercise * defs.length });
+  if (mealsEaten) xpBreakdown.push({ label: `${mealsEaten} meal${mealsEaten > 1 ? "s" : ""}`, xp: mealsEaten * XP.meal });
+  if (dietComplete) xpBreakdown.push({ label: "Diet cleared", xp: XP.dietBonus });
+  if (cardioComplete) xpBreakdown.push({ label: "Cardio", xp: XP.cardio });
+  if (bonusDone && rest) xpBreakdown.push({ label: "Bonus quest", xp: XP.bonusQuest });
+  const xp = xpBreakdown.reduce((s, b) => s + b.xp, 0);
+
+  const cleared = (workoutMandatory ? workoutComplete : true) && dietComplete && cardioComplete;
+
+  return {
+    date,
+    dayTitle: rest ? "Rest" : tday.title,
+    workoutMandatory,
+    exerciseTotal: defs.length,
+    exercisesDone,
+    setsDone: sets,
+    workoutComplete,
+    mealTotal: dPlan.meals.length,
+    mealsEaten,
+    dietComplete,
+    cardioComplete,
+    bonusDone,
+    cleared,
+    logged: !!log,
+    eaten,
+    xp,
+    xpBreakdown,
+    goodSleep: (log?.sleep?.hours ?? 0) >= 7,
+  };
+}
+
+/** Planned macros for the whole diet plan. */
+export function planTotals(plan: DietPlan): Macros {
+  return plan.meals.reduce(
+    (t, m) => ({ protein: t.protein + m.protein, carbs: t.carbs + m.carbs, fat: t.fat + m.fat, kcal: t.kcal + m.kcal }),
+    { protein: 0, carbs: 0, fat: 0, kcal: 0 },
+  );
+}
+
+/** Estimated total daily energy expenditure for a daily-training lifter. */
+export function estimateTdee(bmr: number): number {
+  return Math.round(bmr * 1.55);
+}
