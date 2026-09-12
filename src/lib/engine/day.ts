@@ -57,6 +57,8 @@ export type DayResult = {
   mealsEaten: number;
   dietComplete: boolean;
   cardioComplete: boolean;
+  /** Cardio belongs to the training session, so rest days do not ask for it. */
+  cardioMandatory: boolean;
   bonusDone: boolean;
   cleared: boolean;
   logged: boolean;
@@ -90,6 +92,7 @@ export function evaluateDay(
   const mealsEaten = dPlan.meals.filter((m) => log?.meals[m.id]?.eaten).length;
   const dietComplete = mealsEaten === dPlan.meals.length;
   const cardioComplete = !!log?.cardio.done;
+  const cardioMandatory = !rest;
   const bonusDone = !!log?.bonus.done;
 
   const eaten: Macros = { protein: 0, carbs: 0, fat: 0, kcal: 0 };
@@ -111,7 +114,8 @@ export function evaluateDay(
   if (bonusDone && rest) xpBreakdown.push({ label: "Bonus quest", xp: XP.bonusQuest });
   const xp = xpBreakdown.reduce((s, b) => s + b.xp, 0);
 
-  const cleared = (workoutMandatory ? workoutComplete : true) && dietComplete && cardioComplete;
+  const cleared =
+    (workoutMandatory ? workoutComplete : true) && dietComplete && (cardioMandatory ? cardioComplete : true);
 
   return {
     date,
@@ -126,6 +130,7 @@ export function evaluateDay(
     mealsEaten,
     dietComplete,
     cardioComplete,
+    cardioMandatory,
     bonusDone,
     cleared,
     logged: !!log,

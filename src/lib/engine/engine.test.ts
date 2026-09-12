@@ -298,6 +298,29 @@ describe("rest days", () => {
     expect(mon.workoutMandatory).toBe(true);
   });
 
+  it("does not ask for cardio on a rest day", () => {
+    const sat = addDays(MONDAY, 5);
+    const r = deriveProgress(snap([dayLog(sat, { workout: false, cardio: false })]), sat).days[sat];
+    expect(r.cardioMandatory).toBe(false);
+    // Diet alone clears a rest day now that cardio belongs to the session.
+    expect(r.cleared).toBe(true);
+
+    const mon = deriveProgress(snap([dayLog(MONDAY, { cardio: false })]), MONDAY).days[MONDAY];
+    expect(mon.cardioMandatory).toBe(true);
+    expect(mon.cleared).toBe(false);
+  });
+
+  it("banks the cardio streak on a rest day instead of breaking it", () => {
+    const sat = addDays(MONDAY, 5);
+    // Every training day Mon to Fri done, then the rest day with no cardio.
+    const logs = [
+      ...Array.from({ length: 5 }, (_, i) => dayLog(addDays(MONDAY, i))),
+      dayLog(sat, { workout: false, cardio: false }),
+    ];
+    const p = deriveProgress(snap(logs), sat);
+    expect(p.streaks.cardio.state).toBe("banked");
+  });
+
   it("still counts meals and diet XP on a rest day", () => {
     const sat = addDays(MONDAY, 5);
     const p = deriveProgress(snap([dayLog(sat, { workout: false, cardio: false })]), sat);

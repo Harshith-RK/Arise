@@ -11,7 +11,7 @@ import { MealRow } from "./MealRow";
 import { CompletionSquare, StrikeLabel, WeightStepper } from "./QuestBits";
 import { RestTimer } from "./RestTimer";
 import { RecoveryRow } from "./RecoveryRow";
-import { IconBack, IconBonus, IconCalendar, IconCardio, IconDumbbell, IconForward, IconMeal, IconSleep } from "@/components/icons";
+import { IconBack, IconBonus, IconCalendar, IconDumbbell, IconForward, IconMeal, IconSleep } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { addDays, formatReadout } from "@/lib/engine/dates";
 import { evaluateDay, isRestDay, makePlanLookup, mealLocked, trainingDayFor } from "@/lib/engine/day";
@@ -21,7 +21,7 @@ import { xpGained } from "@/lib/store/apply-outcome";
 import type { Outcome } from "@/lib/store/game-store";
 import { vibrate } from "@/lib/motion";
 
-type Category = "workout" | "diet" | "cardio" | "recovery";
+type Category = "workout" | "diet" | "recovery";
 
 export function QuestScreen({ date }: { date: string }) {
   const snapshot = useGame((s) => s.snapshot);
@@ -73,16 +73,12 @@ export function QuestScreen({ date }: { date: string }) {
     : view.rest
       ? !view.result.dietComplete
         ? "diet"
-        : !view.result.cardioComplete
-          ? "cardio"
-          : "workout"
-      : !view.result.workoutComplete
+        : "workout"
+      : !view.result.workoutComplete || !view.result.cardioComplete
         ? "workout"
         : !view.result.dietComplete
           ? "diet"
-          : !view.result.cardioComplete
-            ? "cardio"
-            : null;
+          : null;
   const openCategory = chosenCategory === undefined ? defaultCategory : chosenCategory;
 
   const run = useCallback(
@@ -174,10 +170,16 @@ export function QuestScreen({ date }: { date: string }) {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <GateMeter label="Workout" done={result.exercisesDone} total={result.exerciseTotal} mandatory={result.workoutMandatory} />
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {/* Cardio counts inside the session now, so the gate is the whole
+              workout: lifts plus the cardio that belongs to it. */}
+          <GateMeter
+            label="Workout"
+            done={result.exercisesDone + (result.cardioComplete ? 1 : 0)}
+            total={result.exerciseTotal + (result.cardioMandatory ? 1 : 0)}
+            mandatory={result.workoutMandatory}
+          />
           <GateMeter label="Diet" done={result.mealsEaten} total={result.mealTotal} mandatory />
-          <GateMeter label="Cardio" done={result.cardioComplete ? 1 : 0} total={1} mandatory />
         </div>
       </SystemWindow>
 
@@ -187,12 +189,12 @@ export function QuestScreen({ date }: { date: string }) {
         <CategoryPanel
           title={rest ? "Bonus quest" : "Workout"}
           Icon={rest ? IconBonus : IconDumbbell}
-          done={rest ? (result.bonusDone ? 1 : 0) : result.exercisesDone}
-          total={rest ? 1 : result.exerciseTotal}
-          complete={rest ? result.bonusDone : result.workoutComplete}
+          done={rest ? (result.bonusDone ? 1 : 0) : result.exercisesDone + (result.cardioComplete ? 1 : 0)}
+          total={rest ? 1 : result.exerciseTotal + 1}
+          complete={rest ? result.bonusDone : result.workoutComplete && result.cardioComplete}
           open={openCategory === "workout"}
           onToggle={() => setChosenCategory(openCategory === "workout" ? null : "workout")}
-          summary={rest ? "Optional. Your workout streak is banked." : `${trainingDay.title} cleared.`}
+          summary={rest ? "Optional. Your workout streak is banked." : `${trainingDay.title} and cardio cleared.`}
         >
           {rest ? (
             <button
@@ -243,6 +245,23 @@ export function QuestScreen({ date }: { date: string }) {
           ) : (
             <p className="t-small px-4 py-6 text-frost-2">No exercises scheduled for this day.</p>
           )}
+
+          {/* Cardio closes the session. Rest days do not carry one: the bonus
+              quest above already offers abs or cardio if the Hunter wants it. */}
+          {rest ? null : (
+            <div className="border-t border-line-1">
+              <CardioRow
+                key={`cardio-${date}`}
+                date={date}
+                done={result.cardioComplete}
+                kcal={log?.cardio.kcal ?? 200}
+                minutes={log?.cardio.minutes ?? null}
+                readOnly={readOnly}
+                onToggle={(el) => void run(() => actions.toggleCardio(date), el)}
+                onDetails={(kcal, minutes) => void run(() => actions.setCardioDetails(date, kcal, minutes))}
+              />
+            </div>
+          )}
         </CategoryPanel>
 
         <CategoryPanel
@@ -269,27 +288,6 @@ export function QuestScreen({ date }: { date: string }) {
           ))}
         </CategoryPanel>
 
-        <CategoryPanel
-          title="Cardio"
-          Icon={IconCardio}
-          done={result.cardioComplete ? 1 : 0}
-          total={1}
-          complete={result.cardioComplete}
-          open={openCategory === "cardio"}
-          onToggle={() => setChosenCategory(openCategory === "cardio" ? null : "cardio")}
-          summary={`${log?.cardio.kcal ?? 200} kcal logged.`}
-        >
-          <CardioRow
-            key={`cardio-${date}`}
-            date={date}
-            done={result.cardioComplete}
-            kcal={log?.cardio.kcal ?? 200}
-            minutes={log?.cardio.minutes ?? null}
-            readOnly={readOnly}
-            onToggle={(el) => void run(() => actions.toggleCardio(date), el)}
-            onDetails={(kcal, minutes) => void run(() => actions.setCardioDetails(date, kcal, minutes))}
-          />
-        </CategoryPanel>
       </div>
 
       {/* Always present, sealed until VITALITY unlocks: the stat told you sleep

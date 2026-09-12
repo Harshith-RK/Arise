@@ -169,7 +169,8 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     const outcomes: Record<StreakCategory, { applicable: boolean; done: boolean }> = {
       workout: { applicable: r.workoutMandatory, done: r.workoutComplete },
       diet: { applicable: true, done: r.dietComplete },
-      cardio: { applicable: true, done: r.cardioComplete },
+      // Banked on rest days, exactly like the workout streak it now belongs to.
+      cardio: { applicable: r.cardioMandatory, done: r.cardioComplete },
     };
     for (const cat of Object.keys(outcomes) as StreakCategory[]) {
       const s = streaks[cat];
@@ -270,7 +271,12 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
   const todayResult = days[today];
   for (const cat of Object.keys(streaks) as StreakCategory[]) {
     const s = streaks[cat];
-    const applicableToday = cat === "workout" ? !!todayResult?.workoutMandatory : true;
+    const applicableToday =
+      cat === "workout"
+        ? !!todayResult?.workoutMandatory
+        : cat === "cardio"
+          ? !!todayResult?.cardioMandatory
+          : true;
     if (!applicableToday) {
       s.state = s.count > 0 ? "banked" : lastApplicableOutcome[cat] === "missed" ? "broken" : "unlit";
     } else if (s.count > 0) {

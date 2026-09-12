@@ -578,6 +578,11 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **Cardio belongs to the workout, not to the day.** It used to be its own quest panel on every
+  day including rest days. It now sits inside the Workout panel after the lifts, and rest days
+  carry none: the bonus quest there already offers abs or cardio for anyone who wants it. The
+  workout gate counts lifts plus cardio, `cardioMandatory` gates clearing, and the cardio streak
+  banks on rest days exactly like the workout streak it now travels with.
 - **Recovery is sealed, not hidden.** It used to render only at level 5 and up, so while Status
   said VITALITY grows from logged sleep there was nowhere to log any. The panel is now always
   present: a padlock instead of the count, the reason and the levels remaining on the row, and the
