@@ -4,6 +4,17 @@ import { prefsScript } from "@/lib/prefs-script";
 import { ServiceWorker } from "@/components/shell/ServiceWorker";
 import "./globals.css";
 
+/**
+ * Absolute URLs for metadata. Vercel supplies the production domain and the
+ * per-deployment URL; NEXT_PUBLIC_SITE_URL overrides both for a custom domain.
+ */
+function siteUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
+}
+
 const archivo = Archivo({
   subsets: ["latin"],
   axes: ["wdth"],
@@ -19,7 +30,7 @@ const martian = Martian_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://winter-arc.local"),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "Winter Arc. The System for a ninety day arc.",
     template: "%s | Winter Arc",
