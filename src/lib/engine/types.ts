@@ -149,7 +149,8 @@ export const ProfileSchema = z.object({
   kcalTarget: z.number().int().min(800).max(6000),
   proteinTarget: z.number().int().min(20).max(400),
   arcStart: DateKey,
-  arcLength: z.number().int().min(7).max(365),
+  /** Null means open-ended. A fixed length is optional, not the default. */
+  arcLength: z.number().int().min(7).max(3650).nullable(),
   createdAt: z.string(),
 });
 export type Profile = z.infer<typeof ProfileSchema>;

@@ -17,7 +17,8 @@ export type SystemEvent =
   | { type: "badge"; id: string }
   | { type: "day_cleared"; date: string; arcDay: number; dayXp: number };
 
-export const STREAK_MILESTONES = [3, 7, 14, 30, 60, 90] as const;
+// Runs past 90: the arc has no end date, so neither do the milestones.
+export const STREAK_MILESTONES = [3, 7, 14, 30, 60, 90, 180, 270, 365, 500, 730] as const;
 
 export function diffProgress(before: Progress, after: Progress, date: string): SystemEvent[] {
   const events: SystemEvent[] = [];

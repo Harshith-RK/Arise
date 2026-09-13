@@ -3,10 +3,11 @@ import { DEFAULT_SETTINGS, seedDietPlan, seedProfile, seedSupplies, seedWorkoutP
 import { addDays, dayKeyOf, toKey } from "./dates";
 import { evaluateDay, makePlanLookup, mealLocked, MEAL_GRACE_MINUTES } from "./day";
 import { deriveProgress } from "./derive";
+import { BADGES } from "./badges";
 import { diffProgress } from "./events";
 import { epley, setScore } from "./pr";
 import type { DayLog, Snapshot, WeighIn } from "./types";
-import { isCutting, levelForXp, rankForLevel, weighInDrift, XP, xpForLevel } from "./xp";
+import { isCutting, levelForXp, rankForLevel, shieldXp, weighInDrift, XP, xpForLevel } from "./xp";
 
 /* ---------- fixtures ---------- */
 
@@ -285,6 +286,44 @@ describe("meal time gate", () => {
 });
 
 /* ---------- Weigh-ins ---------- */
+
+describe("the long arc", () => {
+  it("has no end date by default", () => {
+    expect(seedProfile(MONDAY).arcLength).toBeNull();
+  });
+
+  it("pays more for a shield the longer the streak behind it", () => {
+    expect(shieldXp(7)).toBe(XP.shield);
+    expect(shieldXp(29)).toBe(XP.shield);
+    expect(shieldXp(30)).toBe(XP.shield * 1.5);
+    expect(shieldXp(60)).toBe(XP.shield * 2);
+    expect(shieldXp(90)).toBe(XP.shield * 2.5);
+  });
+
+  it("caps the shield multiplier so it cannot run away", () => {
+    expect(shieldXp(180)).toBe(XP.shield * XP.shieldMaxMultiplier);
+    expect(shieldXp(3650)).toBe(XP.shield * XP.shieldMaxMultiplier);
+  });
+
+  it("keeps ranks topping out at S", () => {
+    expect(rankForLevel(50)).toBe("S");
+    expect(rankForLevel(200)).toBe("S");
+  });
+
+  it("keeps levelling past the last rank", () => {
+    // Rank stops at S; the level does not, so there is always a next number.
+    expect(levelForXp(xpForLevel(120))).toBe(120);
+    expect(xpForLevel(120)).toBeGreaterThan(xpForLevel(50));
+  });
+
+  it("carries badges past ninety days", () => {
+    const ids = BADGES.map((b) => b.id);
+    expect(ids).not.toContain("arc-complete");
+    for (const id of ["days-90", "days-180", "days-365", "shield-90", "shield-365", "iron-2500", "weigh-52"]) {
+      expect(ids).toContain(id);
+    }
+  });
+});
 
 describe("rest days", () => {
   it("marks a scheduled rest day, separately from whether a workout is mandatory", () => {

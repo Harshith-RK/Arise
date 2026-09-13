@@ -18,7 +18,24 @@ export const XP = {
   weighInDriftCap: 90,
   shield: 200,
   shieldEvery: 7,
+  /**
+   * A shield is worth more the longer the streak behind it, up to 4x. This is
+   * where the cost of breaking a long run lives: nothing is clawed back, but a
+   * 200 day streak earns four times what a fresh one does, and a break drops
+   * you to the floor. Punishing an illness by deleting past work would be
+   * wrong; letting a year of consistency pay the same as a week is just dull.
+   */
+  shieldStepDays: 30,
+  shieldStepBonus: 0.5,
+  shieldMaxMultiplier: 4,
 } as const;
+
+/** XP for a shield earned at this streak length. */
+export function shieldXp(streakDays: number): number {
+  const steps = Math.floor(streakDays / XP.shieldStepDays);
+  const mult = Math.min(XP.shieldMaxMultiplier, 1 + steps * XP.shieldStepBonus);
+  return Math.round(XP.shield * mult);
+}
 
 /**
  * XP for the direction the scale moved, measured against the previous weigh-in.

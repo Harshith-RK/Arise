@@ -190,7 +190,7 @@ export function AwakenFlow() {
       kcalTarget: Math.round(num(draft.kcalTarget)),
       proteinTarget: Math.round(num(draft.proteinTarget)),
       arcStart: todayKey(),
-      arcLength: 90,
+      arcLength: null,
       createdAt: new Date().toISOString(),
     };
     const parsed = ProfileSchema.safeParse(profile);

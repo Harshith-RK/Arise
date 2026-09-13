@@ -51,8 +51,26 @@ const GLYPHS: Record<string, string[]> = {
   // Phase one: weight driven down onto the marker.
   "phase-one": ["M50 26v26", "M42 44l8 8 8-8", "M30 60h40", "M30 68h40"],
 
-  // The arc finished: a flag planted at the end of it.
-  "arc-complete": ["M36 72V26", "M36 28h30l-7 9 7 9H36", "M28 72h44"],
+  // Day milestones: a flag planted, then a taller mast for each horizon.
+  "days-90": ["M36 72V30", "M36 32h26l-6 8 6 8H36", "M28 72h44"],
+  "days-180": ["M32 72V26", "M32 28h30l-7 9 7 9H32", "M68 72V38", "M24 72h56"],
+  "days-365": ["M28 72V24", "M28 26h26l-6 8 6 8H28", "M50 72V34", "M68 72V44", "M22 72h58"],
+
+  // Streaks that outlast a season: the shield gains walls behind it.
+  "shield-90": ["M50 26l18 7v17L50 70 32 52V35Z", "M41 38l9 7 9-7", "M43 48l7 6 7-6", "M45 58l5 5 5-5", "M24 30v26M76 30v26"],
+  "shield-365": ["M50 24l20 8v19L50 72 30 51V32Z", "M50 34v28", "M38 44l12-10 12 10", "M22 26v34M78 26v34", "M22 68h56"],
+
+  // Records stacking higher than the ten-record ladder.
+  "records-50": ["M27 72h46", "M31 72V62M39 72V52M47 72V42M55 72V32M63 72V24M71 72V34", "M27 30h10"],
+
+  // The furnace: the engine trace, doubled and driven.
+  "cardio-150": ["M24 44h10l6-14 8 28 5-14h11", "M24 60h10l6-10 8 20 5-10h11", "M74 38v30"],
+
+  // The forge: an anvil under the bar.
+  "iron-2500": ["M28 38h44", "M34 30v16M40 26v24M60 26v24M66 30v16", "M32 60h36l-6 10H38Z", "M44 70h12v6H44Z"],
+
+  // A year of readings: the balance, ringed.
+  "weigh-52": ["M28 40h44", "M50 40v22", "M38 64h24", "M34 40l-6 10h12ZM66 40l-6 10h12Z", "M50 34V24"],
 };
 
 export type BadgeProps = {

@@ -65,7 +65,8 @@ export function StatusScreen() {
               RANK {progress.rank} / {RANK_TITLES[progress.rank].toUpperCase()}
             </p>
             <p className="t-micro mt-0.5 text-frost-2">
-              ARC DAY {progress.arcDay} OF {profile.arcLength}
+              ARC DAY {progress.arcDay}
+              {profile.arcLength ? ` OF ${profile.arcLength}` : null}
             </p>
           </div>
           <div className="shrink-0 text-right">

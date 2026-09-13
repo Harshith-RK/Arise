@@ -115,7 +115,7 @@ export function seedProfile(arcStart: string, now = new Date().toISOString()): P
     kcalTarget: 2445,
     proteinTarget: 145,
     arcStart,
-    arcLength: 90,
+    arcLength: null,
     createdAt: now,
   };
 }

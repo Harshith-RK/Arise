@@ -578,6 +578,16 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **The arc has no end date.** `arcLength` is nullable and null by default, so the header reads
+  ARC DAY 412 rather than DAY 412 OF 90, and stored 90s migrate to null on load (the value was
+  hardcoded in onboarding and never editable, so every stored 90 is the old default). The brief's
+  90 day framing is kept as a milestone, not a finish line.
+- **XP is balanced for years, not a season.** Ranks still top out at S, but levels continue past
+  it, and the shield is where sustained consistency pays: worth 200 XP at a fresh streak, rising
+  by half again every 30 days to a 4x cap at 180. Nothing is ever clawed back for a missed day.
+  Breaking a long run costs the multiplier, not the work already banked, because deleting past
+  effort to punish an illness would be the wrong trade. Streak milestones run to 730 days, and
+  nine badges now sit past the ninety day mark.
 - **Cardio belongs to the workout, not to the day.** It used to be its own quest panel on every
   day including rest days. It now sits inside the Workout panel after the lifts, and rest days
   carry none: the bonus quest there already offers abs or cardio for anyone who wants it. The

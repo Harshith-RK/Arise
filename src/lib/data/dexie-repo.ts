@@ -27,6 +27,16 @@ class WinterArcDB extends Dexie {
   }
 }
 
+/**
+ * The arc used to end at day 90, hardcoded in onboarding and never editable, so
+ * every stored 90 is that old default rather than a choice anyone made. Clearing
+ * it opens the arc without asking existing Hunters to do anything.
+ */
+function migrateProfile<T extends Profile | null | undefined>(p: T): T {
+  if (p && p.arcLength === 90) return { ...p, arcLength: null } as T;
+  return p;
+}
+
 export function createDexieRepo(name = "winter-arc"): Repository {
   const db = new WinterArcDB(name);
 
@@ -52,7 +62,7 @@ export function createDexieRepo(name = "winter-arc"): Repository {
         db.dietPlans.toArray(),
       ]);
       if (!settings || !supplies || !workoutPlans.length || !dietPlans.length) return null;
-      return { settings, profile, supplies, dayLogs, weighIns, workoutPlans, dietPlans };
+      return { settings, profile: migrateProfile(profile), supplies, dayLogs, weighIns, workoutPlans, dietPlans };
     },
 
     saveProfile: (p) => putKV("profile", p),

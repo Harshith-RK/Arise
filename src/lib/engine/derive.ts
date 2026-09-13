@@ -3,7 +3,7 @@ import { evaluateDay, makePlanLookup, type DayResult } from "./day";
 import { round1, setScore } from "./pr";
 import { BADGES, type BadgeState } from "./badges";
 import type { DayLog, Rank, Snapshot, WeighIn } from "./types";
-import { isCutting, levelForXp, levelProgress, rankForLevel, weighInDrift, XP } from "./xp";
+import { isCutting, levelForXp, levelProgress, rankForLevel, shieldXp, weighInDrift, XP } from "./xp";
 
 /* ==========================================================================
    deriveProgress: one chronological pass over the arc. Pure and
@@ -146,6 +146,7 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
         weighInWeeks.add(wk);
         xp += XP.weighIn;
         if (weighInWeeks.size >= 4) unlock("weigh-4", w.date);
+        if (weighInWeeks.size >= 52) unlock("weigh-52", w.date);
       }
       // Direction is scored on every reading, not just the week's first, so
       // logging twice in a week cannot be used to bank the move twice.
@@ -163,7 +164,9 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     if (r.dietComplete) fullDietDays++;
     if (r.goodSleep) goodSleep++;
     if (sets >= 500) unlock("iron-500", date);
+    if (sets >= 2500) unlock("iron-2500", date);
     if (cardio >= 30) unlock("cardio-30", date);
+    if (cardio >= 150) unlock("cardio-150", date);
 
     // ---- Streaks per category
     const outcomes: Record<StreakCategory, { applicable: boolean; done: boolean }> = {
@@ -202,10 +205,12 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
       fullStreak++;
       bestFullStreak = Math.max(bestFullStreak, fullStreak);
       unlock("first-gate", date);
-      if (fullStreak % XP.shieldEvery === 0) xp += XP.shield;
+      if (fullStreak % XP.shieldEvery === 0) xp += shieldXp(fullStreak);
       if (fullStreak >= 7) unlock("shield-7", date);
       if (fullStreak >= 14) unlock("shield-14", date);
       if (fullStreak >= 30) unlock("shield-30", date);
+      if (fullStreak >= 90) unlock("shield-90", date);
+      if (fullStreak >= 365) unlock("shield-365", date);
     } else if (!isToday && date >= arcStart) {
       fullStreak = 0;
     }
@@ -262,7 +267,9 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     }
     const arcDayHere = diffDays(arcStart, date) + 1;
     if (arcDayHere >= 30) unlock("month-one", date);
-    if (profile && arcDayHere >= profile.arcLength) unlock("arc-complete", date);
+    if (arcDayHere >= 90) unlock("days-90", date);
+    if (arcDayHere >= 180) unlock("days-180", date);
+    if (arcDayHere >= 365) unlock("days-365", date);
 
     xpHistory.push({ date, xp, level: lvl });
   }
@@ -337,14 +344,22 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     "shield-7": bestFullStreak,
     "shield-14": bestFullStreak,
     "shield-30": bestFullStreak,
+    "shield-90": bestFullStreak,
+    "shield-365": bestFullStreak,
     "week-one": bestWeekClears,
     "first-record": records.length ? 1 : 0,
     "records-10": records.length,
+    "records-50": records.length,
     "month-one": arcDay,
-    "arc-complete": arcDay,
+    "days-90": arcDay,
+    "days-180": arcDay,
+    "days-365": arcDay,
     "weigh-4": weighInWeeks.size,
+    "weigh-52": weighInWeeks.size,
     "cardio-30": cardio,
+    "cardio-150": cardio,
     "iron-500": sets,
+    "iron-2500": sets,
     "phase-one": badgeAt["phase-one"] ? 1 : 0,
     "rank-D": level,
     "rank-C": level,
@@ -354,8 +369,7 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
   };
   const badges: Record<string, BadgeState> = {};
   for (const t of BADGES) {
-    const target = t.id === "arc-complete" && profile ? profile.arcLength : t.target;
-    badges[t.id] = { id: t.id, current: Math.min(target, badgeCurrent[t.id] ?? 0), unlockedOn: badgeAt[t.id] };
+    badges[t.id] = { id: t.id, current: Math.min(t.target, badgeCurrent[t.id] ?? 0), unlockedOn: badgeAt[t.id] };
   }
 
   const latestWeighIn = weighIns.filter((w) => w.date <= today).at(-1) ?? null;

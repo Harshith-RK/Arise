@@ -148,7 +148,7 @@ export function QuestScreen({ date }: { date: string }) {
 
   const { result, meals, exercises, rest, trainingDay, log } = view;
   const arcDay = snapshot.profile ? Math.max(1, 1 + daysBetween(snapshot.profile.arcStart, date)) : 1;
-  const arcLength = snapshot.profile?.arcLength ?? 90;
+  const arcLength = snapshot.profile?.arcLength ?? null;
 
   return (
     <>
@@ -159,7 +159,8 @@ export function QuestScreen({ date }: { date: string }) {
           <div className="min-w-0">
             <h1 className="t-display-2 text-frost-0">{rest ? "Rest day" : `${trainingDay.title} day`}</h1>
             <p className="t-micro mt-1.5 text-frost-2">
-              {formatReadout(date).toUpperCase()} / ARC DAY {arcDay} OF {arcLength}
+              {formatReadout(date).toUpperCase()} / ARC DAY {arcDay}
+              {arcLength ? ` OF ${arcLength}` : null}
             </p>
           </div>
           <div className="shrink-0 text-right">
