@@ -1,0 +1,13 @@
+import { Suspense } from "react";
+import type { Metadata } from "next";
+import { AuthScreen } from "@/components/auth/AuthScreen";
+
+export const metadata: Metadata = { title: "Sign in" };
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuthScreen />
+    </Suspense>
+  );
+}

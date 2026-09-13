@@ -18,6 +18,8 @@ export function Field({
   step,
   autoFocus,
   placeholder,
+  autoComplete,
+  name,
 }: {
   label: string;
   value: string | number;
@@ -25,11 +27,14 @@ export function Field({
   error?: string | null;
   helper?: string;
   suffix?: string;
-  type?: "text" | "number" | "time";
+  type?: "text" | "number" | "time" | "email" | "password";
   inputMode?: "text" | "decimal" | "numeric";
   step?: number;
   autoFocus?: boolean;
   placeholder?: string;
+  /** Let the password manager do its job. */
+  autoComplete?: string;
+  name?: string;
 }) {
   const id = useId();
   const errorId = `${id}-error`;
@@ -42,7 +47,9 @@ export function Field({
       <div className="mt-1.5 flex items-stretch border border-line-2 focus-within:border-ember">
         <input
           id={id}
+          name={name}
           type={type}
+          autoComplete={autoComplete}
           inputMode={inputMode}
           step={step}
           value={value}

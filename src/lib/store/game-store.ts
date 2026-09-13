@@ -48,6 +48,8 @@ export type GameState = {
   repoKind: Repository["kind"];
 
   init(): Promise<void>;
+  /** Re-read from the repository without seeding. Used by realtime. */
+  reload(): Promise<void>;
   setToday(key: string): void;
 
   /* quests */
@@ -245,6 +247,28 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
       snapshot: null,
       progress: null,
       repoKind: repo.kind,
+
+      /**
+       * A change arrived from another device. Everything is derived from the
+       * log in one pass, so pulling the whole snapshot is both simplest and
+       * incapable of drifting the way patching row by row would.
+       */
+      async reload() {
+        try {
+          const snap = await repo.load();
+          if (!snap) return;
+          opts.onSettings?.(snap.settings);
+          set({
+            snapshot: snap,
+            progress: derive(snap),
+            status: snap.profile ? "ready" : "onboarding",
+            error: null,
+          });
+        } catch {
+          // A failed background pull leaves what is on screen alone. The next
+          // change, or the next launch, tries again.
+        }
+      },
 
       async init() {
         try {

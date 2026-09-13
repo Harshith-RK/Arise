@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Button, PageHeader, Panel, Placeholder } from "@/components/system/primitives";
 import { Field, Toggle } from "@/components/system/Field";
+import { AccountPanel } from "@/components/auth/AccountPanel";
+import { StorageNote } from "@/components/auth/StorageNote";
 import { notify } from "@/components/system/notify";
 import { IconExport, IconForward, IconImport, IconReset } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
@@ -49,6 +51,8 @@ export function SystemScreen() {
   return (
     <>
       <PageHeader title="System" meta={<span className="t-micro text-frost-2">V1.0</span>} />
+
+      <AccountPanel className="mb-4" />
 
       {/* Hunter profile */}
       <Panel title="Hunter" className="mb-4">
@@ -242,9 +246,7 @@ export function SystemScreen() {
 
       <Panel title="About">
         <div className="border-t border-line-1 px-4 py-4">
-          <p className="t-small text-frost-1">
-            Winter Arc runs entirely on this device. No account, no tracking, no data leaves your browser.
-          </p>
+          <StorageNote />
           <div className="mt-3 flex gap-4">
             <Link href="/legal/terms" className="t-micro text-ember hov:text-core">
               TERMS

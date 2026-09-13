@@ -578,6 +578,13 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **`m.*` components need a LazyMotion ancestor or they render invisible.** Without one they stay
+  at `initial`, and for SystemWindow that is opacity 0: the page is present, focusable and
+  readable by a screen reader, and completely blank on screen. AppShell and LiveDemo each provide
+  one; anything outside /app must wrap itself in `MotionScope`. This cost an hour on /auth.
+- **Accounts are optional and the app must work without one.** No Supabase env means local-only
+  Dexie exactly as before, the Account panel hides itself, and the copy on System and the privacy
+  page says which of the two is true rather than claiming one of them always is.
 - **The arc has no end date.** `arcLength` is nullable and null by default, so the header reads
   ARC DAY 412 rather than DAY 412 OF 90, and stored 90s migrate to null on load (the value was
   hardcoded in onboarding and never editable, so every stored 90 is the old default). The brief's

@@ -23,7 +23,7 @@ import {
    ========================================================================== */
 
 export interface Repository {
-  readonly kind: "dexie" | "memory";
+  readonly kind: "dexie" | "memory" | "supabase";
   load(): Promise<Snapshot | null>;
   saveProfile(p: Profile): Promise<void>;
   saveSettings(s: Settings): Promise<void>;
