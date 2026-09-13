@@ -1,0 +1,82 @@
+/Users/HarshithRK/Documents/Websites/Solo Levelling/ml/train.py:63: DtypeWarning: Columns (6) have mixed types. Specify dtype option on import or set low_memory=False.
+  df = pd.read_csv(path)
+
+========================================================================
+DIET, BODY FAT KNOWN  (diet_katch.csv)
+========================================================================
+  rows 146,785   features ['sex', 'lean_kg', 'bodyfat_pct', 'weight_kg', 'days', 'goal', 'condition']
+
+  RANDOM HOLDOUT (80/20)
+    kcal           MAE    5.23 kcal  p95   15.75  worst   109.29
+    protein_g      MAE    0.00 g     p95    0.00  worst     0.00
+    carbs_g        MAE    2.72 g     p95    7.40  worst    26.49
+    fat_g          MAE    0.22 g     p95    0.81  worst     6.49
+
+  REGION HOLDOUT (trained on lean_kg < 75.0, tested on >= 75.0: 34,231 rows)
+    kcal           MAE  259.12 kcal  p95  520.79  worst   715.48
+    protein_g      MAE   16.64 g     p95   32.00  worst    35.20
+    carbs_g        MAE   25.81 g     p95   64.86  worst   121.97
+    fat_g          MAE    1.16 g     p95    5.39  worst    23.17
+
+  LEARNING CURVE (kcal, random holdout)
+    n=  1,000   MAE   35.87 kcal   (1.9s)
+    n=  5,000   MAE   13.25 kcal   (2.0s)
+    n= 20,000   MAE    7.06 kcal   (2.3s)
+    n= 50,000   MAE    6.36 kcal   (2.6s)
+    n=100,000   MAE    5.35 kcal   (3.0s)
+    n=117,626   MAE    5.39 kcal   (3.0s)
+
+  MODEL SIZE  6.29 MB for 4 targets (1.57 MB each)
+
+========================================================================
+DIET, BODY FAT UNKNOWN  (diet_mifflin.csv)
+========================================================================
+  rows 93,600   features ['sex', 'height_cm', 'weight_kg', 'age', 'days', 'goal']
+
+  RANDOM HOLDOUT (80/20)
+    kcal           MAE   15.18 kcal  p95   47.90  worst   133.84
+    protein_g      MAE    0.39 g     p95    1.03  worst     2.92
+    carbs_g        MAE    3.42 g     p95   11.93  worst    38.85
+    fat_g          MAE    0.00 g     p95    0.00  worst     0.00
+
+  REGION HOLDOUT (trained on weight_kg < 120.0, tested on >= 120.0: 27,720 rows)
+    kcal           MAE  312.96 kcal  p95  655.02  worst   839.20
+    protein_g      MAE    5.49 g     p95   15.71  worst    29.66
+    carbs_g        MAE   35.83 g     p95   86.15  worst   134.11
+    fat_g          MAE   18.13 g     p95   36.00  worst    36.00
+
+  LEARNING CURVE (kcal, random holdout)
+    n=  1,000   MAE   47.55 kcal   (1.9s)
+    n=  5,000   MAE   22.29 kcal   (2.0s)
+    n= 20,000   MAE   17.36 kcal   (2.1s)
+    n= 50,000   MAE   15.92 kcal   (2.7s)
+    n= 74,906   MAE   15.47 kcal   (2.7s)
+
+  MODEL SIZE  5.28 MB for 4 targets (1.32 MB each)
+
+========================================================================
+TRAINING SESSION  (session.csv)
+========================================================================
+  rows 2,880  (the entire space, enumerated)
+
+  split classification   accuracy 1.0000
+
+  weekly volume regression
+    chest          MAE    0.00 sets  p95    0.00  worst     0.00
+    back           MAE    0.00 sets  p95    0.00  worst     0.00
+    quads          MAE    0.00 sets  p95    0.00  worst     0.00
+    hams           MAE    0.01 sets  p95    0.02  worst     0.05
+    glutes         MAE    0.00 sets  p95    0.01  worst     0.01
+    delts          MAE    0.00 sets  p95    0.00  worst     0.00
+    arms           MAE    0.00 sets  p95    0.00  worst     0.00
+    calves         MAE    0.00 sets  p95    0.00  worst     0.00
+    mean across muscles: 0.001 sets
+
+========================================================================
+SUMMARY
+========================================================================
+  kcal MAE, random holdout   5.2 kcal (katch) / 15.2 kcal (mifflin)
+  kcal MAE, region holdout   259.1 kcal (katch) / 313.0 kcal (mifflin)
+  split accuracy             1.0000
+  volume MAE                 0.001 sets
+  model size, diet only      11.57 MB

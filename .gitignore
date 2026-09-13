@@ -46,3 +46,8 @@ screenshots/
 test-results/
 playwright-report/
 .pw-perf/
+
+# ML bench: regenerable, and large
+ml/.venv/
+ml/data/
+ml/models/

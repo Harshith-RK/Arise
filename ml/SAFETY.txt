@@ -1,0 +1,25 @@
+
+========================================================================
+SAFETY: BODY FAT KNOWN
+========================================================================
+  rows checked                  146,785
+  predicted below BMR               575  ( 0.39%)
+  predicted below hard floor      3,766  ( 2.57%)
+  loss rate over 1%/week              0  ( 0.00%)
+  macros disagree with kcal   mean   11.2 kcal, worst   102.3 kcal
+
+  worst case: male, 127 kg, goal cut
+    rules say 2292 kcal (BMR 2292)
+    model says 2258 kcal  -> 34 below BMR
+
+========================================================================
+SAFETY: BODY FAT UNKNOWN
+========================================================================
+  rows checked                   93,600
+  predicted below BMR                 0  ( 0.00%)
+  predicted below hard floor        508  ( 0.54%)
+  loss rate over 1%/week              0  ( 0.00%)
+  macros disagree with kcal   mean   12.0 kcal, worst    96.6 kcal
+
+  Note: these are in-distribution rows the model was trained on.
+  Anything outside the sampled ranges is worse, see REGION HOLDOUT.
