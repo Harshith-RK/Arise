@@ -2,7 +2,11 @@
 
 import { supabase } from "./client";
 
-export type AuthResult = { ok: true } | { ok: false; error: string };
+export type AuthResult =
+  | { ok: true }
+  /** Account created, but the project still requires email confirmation. */
+  | { ok: false; needsConfirmation: true; error: string }
+  | { ok: false; error: string };
 
 /** Supabase's messages are terse and lowercase. Say it the way the System would. */
 function say(message: string): string {
@@ -18,8 +22,18 @@ function say(message: string): string {
 export async function signUpWithPassword(email: string, password: string): Promise<AuthResult> {
   const db = supabase();
   if (!db) return { ok: false, error: "No backend configured." };
-  const { error } = await db.auth.signUp({ email: email.trim(), password });
+  const { data, error } = await db.auth.signUp({ email: email.trim(), password });
   if (error) return { ok: false, error: say(error.message) };
+  // With confirmation off, signUp returns a session and the Hunter is in. With
+  // it on, it returns a user and no session: say so rather than sending them
+  // into an app they are not actually signed in to.
+  if (!data.session) {
+    return {
+      ok: false,
+      needsConfirmation: true,
+      error: "Account created. Check your email to confirm it, then sign in.",
+    };
+  }
   return { ok: true };
 }
 

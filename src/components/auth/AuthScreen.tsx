@@ -45,7 +45,13 @@ export function AuthScreen() {
         : await signUpWithPassword(email, password);
     setBusy(false);
 
-    if (!result.ok) return setError(result.error);
+    if (!result.ok) {
+      setError(result.error);
+      // Confirmation is meant to be off. If it is not, at least point them at
+      // the door that does work.
+      if ("needsConfirmation" in result) setMode("in");
+      return;
+    }
     router.replace(next);
   };
 
