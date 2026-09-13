@@ -23,6 +23,7 @@ export function AuthScreen() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") ?? "/app/quest";
+  const signedOut = params.get("signed-out") === "1";
 
   const [mode, setMode] = useState<Mode>("in");
   const [email, setEmail] = useState("");
@@ -79,7 +80,13 @@ export function AuthScreen() {
               : "EMAIL AND A PASSWORD. NOTHING TO CONFIRM."}
           </p>
 
-          <form onSubmit={submit} className="mt-6 space-y-3">
+          {signedOut ? (
+          <p className="t-micro mt-5 border border-line-2 px-3 py-2 text-frost-1" role="status">
+            SIGNED OUT. YOUR ARC IS SAFE ON YOUR ACCOUNT.
+          </p>
+        ) : null}
+
+        <form onSubmit={submit} className="mt-6 space-y-3">
             <Field
               label="EMAIL"
               name="email"

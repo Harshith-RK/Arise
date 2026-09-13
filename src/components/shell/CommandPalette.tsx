@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { NAV_ITEMS } from "./nav-items";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
+import { useAuth, useSignOut } from "@/lib/supabase/session";
 
 /**
  * Cmd+K palette. Opens and closes with no animation: this is a
@@ -15,6 +16,8 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   const router = useRouter();
   const { actions } = useGameActions();
   const skin = useGame((s) => s.snapshot?.settings.skin ?? "system");
+  const auth = useAuth();
+  const signOut = useSignOut();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -71,6 +74,16 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
           >
             Switch skin to {skin === "whiteout" ? "Permafrost" : "Whiteout"}
           </Item>
+          {auth.status === "signed-in" ? (
+            <Item
+              onSelect={() => {
+                onOpenChange(false);
+                void signOut();
+              }}
+            >
+              Sign out
+            </Item>
+          ) : null}
         </Command.Group>
       </Command.List>
     </Command.Dialog>

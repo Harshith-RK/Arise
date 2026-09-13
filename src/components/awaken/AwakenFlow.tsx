@@ -7,6 +7,7 @@ import { AnimatePresence, m } from "motion/react";
 import { z } from "zod";
 const BootSequence = dynamic(() => import("./BootSequence").then((m) => m.BootSequence), { ssr: false });
 import { Field, Toggle } from "@/components/system/Field";
+import { SignedInAs } from "@/components/auth/SignedInAs";
 import { SystemWindow } from "@/components/system/SystemWindow";
 import { Button } from "@/components/system/primitives";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
@@ -441,6 +442,7 @@ export function AwakenFlow() {
       <p className="t-micro mt-6 text-center text-frost-2">
         EVERYTHING HERE IS EDITABLE LATER IN SYSTEM
       </p>
+      <SignedInAs className="mt-3 text-center" />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./client";
 import { HAS_BACKEND } from "./env";
@@ -39,4 +40,21 @@ export function useAuth(): AuthState {
 
 export async function signOut(): Promise<void> {
   await supabase()?.auth.signOut();
+}
+
+/**
+ * Sign out and land on the sign in screen.
+ *
+ * Leaving /app happens first, on purpose. Signed out, the app falls back to
+ * this device's local store, and on a device that only ever held the account
+ * copy that store is empty, which the shell reads as a new Hunter and answers
+ * with onboarding. Navigating away before the session ends unmounts the shell,
+ * so there is nothing left to make that mistake.
+ */
+export function useSignOut(): () => Promise<void> {
+  const router = useRouter();
+  return useCallback(async () => {
+    router.replace("/auth?signed-out=1");
+    await signOut();
+  }, [router]);
 }

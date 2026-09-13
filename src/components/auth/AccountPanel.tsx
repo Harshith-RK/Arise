@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button, Panel } from "@/components/system/primitives";
-import { notify } from "@/components/system/notify";
 import { HAS_BACKEND } from "@/lib/supabase/env";
-import { signOut, useAuth } from "@/lib/supabase/session";
+import { useAuth, useSignOut } from "@/lib/supabase/session";
 
 /**
  * Account state on the System screen. Says plainly where the arc is stored,
@@ -14,6 +13,7 @@ import { signOut, useAuth } from "@/lib/supabase/session";
  */
 export function AccountPanel({ className }: { className?: string }) {
   const auth = useAuth();
+  const signOut = useSignOut();
   const [busy, setBusy] = useState(false);
 
   if (!HAS_BACKEND || auth.status === "loading") return null;
@@ -31,11 +31,9 @@ export function AccountPanel({ className }: { className?: string }) {
             <Button
               className="mt-4"
               disabled={busy}
-              onClick={async () => {
+              onClick={() => {
                 setBusy(true);
-                await signOut();
-                notify({ tag: "Notice", text: "Signed out. This device keeps its own copy.", tone: "neutral" });
-                setBusy(false);
+                void signOut();
               }}
             >
               Sign out
