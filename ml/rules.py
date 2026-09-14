@@ -160,12 +160,19 @@ def targets(
 
     clamped = []
 
-    # Never below resting metabolic rate, never below the absolute floor.
+    # Never below resting metabolic rate, never below the absolute floor, and
+    # never above maintenance. That last one settles a real conflict: a small
+    # body can have a TDEE under the floor, where "raise to the floor" would
+    # turn a cut into a surplus that the gain cap then drags back under the
+    # floor. A cut eats at most maintenance, so the floor stops at TDEE.
     if goal == "cut":
         if kcal < bmr:
             kcal, _ = bmr, clamped.append("bmr")
-        if kcal < KCAL_FLOOR[sex]:
-            kcal, _ = KCAL_FLOOR[sex], clamped.append("floor")
+        floor = min(KCAL_FLOOR[sex], tdee)
+        if kcal < floor:
+            kcal, _ = floor, clamped.append("floor")
+        if kcal > tdee:
+            kcal, _ = tdee, clamped.append("maintenance")
 
     # Rate cap, both directions.
     delta = tdee - kcal

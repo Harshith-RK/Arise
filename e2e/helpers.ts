@@ -20,6 +20,9 @@ export async function awaken(page: Page) {
   await page.goto("/awaken");
   await page.waitForTimeout(200);
   if (page.url().includes("/app/")) return;
+  // Sex and age are required: the plan model needs both.
+  await page.getByRole("button", { name: "MALE", exact: true }).click();
+  await page.getByLabel("AGE").fill("25");
   for (let i = 0; i < 4; i++) {
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await page.waitForTimeout(200);

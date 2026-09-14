@@ -12,7 +12,8 @@ import { StreakCalendar } from "./StreakCalendar";
 import { IconLock, IconScale } from "@/components/icons";
 import { useGame } from "@/lib/store/GameProvider";
 import { RANK_TITLES, rankForLevel, xpForLevel } from "@/lib/engine/xp";
-import { estimateTdee } from "@/lib/engine/day";
+import { tdeeFor } from "@/lib/plan/rules";
+import { trainingDays } from "@/lib/plan/from-profile";
 import type { StatKey, StreakCategory } from "@/lib/engine/derive";
 
 const STAT_LABEL: Record<StatKey, string> = {
@@ -42,7 +43,8 @@ export function StatusScreen() {
   const current = progress.latestWeighIn?.weightKg ?? profile.startWeightKg;
   const lost = profile.startWeightKg - current;
   const toGo = current - profile.targetWeightKg;
-  const tdee = estimateTdee(profile.bmr);
+  // Same activity scale the Targets panel uses, so the two screens agree.
+  const tdee = Math.round(tdeeFor(profile.bmr, trainingDays(profile.restDays), profile.conditions ?? []));
   const deficit = tdee - profile.kcalTarget;
   const nextRankLevel = (Math.floor(progress.level / 10) + 1) * 10;
   const xpToRank = xpForLevel(nextRankLevel) - progress.xp;

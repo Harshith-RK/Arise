@@ -1,0 +1,1990 @@
+{
+ "diet": [
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    57.0,
+    48.0,
+    109.62,
+    5.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2606.6329907292975,
+    "protein_g": 102.6407436188984,
+    "fat_g": 86.98208658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    55.0,
+    44.0,
+    98.21,
+    4.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2417.238680729298,
+    "protein_g": 109.96237361889841,
+    "fat_g": 78.10651658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    60.0,
+    15.0,
+    70.59,
+    2.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2289.421550729298,
+    "protein_g": 120.0711036188984,
+    "fat_g": 57.322876581735215
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    26.0,
+    53.0,
+    55.32,
+    2.0,
+    2.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1209.3691407292977,
+    "protein_g": 46.769183618898396,
+    "fat_g": 51.98506658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    82.0,
+    56.0,
+    186.36,
+    5.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2486.694950729298,
+    "protein_g": 180.47846361889842,
+    "fat_g": 149.25631658173523
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    30.0,
+    52.0,
+    62.5,
+    6.0,
+    2.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1836.7675307292975,
+    "protein_g": 54.04016361889841,
+    "fat_g": 67.11666658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    88.0,
+    18.0,
+    107.32,
+    4.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3169.1981907292975,
+    "protein_g": 193.6129336188984,
+    "fat_g": 85.59964658173521
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    52.0,
+    63.0,
+    140.54,
+    4.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2069.4359807292976,
+    "protein_g": 103.9445336188984,
+    "fat_g": 120.2868965817352
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    51.0,
+    34.0,
+    77.27,
+    6.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1910.5822007292975,
+    "protein_g": 112.11212361889841,
+    "fat_g": 61.15517658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    74.0,
+    31.0,
+    107.25,
+    2.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2699.3205507292973,
+    "protein_g": 148.0742136188984,
+    "fat_g": 85.69974658173521
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    50.0,
+    20.0,
+    62.5,
+    2.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1997.1421707292975,
+    "protein_g": 100.1562136188984,
+    "fat_g": 50.30220658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    36.0,
+    28.0,
+    50.0,
+    5.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1775.7984207292984,
+    "protein_g": 71.78914361889838,
+    "fat_g": 40.17708658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    89.0,
+    10.0,
+    98.89,
+    4.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3198.8503007292975,
+    "protein_g": 195.75114361889842,
+    "fat_g": 79.67168658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    49.0,
+    7.0,
+    52.69,
+    6.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2760.5902507292976,
+    "protein_g": 88.17429361889842,
+    "fat_g": 41.8368265817352
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    35.0,
+    5.0,
+    36.84,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1493.3256107292984,
+    "protein_g": 76.8937136188984,
+    "fat_g": 29.158366581735237
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    36.0,
+    50.0,
+    72.0,
+    5.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1336.6219807292982,
+    "protein_g": 79.4234636188984,
+    "fat_g": 57.35401658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    57.0,
+    22.0,
+    73.08,
+    5.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2108.4401407292976,
+    "protein_g": 125.39060361889841,
+    "fat_g": 58.043866581735216
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    74.0,
+    8.0,
+    80.43,
+    6.0,
+    2.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3838.612800729297,
+    "protein_g": 133.3383036188984,
+    "fat_g": 91.96439658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    72.0,
+    23.0,
+    93.51,
+    3.0,
+    2.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0
+   ],
+   "expected": {
+    "kcal": 3055.722370729298,
+    "protein_g": 129.6576036188984,
+    "fat_g": 104.13344658173521
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    63.0,
+    58.0,
+    150.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1784.577110729298,
+    "protein_g": 138.4814636188984,
+    "fat_g": 118.97860658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    87.0,
+    25.0,
+    116.0,
+    4.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+   ],
+   "expected": {
+    "kcal": 2518.128960729298,
+    "protein_g": 191.3570336188984,
+    "fat_g": 93.22788658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    80.0,
+    20.0,
+    100.0,
+    4.0,
+    0.0,
+    0.0,
+    1.0,
+    1.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2772.564610729298,
+    "protein_g": 176.07527361889842,
+    "fat_g": 120.06620658173523
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    61.0,
+    38.0,
+    98.39,
+    3.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2327.032330729298,
+    "protein_g": 121.84866361889841,
+    "fat_g": 78.09536658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    88.0,
+    7.0,
+    94.62,
+    5.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3169.010910729298,
+    "protein_g": 193.6129336188984,
+    "fat_g": 75.84985658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    67.0,
+    41.0,
+    113.56,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1870.1156707292976,
+    "protein_g": 147.3860736188984,
+    "fat_g": 90.78344658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    46.0,
+    18.0,
+    56.1,
+    4.0,
+    2.0,
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   "expected": {
+    "kcal": 2414.037060729298,
+    "protein_g": 82.7166936188984,
+    "fat_g": 63.862896581735214
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    65.0,
+    49.0,
+    127.45,
+    5.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2748.7002607292975,
+    "protein_g": 129.8893236188984,
+    "fat_g": 102.32765658173521
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    78.0,
+    20.0,
+    97.5,
+    5.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2556.453950729298,
+    "protein_g": 171.6174936188984,
+    "fat_g": 77.69050658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    0.0,
+    82.0,
+    10.0,
+    91.11,
+    3.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2646.1452607292977,
+    "protein_g": 180.47846361889842,
+    "fat_g": 73.33166658173522
+   }
+  },
+  {
+   "path": "katch",
+   "x": [
+    1.0,
+    82.0,
+    43.0,
+    143.86,
+    4.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3486.628890729297,
+    "protein_g": 147.6847936188984,
+    "fat_g": 115.50138658173523
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    155.0,
+    85.0,
+    50.0,
+    4.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2544.7743788349517,
+    "protein_g": 94.75385009708738,
+    "fat_g": 67.86329822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    185.0,
+    155.0,
+    62.0,
+    2.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3087.013188834952,
+    "protein_g": 115.11111009708739,
+    "fat_g": 123.94822822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    180.0,
+    50.0,
+    18.0,
+    6.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2361.869028834952,
+    "protein_g": 83.26081009708739,
+    "fat_g": 40.1679882200647
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    185.0,
+    120.0,
+    46.0,
+    6.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3854.691658834952,
+    "protein_g": 139.19430009708736,
+    "fat_g": 96.05886822006471
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    190.0,
+    120.0,
+    18.0,
+    4.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3585.387158834953,
+    "protein_g": 179.28210009708744,
+    "fat_g": 96.05938822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    160.0,
+    80.0,
+    34.0,
+    2.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2120.8250488349518,
+    "protein_g": 85.11014009708738,
+    "fat_g": 64.09076822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    150.0,
+    55.0,
+    50.0,
+    6.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1452.9465188349516,
+    "protein_g": 78.70936009708738,
+    "fat_g": 43.89084822006471
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    160.0,
+    65.0,
+    42.0,
+    5.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1548.7406188349519,
+    "protein_g": 90.80695009708738,
+    "fat_g": 52.058958220064724
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    150.0,
+    110.0,
+    58.0,
+    6.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2047.579478834952,
+    "protein_g": 86.38539009708738,
+    "fat_g": 88.02545822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    200.0,
+    110.0,
+    54.0,
+    6.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3582.0425688349524,
+    "protein_g": 156.8425700970874,
+    "fat_g": 88.10119822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    155.0,
+    130.0,
+    46.0,
+    6.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3721.0113088349526,
+    "protein_g": 98.26512009708739,
+    "fat_g": 104.1053282200647
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    150.0,
+    115.0,
+    46.0,
+    3.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2431.1284588349517,
+    "protein_g": 73.4863900970874,
+    "fat_g": 91.94137822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    175.0,
+    40.0,
+    18.0,
+    3.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1768.3587088349527,
+    "protein_g": 84.27554009708739,
+    "fat_g": 32.0325582200647
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    180.0,
+    45.0,
+    38.0,
+    4.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1885.743318834952,
+    "protein_g": 72.68101009708738,
+    "fat_g": 36.00843822006471
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    180.0,
+    130.0,
+    34.0,
+    6.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2482.927718834952,
+    "protein_g": 137.92671009708738,
+    "fat_g": 104.06376822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    175.0,
+    70.0,
+    18.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2014.4238388349518,
+    "protein_g": 130.4006800970874,
+    "fat_g": 55.872148220064716
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    195.0,
+    95.0,
+    46.0,
+    5.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3055.6622588349524,
+    "protein_g": 143.4334600970874,
+    "fat_g": 76.23266822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    175.0,
+    90.0,
+    34.0,
+    4.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0
+   ],
+   "expected": {
+    "kcal": 2564.0416388349518,
+    "protein_g": 115.47485009708738,
+    "fat_g": 96.04482822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    150.0,
+    120.0,
+    18.0,
+    5.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2187.5029588349516,
+    "protein_g": 100.83463009708738,
+    "fat_g": 96.01278822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    180.0,
+    120.0,
+    62.0,
+    3.0,
+    1.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2335.531688834952,
+    "protein_g": 110.2350900970874,
+    "fat_g": 107.11909822006473
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    195.0,
+    160.0,
+    42.0,
+    4.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 3794.315548834951,
+    "protein_g": 145.0452900970874,
+    "fat_g": 128.0526182200647
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    160.0,
+    80.0,
+    30.0,
+    3.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 1757.7635688349521,
+    "protein_g": 127.30130009708738,
+    "fat_g": 64.11832822006473
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    175.0,
+    105.0,
+    34.0,
+    6.0,
+    2.0,
+    0.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   "expected": {
+    "kcal": 3290.0604588349515,
+    "protein_g": 105.47352009708739,
+    "fat_g": 107.39004822006471
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    185.0,
+    110.0,
+    46.0,
+    5.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2654.347288834952,
+    "protein_g": 121.17651009708739,
+    "fat_g": 88.17676822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    160.0,
+    115.0,
+    34.0,
+    2.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2844.4497088349517,
+    "protein_g": 112.8450000970874,
+    "fat_g": 91.94220822006471
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    195.0,
+    50.0,
+    18.0,
+    6.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2791.2864188349517,
+    "protein_g": 97.27291009708739,
+    "fat_g": 60.33456822006471
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    200.0,
+    115.0,
+    34.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2249.611368834952,
+    "protein_g": 161.98321009708738,
+    "fat_g": 100.86730822006473
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    1.0,
+    180.0,
+    90.0,
+    30.0,
+    2.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2366.100598834952,
+    "protein_g": 118.50813009708739,
+    "fat_g": 71.98104822006472
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    160.0,
+    115.0,
+    30.0,
+    3.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2855.120908834952,
+    "protein_g": 116.96071009708739,
+    "fat_g": 91.95491822006471
+   }
+  },
+  {
+   "path": "mifflin",
+   "x": [
+    0.0,
+    195.0,
+    135.0,
+    18.0,
+    5.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "expected": {
+    "kcal": 2956.4069388349517,
+    "protein_g": 206.49540009708738,
+    "fat_g": 107.9539982200647
+   }
+  }
+ ],
+ "session": [
+  {
+   "input": {
+    "days": 2,
+    "experience": "intermediate",
+    "equipment": "dumbbell",
+    "goal": "maintain",
+    "injuries": [
+     "knee"
+    ]
+   },
+   "split": "full_body_x2",
+   "weekly_sets": {
+    "chest": 11,
+    "back": 13,
+    "quads": 5,
+    "hams": 4,
+    "glutes": 4,
+    "delts": 11,
+    "arms": 9,
+    "calves": 7
+   }
+  },
+  {
+   "input": {
+    "days": 6,
+    "experience": "intermediate",
+    "equipment": "full",
+    "goal": "bulk",
+    "injuries": [
+     "elbow",
+     "knee",
+     "lower_back",
+     "shoulder"
+    ]
+   },
+   "split": "ppl_x2",
+   "weekly_sets": {
+    "chest": 7,
+    "back": 8,
+    "quads": 7,
+    "hams": 5,
+    "glutes": 6,
+    "delts": 7,
+    "arms": 6,
+    "calves": 9
+   }
+  },
+  {
+   "input": {
+    "days": 6,
+    "experience": "advanced",
+    "equipment": "none",
+    "goal": "cut",
+    "injuries": [
+     "knee",
+     "lower_back",
+     "shoulder"
+    ]
+   },
+   "split": "ppl_x2",
+   "weekly_sets": {
+    "chest": 5,
+    "back": 6,
+    "quads": 5,
+    "hams": 4,
+    "glutes": 4,
+    "delts": 5,
+    "arms": 9,
+    "calves": 6
+   }
+  },
+  {
+   "input": {
+    "days": 5,
+    "experience": "intermediate",
+    "equipment": "gym",
+    "goal": "cut",
+    "injuries": [
+     "lower_back"
+    ]
+   },
+   "split": "ppl_upper_lower",
+   "weekly_sets": {
+    "chest": 10,
+    "back": 6,
+    "quads": 10,
+    "hams": 4,
+    "glutes": 4,
+    "delts": 10,
+    "arms": 8,
+    "calves": 7
+   }
+  },
+  {
+   "input": {
+    "days": 5,
+    "experience": "advanced",
+    "equipment": "gym",
+    "goal": "cut",
+    "injuries": [
+     "knee",
+     "shoulder"
+    ]
+   },
+   "split": "ppl_upper_lower",
+   "weekly_sets": {
+    "chest": 7,
+    "back": 15,
+    "quads": 7,
+    "hams": 5,
+    "glutes": 5,
+    "delts": 7,
+    "arms": 12,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 5,
+    "experience": "intermediate",
+    "equipment": "full",
+    "goal": "maintain",
+    "injuries": [
+     "elbow",
+     "shoulder"
+    ]
+   },
+   "split": "ppl_upper_lower",
+   "weekly_sets": {
+    "chest": 6,
+    "back": 14,
+    "quads": 12,
+    "hams": 9,
+    "glutes": 10,
+    "delts": 6,
+    "arms": 5,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 2,
+    "experience": "advanced",
+    "equipment": "gym",
+    "goal": "cut",
+    "injuries": [
+     "elbow",
+     "knee",
+     "lower_back"
+    ]
+   },
+   "split": "full_body_x2",
+   "weekly_sets": {
+    "chest": 14,
+    "back": 8,
+    "quads": 7,
+    "hams": 5,
+    "glutes": 5,
+    "delts": 14,
+    "arms": 6,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 2,
+    "experience": "intermediate",
+    "equipment": "gym",
+    "goal": "bulk",
+    "injuries": [
+     "knee",
+     "lower_back",
+     "shoulder"
+    ]
+   },
+   "split": "full_body_x2",
+   "weekly_sets": {
+    "chest": 7,
+    "back": 8,
+    "quads": 7,
+    "hams": 5,
+    "glutes": 6,
+    "delts": 7,
+    "arms": 11,
+    "calves": 9
+   }
+  },
+  {
+   "input": {
+    "days": 6,
+    "experience": "advanced",
+    "equipment": "full",
+    "goal": "cut",
+    "injuries": [
+     "lower_back"
+    ]
+   },
+   "split": "ppl_x2",
+   "weekly_sets": {
+    "chest": 14,
+    "back": 8,
+    "quads": 14,
+    "hams": 5,
+    "glutes": 5,
+    "delts": 14,
+    "arms": 12,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 6,
+    "experience": "advanced",
+    "equipment": "full",
+    "goal": "cut",
+    "injuries": []
+   },
+   "split": "ppl_x2",
+   "weekly_sets": {
+    "chest": 14,
+    "back": 15,
+    "quads": 14,
+    "hams": 10,
+    "glutes": 10,
+    "delts": 14,
+    "arms": 12,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 3,
+    "experience": "advanced",
+    "equipment": "dumbbell",
+    "goal": "cut",
+    "injuries": [
+     "elbow",
+     "shoulder"
+    ]
+   },
+   "split": "full_body_x3",
+   "weekly_sets": {
+    "chest": 6,
+    "back": 14,
+    "quads": 12,
+    "hams": 9,
+    "glutes": 9,
+    "delts": 6,
+    "arms": 5,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 5,
+    "experience": "intermediate",
+    "equipment": "dumbbell",
+    "goal": "cut",
+    "injuries": [
+     "knee",
+     "lower_back",
+     "shoulder"
+    ]
+   },
+   "split": "ppl_upper_lower",
+   "weekly_sets": {
+    "chest": 5,
+    "back": 5,
+    "quads": 5,
+    "hams": 3,
+    "glutes": 4,
+    "delts": 5,
+    "arms": 8,
+    "calves": 6
+   }
+  },
+  {
+   "input": {
+    "days": 6,
+    "experience": "advanced",
+    "equipment": "full",
+    "goal": "cut",
+    "injuries": [
+     "knee"
+    ]
+   },
+   "split": "ppl_x2",
+   "weekly_sets": {
+    "chest": 14,
+    "back": 15,
+    "quads": 7,
+    "hams": 5,
+    "glutes": 5,
+    "delts": 14,
+    "arms": 12,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 6,
+    "experience": "advanced",
+    "equipment": "full",
+    "goal": "bulk",
+    "injuries": []
+   },
+   "split": "ppl_x2",
+   "weekly_sets": {
+    "chest": 18,
+    "back": 20,
+    "quads": 18,
+    "hams": 13,
+    "glutes": 13,
+    "delts": 18,
+    "arms": 15,
+    "calves": 11
+   }
+  },
+  {
+   "input": {
+    "days": 2,
+    "experience": "beginner",
+    "equipment": "gym",
+    "goal": "maintain",
+    "injuries": []
+   },
+   "split": "full_body_x2",
+   "weekly_sets": {
+    "chest": 8,
+    "back": 10,
+    "quads": 8,
+    "hams": 6,
+    "glutes": 8,
+    "delts": 8,
+    "arms": 6,
+    "calves": 6
+   }
+  },
+  {
+   "input": {
+    "days": 2,
+    "experience": "intermediate",
+    "equipment": "gym",
+    "goal": "bulk",
+    "injuries": [
+     "lower_back",
+     "shoulder"
+    ]
+   },
+   "split": "full_body_x2",
+   "weekly_sets": {
+    "chest": 7,
+    "back": 8,
+    "quads": 13,
+    "hams": 5,
+    "glutes": 6,
+    "delts": 7,
+    "arms": 11,
+    "calves": 9
+   }
+  },
+  {
+   "input": {
+    "days": 5,
+    "experience": "intermediate",
+    "equipment": "gym",
+    "goal": "maintain",
+    "injuries": [
+     "shoulder"
+    ]
+   },
+   "split": "ppl_upper_lower",
+   "weekly_sets": {
+    "chest": 6,
+    "back": 14,
+    "quads": 12,
+    "hams": 9,
+    "glutes": 10,
+    "delts": 6,
+    "arms": 10,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 6,
+    "experience": "intermediate",
+    "equipment": "full",
+    "goal": "maintain",
+    "injuries": [
+     "elbow",
+     "knee"
+    ]
+   },
+   "split": "ppl_x2",
+   "weekly_sets": {
+    "chest": 12,
+    "back": 14,
+    "quads": 6,
+    "hams": 4,
+    "glutes": 5,
+    "delts": 12,
+    "arms": 5,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 2,
+    "experience": "intermediate",
+    "equipment": "none",
+    "goal": "maintain",
+    "injuries": [
+     "elbow",
+     "knee",
+     "shoulder"
+    ]
+   },
+   "split": "full_body_x2",
+   "weekly_sets": {
+    "chest": 4,
+    "back": 10,
+    "quads": 4,
+    "hams": 3,
+    "glutes": 4,
+    "delts": 4,
+    "arms": 4,
+    "calves": 6
+   }
+  },
+  {
+   "input": {
+    "days": 5,
+    "experience": "intermediate",
+    "equipment": "none",
+    "goal": "bulk",
+    "injuries": [
+     "lower_back"
+    ]
+   },
+   "split": "ppl_upper_lower",
+   "weekly_sets": {
+    "chest": 10,
+    "back": 6,
+    "quads": 10,
+    "hams": 4,
+    "glutes": 4,
+    "delts": 10,
+    "arms": 8,
+    "calves": 7
+   }
+  },
+  {
+   "input": {
+    "days": 2,
+    "experience": "intermediate",
+    "equipment": "dumbbell",
+    "goal": "bulk",
+    "injuries": [
+     "elbow",
+     "knee"
+    ]
+   },
+   "split": "full_body_x2",
+   "weekly_sets": {
+    "chest": 12,
+    "back": 14,
+    "quads": 6,
+    "hams": 4,
+    "glutes": 5,
+    "delts": 12,
+    "arms": 5,
+    "calves": 8
+   }
+  },
+  {
+   "input": {
+    "days": 4,
+    "experience": "beginner",
+    "equipment": "full",
+    "goal": "bulk",
+    "injuries": [
+     "lower_back",
+     "shoulder"
+    ]
+   },
+   "split": "upper_lower_x2",
+   "weekly_sets": {
+    "chest": 4,
+    "back": 6,
+    "quads": 9,
+    "hams": 3,
+    "glutes": 4,
+    "delts": 4,
+    "arms": 7,
+    "calves": 7
+   }
+  },
+  {
+   "input": {
+    "days": 5,
+    "experience": "intermediate",
+    "equipment": "gym",
+    "goal": "cut",
+    "injuries": [
+     "knee",
+     "shoulder"
+    ]
+   },
+   "split": "ppl_upper_lower",
+   "weekly_sets": {
+    "chest": 5,
+    "back": 12,
+    "quads": 5,
+    "hams": 4,
+    "glutes": 4,
+    "delts": 5,
+    "arms": 8,
+    "calves": 7
+   }
+  },
+  {
+   "input": {
+    "days": 6,
+    "experience": "intermediate",
+    "equipment": "none",
+    "goal": "maintain",
+    "injuries": [
+     "elbow",
+     "knee",
+     "lower_back"
+    ]
+   },
+   "split": "ppl_x2",
+   "weekly_sets": {
+    "chest": 9,
+    "back": 5,
+    "quads": 4,
+    "hams": 3,
+    "glutes": 4,
+    "delts": 9,
+    "arms": 4,
+    "calves": 6
+   }
+  },
+  {
+   "input": {
+    "days": 6,
+    "experience": "intermediate",
+    "equipment": "none",
+    "goal": "bulk",
+    "injuries": [
+     "elbow",
+     "knee"
+    ]
+   },
+   "split": "ppl_x2",
+   "weekly_sets": {
+    "chest": 10,
+    "back": 12,
+    "quads": 5,
+    "hams": 4,
+    "glutes": 4,
+    "delts": 10,
+    "arms": 4,
+    "calves": 7
+   }
+  }
+ ],
+ "formula": [
+  {
+   "input": {
+    "weight_kg": 95.5,
+    "height_cm": 175.5,
+    "age": 22,
+    "sex": "male",
+    "bodyfat_pct": 35.3,
+    "days": 5,
+    "goal": "cut",
+    "conditions": []
+   },
+   "expected": {
+    "bmr": 1704.6,
+    "tdee": 2642.2,
+    "kcal": 1981.6,
+    "protein_g": 135.9,
+    "carbs_g": 187.6,
+    "fat_g": 76.4,
+    "deficit": 660.5,
+    "weekly_kg_change": 0.6005
+   },
+   "clamped": ""
+  },
+  {
+   "input": {
+    "weight_kg": 78.0,
+    "height_cm": 162.0,
+    "age": 28,
+    "sex": "female",
+    "bodyfat_pct": null,
+    "days": 4,
+    "goal": "cut",
+    "conditions": []
+   },
+   "expected": {
+    "bmr": 1491.5,
+    "tdee": 2311.8,
+    "kcal": 1849.5,
+    "protein_g": 108.6,
+    "carbs_g": 213.4,
+    "fat_g": 62.4,
+    "deficit": 462.4,
+    "weekly_kg_change": 0.4203
+   },
+   "clamped": ""
+  },
+  {
+   "input": {
+    "weight_kg": 74.84,
+    "height_cm": 177.8,
+    "age": 25,
+    "sex": "male",
+    "bodyfat_pct": null,
+    "days": 5,
+    "goal": "cut",
+    "conditions": []
+   },
+   "expected": {
+    "bmr": 1739.7,
+    "tdee": 2696.5,
+    "kcal": 2292.0,
+    "protein_g": 135.1,
+    "carbs_g": 303.2,
+    "fat_g": 59.9,
+    "deficit": 404.5,
+    "weekly_kg_change": 0.3677
+   },
+   "clamped": ""
+  },
+  {
+   "input": {
+    "weight_kg": 48.0,
+    "height_cm": 158.0,
+    "age": 31,
+    "sex": "female",
+    "bodyfat_pct": 19.0,
+    "days": 3,
+    "goal": "bulk",
+    "conditions": []
+   },
+   "expected": {
+    "bmr": 1209.8,
+    "tdee": 1663.5,
+    "kcal": 1913.0,
+    "protein_g": 70.0,
+    "carbs_g": 321.9,
+    "fat_g": 38.4,
+    "deficit": -249.5,
+    "weekly_kg_change": -0.2268
+   },
+   "clamped": ""
+  },
+  {
+   "input": {
+    "weight_kg": 210.0,
+    "height_cm": 190.0,
+    "age": 40,
+    "sex": "male",
+    "bodyfat_pct": 48.0,
+    "days": 4,
+    "goal": "cut",
+    "conditions": []
+   },
+   "expected": {
+    "bmr": 2728.7,
+    "tdee": 4229.5,
+    "kcal": 3172.1,
+    "protein_g": 240.2,
+    "carbs_g": 174.8,
+    "fat_g": 168.0,
+    "deficit": 1057.4,
+    "weekly_kg_change": 0.9613
+   },
+   "clamped": ""
+  },
+  {
+   "input": {
+    "weight_kg": 62.0,
+    "height_cm": 150.0,
+    "age": 70,
+    "sex": "female",
+    "bodyfat_pct": null,
+    "days": 6,
+    "goal": "maintain",
+    "conditions": []
+   },
+   "expected": {
+    "bmr": 1046.5,
+    "tdee": 1805.2,
+    "kcal": 1805.2,
+    "protein_g": 69.7,
+    "carbs_g": 270.0,
+    "fat_g": 49.6,
+    "deficit": 0.0,
+    "weekly_kg_change": 0.0
+   },
+   "clamped": ""
+  },
+  {
+   "input": {
+    "weight_kg": 88.0,
+    "height_cm": 168.0,
+    "age": 35,
+    "sex": "female",
+    "bodyfat_pct": null,
+    "days": 3,
+    "goal": "cut",
+    "conditions": [
+     "hypothyroid",
+     "pcos"
+    ]
+   },
+   "expected": {
+    "bmr": 1594.0,
+    "tdee": 1972.6,
+    "kcal": 1594.0,
+    "protein_g": 116.0,
+    "carbs_g": 105.5,
+    "fat_g": 78.7,
+    "deficit": 378.6,
+    "weekly_kg_change": 0.3442
+   },
+   "clamped": "bmr"
+  }
+ ],
+ "report": {
+  "katch": {
+   "kcal": {
+    "mae": 5.819439851049511,
+    "region_mae": 259.0509862103124,
+    "export_drift": 0.0001279968669223308
+   },
+   "protein_g": {
+    "mae": 0.0632501172619941,
+    "region_mae": 16.63856315860993,
+    "export_drift": 4.668106224414714e-05
+   },
+   "fat_g": {
+    "mae": 0.5999741470560546,
+    "region_mae": 1.3476131411430552,
+    "export_drift": 4.402651154578052e-05
+   }
+  },
+  "mifflin": {
+   "kcal": {
+    "mae": 19.78869956927915,
+    "region_mae": 310.39762536364475,
+    "export_drift": 0.00010762926604002132
+   },
+   "protein_g": {
+    "mae": 1.3290610377435028,
+    "region_mae": 5.5656975904549935,
+    "export_drift": 5.03217115976895e-05
+   },
+   "fat_g": {
+    "mae": 0.2433764540910195,
+    "region_mae": 18.475781392525537,
+    "export_drift": 5.019951258589117e-05
+   }
+  },
+  "safety": {
+   "katch": {
+    "checked": 5872,
+    "below_bmr": 0,
+    "below_floor": 0,
+    "over_rate": 0
+   },
+   "mifflin": {
+    "checked": 4944,
+    "below_bmr": 0,
+    "below_floor": 0,
+    "over_rate": 0
+   }
+  }
+ }
+}

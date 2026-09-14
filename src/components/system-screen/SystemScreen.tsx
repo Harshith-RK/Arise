@@ -6,6 +6,7 @@ import { Button, PageHeader, Panel, Placeholder } from "@/components/system/prim
 import { Field, Toggle } from "@/components/system/Field";
 import { AccountPanel } from "@/components/auth/AccountPanel";
 import { StorageNote } from "@/components/auth/StorageNote";
+import { TargetsPanel } from "@/components/plan/TargetsPanel";
 import { notify } from "@/components/system/notify";
 import { IconExport, IconForward, IconImport, IconReset } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
@@ -15,6 +16,7 @@ import { DAY_TITLES } from "@/lib/engine/dates";
 
 export function SystemScreen() {
   const snapshot = useGame((s) => s.snapshot);
+  const latestWeight = useGame((s) => s.progress?.latestWeighIn?.weightKg ?? null);
   const { actions, dispatch } = useGameActions();
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
@@ -62,9 +64,9 @@ export function SystemScreen() {
           <Field label="START WEIGHT" suffix="KG" type="number" step={0.1} value={profile.startWeightKg} onChange={(v) => void saveProfile({ startWeightKg: Number(v) })} />
           <Field label="TARGET WEIGHT" suffix="KG" type="number" step={0.1} value={profile.targetWeightKg} onChange={(v) => void saveProfile({ targetWeightKg: Number(v) })} />
           <Field label="PHASE 1 TARGET" suffix="KG" type="number" step={0.1} value={profile.phase1TargetKg} onChange={(v) => void saveProfile({ phase1TargetKg: Number(v) })} helper="The first milestone on the Status rule." />
-          <Field label="BMR" suffix="KCAL" type="number" value={profile.bmr} onChange={(v) => void saveProfile({ bmr: Number(v) })} />
-          <Field label="CALORIE TARGET" suffix="KCAL" type="number" value={profile.kcalTarget} onChange={(v) => void saveProfile({ kcalTarget: Number(v) })} helper="Training days only. Rest days carry no calorie target." />
-          <Field label="PROTEIN TARGET" suffix="G" type="number" value={profile.proteinTarget} onChange={(v) => void saveProfile({ proteinTarget: Number(v) })} />
+          <Field label="BMR" suffix="KCAL" type="number" value={profile.bmr} onChange={(v) => void saveProfile({ bmr: Number(v) })} helper="Set by Apply in Targets. Edit only if you have a measured value." />
+          <Field label="CALORIE TARGET" suffix="KCAL" type="number" value={profile.kcalTarget} onChange={(v) => void saveProfile({ kcalTarget: Number(v), targetSource: "manual" })} helper="Training days only. Rest days carry no calorie target." />
+          <Field label="PROTEIN TARGET" suffix="G" type="number" value={profile.proteinTarget} onChange={(v) => void saveProfile({ proteinTarget: Number(v), targetSource: "manual" })} />
           <Field label="GYM FROM" type="time" value={profile.gymStart} onChange={(v) => void saveProfile({ gymStart: v })} />
           <Field label="GYM UNTIL" type="time" value={profile.gymEnd} onChange={(v) => void saveProfile({ gymEnd: v })} />
         </div>
@@ -91,6 +93,13 @@ export function SystemScreen() {
           </div>
         </div>
       </Panel>
+
+      <TargetsPanel
+        profile={profile}
+        currentWeightKg={latestWeight ?? profile.startWeightKg}
+        save={saveProfile}
+        className="mb-4"
+      />
 
       {/* Preferences */}
       <Panel title="Interface" className="mb-4">

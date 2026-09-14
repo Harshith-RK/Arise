@@ -152,6 +152,17 @@ export const ProfileSchema = z.object({
   /** Null means open-ended. A fixed length is optional, not the default. */
   arcLength: z.number().int().min(7).max(3650).nullable(),
   createdAt: z.string(),
+
+  // Inputs the plan model needs. Optional because every profile created before
+  // the model existed lacks them, and those profiles still have to load.
+  sex: z.enum(["male", "female"]).optional(),
+  age: z.number().int().min(10).max(100).optional(),
+  experience: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  equipment: z.enum(["none", "dumbbell", "gym", "full"]).optional(),
+  conditions: z.array(z.string().max(40)).max(20).optional(),
+  injuries: z.array(z.string().max(40)).max(10).optional(),
+  /** Where kcalTarget and proteinTarget came from, so the UI can say. */
+  targetSource: z.enum(["model", "formula", "manual"]).optional(),
 });
 export type Profile = z.infer<typeof ProfileSchema>;
 

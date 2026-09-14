@@ -7,6 +7,8 @@ import { AnimatePresence, m } from "motion/react";
 import { z } from "zod";
 const BootSequence = dynamic(() => import("./BootSequence").then((m) => m.BootSequence), { ssr: false });
 import { Field, Toggle } from "@/components/system/Field";
+import { Choice, MultiChoice } from "@/components/system/Choice";
+import { PlanReadout } from "@/components/plan/PlanReadout";
 import { SignedInAs } from "@/components/auth/SignedInAs";
 import { SystemWindow } from "@/components/system/SystemWindow";
 import { Button } from "@/components/system/primitives";
@@ -14,47 +16,71 @@ import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { DAY_TITLES, todayKey } from "@/lib/engine/dates";
 import { ProfileSchema, type DayKey, type Profile } from "@/lib/engine/types";
 import { EASE } from "@/lib/motion";
-import { estimateTdee } from "@/lib/engine/day";
+import { planTotals } from "@/lib/engine/day";
+import { seedDietPlan } from "@/lib/data/seed";
+import { body, type Condition, type Equipment, type Experience, type Injury, type Sex } from "@/lib/plan/rules";
+import { planTargets } from "@/lib/plan/targets";
+import { goalFor, trainingDays } from "@/lib/plan/from-profile";
+import { usePlanModel } from "@/lib/plan/use-plan-model";
+import {
+  CONDITION_OPTIONS,
+  EQUIPMENT_OPTIONS,
+  EXPERIENCE_OPTIONS,
+  FEMALE_ONLY_CONDITIONS,
+  INJURY_OPTIONS,
+  SEX_OPTIONS,
+} from "@/lib/plan/options";
 
 const DRAFT_KEY = "wa:awaken-draft";
 const STEPS = ["Identity", "Body scan", "Training", "Diet", "Confirm"] as const;
 
 type Draft = {
   name: string;
+  sex: Sex | "";
+  age: string;
   heightCm: string;
   startWeightKg: string;
   targetWeightKg: string;
   bodyFatPct: string;
   muscleKg: string;
   visceral: string;
-  bmr: string;
   gymStart: string;
   gymEnd: string;
   restDays: DayKey[];
   vegetarian: boolean;
   noEggs: boolean;
   noWhey: boolean;
-  kcalTarget: string;
-  proteinTarget: string;
+  experience: Experience;
+  equipment: Equipment;
+  injuries: Injury[];
+  conditions: Condition[];
+  /** Blank means "use what the System calculated". */
+  kcalOverride: string;
+  proteinOverride: string;
 };
 
 const INITIAL: Draft = {
   name: "Harshith RK",
+  sex: "",
+  age: "",
   heightCm: "175.5",
   startWeightKg: "95.5",
   targetWeightKg: "72.7",
   bodyFatPct: "35.3",
   muscleKg: "34.9",
   visceral: "14",
-  bmr: "1705",
   gymStart: "19:00",
   gymEnd: "21:00",
   restDays: ["sat", "sun"],
   vegetarian: true,
   noEggs: true,
   noWhey: true,
-  kcalTarget: "2445",
-  proteinTarget: "145",
+  experience: "intermediate",
+  equipment: "full",
+  injuries: [],
+  conditions: [],
+  kcalOverride: "",
+  proteinOverride: "",
 };
 
 const num = (v: string) => (v.trim() === "" ? Number.NaN : Number(v));
@@ -62,6 +88,8 @@ const num = (v: string) => (v.trim() === "" ? Number.NaN : Number(v));
 const STEP_SCHEMAS = [
   z.object({
     name: z.string().trim().min(1, "Enter a name").max(40),
+    sex: z.enum(["male", "female"], { error: "Choose one. It changes how BMR is calculated." }),
+    age: z.number({ error: "Enter your age" }).int("Whole years").min(10, "Enter your age").max(100, "Enter your age"),
     heightCm: z.number({ error: "Enter a height" }).min(100, "Too short").max(250, "Too tall"),
     startWeightKg: z.number({ error: "Enter your current weight" }).min(30).max(400),
     targetWeightKg: z.number({ error: "Enter a target weight" }).min(30).max(400),
@@ -70,17 +98,16 @@ const STEP_SCHEMAS = [
     bodyFatPct: z.number().min(2).max(75).nullable(),
     muscleKg: z.number().min(5).max(150).nullable(),
     visceral: z.number().int().min(1).max(59).nullable(),
-    bmr: z.number({ error: "Enter your BMR" }).int().min(800).max(5000),
   }),
   z.object({
     gymStart: z.string().regex(/^\d{2}:\d{2}$/, "Use HH:MM"),
     gymEnd: z.string().regex(/^\d{2}:\d{2}$/, "Use HH:MM"),
   }),
-  z.object({
-    kcalTarget: z.number({ error: "Enter a calorie target" }).int().min(800).max(6000),
-    proteinTarget: z.number({ error: "Enter a protein target" }).int().min(20).max(400),
-  }),
   z.object({}),
+  z.object({
+    kcalOverride: z.number().int("Whole kcal").min(800, "At least 800").max(6000, "At most 6000").nullable(),
+    proteinOverride: z.number().int("Whole grams").min(20, "At least 20").max(400, "At most 400").nullable(),
+  }),
 ];
 
 export function AwakenFlow() {
@@ -141,6 +168,8 @@ export function AwakenFlow() {
     const values: Record<number, Record<string, unknown>> = {
       0: {
         name: draft.name,
+        sex: draft.sex || undefined,
+        age: num(draft.age),
         heightCm: num(draft.heightCm),
         startWeightKg: num(draft.startWeightKg),
         targetWeightKg: num(draft.targetWeightKg),
@@ -149,18 +178,57 @@ export function AwakenFlow() {
         bodyFatPct: draft.bodyFatPct.trim() === "" ? null : num(draft.bodyFatPct),
         muscleKg: draft.muscleKg.trim() === "" ? null : num(draft.muscleKg),
         visceral: draft.visceral.trim() === "" ? null : num(draft.visceral),
-        bmr: num(draft.bmr),
       },
       2: { gymStart: draft.gymStart, gymEnd: draft.gymEnd },
-      3: { kcalTarget: num(draft.kcalTarget), proteinTarget: num(draft.proteinTarget) },
-      4: {},
+      3: {},
+      4: {
+        kcalOverride: draft.kcalOverride.trim() === "" ? null : num(draft.kcalOverride),
+        proteinOverride: draft.proteinOverride.trim() === "" ? null : num(draft.proteinOverride),
+      },
     };
     return values[step];
   }, [draft, step]);
 
+  // What the System calculates from everything entered so far. Recomputed on
+  // every edit, so the Confirm step always shows numbers for the current draft.
+  const model = usePlanModel();
+  const planInput = useMemo(() => {
+    const age = num(draft.age);
+    const heightCm = num(draft.heightCm);
+    const weightKg = num(draft.startWeightKg);
+    const targetKg = num(draft.targetWeightKg);
+    if (!draft.sex || ![age, heightCm, weightKg, targetKg].every(Number.isFinite)) return null;
+    const bf = draft.bodyFatPct.trim() === "" ? null : num(draft.bodyFatPct);
+    return {
+      weightKg,
+      heightCm,
+      age,
+      sex: draft.sex,
+      bodyFatPct: bf !== null && Number.isFinite(bf) ? bf : null,
+      days: trainingDays(draft.restDays),
+      goal: goalFor(weightKg, targetKg),
+      experience: draft.experience,
+      equipment: draft.equipment,
+      conditions: draft.conditions.filter((c) => draft.sex === "female" || !FEMALE_ONLY_CONDITIONS.has(c)),
+      injuries: draft.injuries,
+    };
+  }, [draft]);
+  const plan = useMemo(() => (planInput ? planTargets(planInput, model) : null), [planInput, model]);
+
   const validateStep = (): boolean => {
     if (step === 1 && scanSkipped) return true;
     const result = STEP_SCHEMAS[step].safeParse(parsedForStep);
+    // With no calculated targets (a refusal), the Hunter's own numbers are the
+    // only ones there are, so they stop being optional.
+    if (result.success && step === STEPS.length - 1 && plan?.refused) {
+      const missing: Record<string, string> = {};
+      if (draft.kcalOverride.trim() === "") missing.kcalOverride = "Enter the target your clinician gave you";
+      if (draft.proteinOverride.trim() === "") missing.proteinOverride = "Enter the target your clinician gave you";
+      if (Object.keys(missing).length) {
+        setErrors(missing);
+        return false;
+      }
+    }
     if (result.success) {
       setErrors({});
       return true;
@@ -172,8 +240,24 @@ export function AwakenFlow() {
   };
 
   const commit = async () => {
+    if (!planInput || !plan) {
+      setStep(0);
+      return;
+    }
+    const kcalOverride = draft.kcalOverride.trim() === "" ? null : Math.round(num(draft.kcalOverride));
+    const proteinOverride = draft.proteinOverride.trim() === "" ? null : Math.round(num(draft.proteinOverride));
+    const calculated = plan.refused ? null : plan;
+    const manual = kcalOverride !== null || proteinOverride !== null;
+
     const profile: Profile = {
       name: draft.name.trim(),
+      sex: planInput.sex,
+      age: planInput.age,
+      experience: draft.experience,
+      equipment: draft.equipment,
+      conditions: planInput.conditions,
+      injuries: draft.injuries,
+      targetSource: manual || !calculated ? "manual" : calculated.source,
       heightCm: num(draft.heightCm),
       startWeightKg: num(draft.startWeightKg),
       targetWeightKg: num(draft.targetWeightKg),
@@ -181,15 +265,15 @@ export function AwakenFlow() {
       bodyFatPct: draft.bodyFatPct.trim() === "" ? null : num(draft.bodyFatPct),
       muscleKg: draft.muscleKg.trim() === "" ? null : num(draft.muscleKg),
       visceral: draft.visceral.trim() === "" ? null : Math.round(num(draft.visceral)),
-      bmr: Math.round(num(draft.bmr)),
+      bmr: Math.min(5000, Math.max(800, Math.round(body(planInput).bmr))),
       gymStart: draft.gymStart,
       gymEnd: draft.gymEnd,
       restDays: draft.restDays,
       vegetarian: draft.vegetarian,
       noEggs: draft.noEggs,
       noWhey: draft.noWhey,
-      kcalTarget: Math.round(num(draft.kcalTarget)),
-      proteinTarget: Math.round(num(draft.proteinTarget)),
+      kcalTarget: kcalOverride ?? calculated?.kcal ?? 2000,
+      proteinTarget: proteinOverride ?? calculated?.proteinG ?? 100,
       arcStart: todayKey(),
       arcLength: null,
       createdAt: new Date().toISOString(),
@@ -261,6 +345,23 @@ export function AwakenFlow() {
               {step === 0 ? (
                 <>
                   <Field label="HUNTER NAME" value={draft.name} onChange={(v) => set("name", v)} error={errors.name} autoFocus />
+                  <div className="grid grid-cols-[1fr_7rem] gap-3">
+                    <Choice
+                      label="SEX"
+                      value={draft.sex || null}
+                      options={SEX_OPTIONS}
+                      onChange={(v) => set("sex", v)}
+                      error={errors.sex}
+                    />
+                    <Field
+                      label="AGE"
+                      type="number"
+                      inputMode="numeric"
+                      value={draft.age}
+                      onChange={(v) => set("age", v)}
+                      error={errors.age}
+                    />
+                  </div>
                   <Field
                     label="HEIGHT"
                     type="number"
@@ -331,16 +432,10 @@ export function AwakenFlow() {
                       error={errors.visceral}
                       helper="Safe zone is under 10."
                     />
-                    <Field
-                      label="BMR"
-                      type="number"
-                      inputMode="numeric"
-                      suffix="KCAL"
-                      value={draft.bmr}
-                      onChange={(v) => set("bmr", v)}
-                      error={errors.bmr}
-                    />
                   </div>
+                  <p className="t-micro text-frost-2">
+                    BMR IS CALCULATED FOR YOU. WITH A BODY FAT READING IT USES LEAN MASS, WHICH IS MORE ACCURATE.
+                  </p>
                 </>
               ) : null}
 
@@ -372,6 +467,21 @@ export function AwakenFlow() {
                     </div>
                     <p className="t-micro mt-2 text-frost-2">Rest days bank your workout streak instead of breaking it.</p>
                   </div>
+                  <Choice
+                    label="TRAINING EXPERIENCE"
+                    value={draft.experience}
+                    options={EXPERIENCE_OPTIONS}
+                    onChange={(v) => set("experience", v)}
+                    helper="Sets your starting weekly volume."
+                  />
+                  <Choice label="EQUIPMENT" value={draft.equipment} options={EQUIPMENT_OPTIONS} onChange={(v) => set("equipment", v)} />
+                  <MultiChoice
+                    label="INJURIES TO WORK AROUND"
+                    value={draft.injuries}
+                    options={INJURY_OPTIONS}
+                    onChange={(v) => set("injuries", v)}
+                    helper="Volume for that area drops to maintenance instead of stopping."
+                  />
                 </>
               ) : null}
 
@@ -380,35 +490,50 @@ export function AwakenFlow() {
                   <Toggle label="Vegetarian" checked={draft.vegetarian} onChange={(v) => set("vegetarian", v)} />
                   <Toggle label="No eggs" checked={draft.noEggs} onChange={(v) => set("noEggs", v)} />
                   <Toggle label="No whey" checked={draft.noWhey} onChange={(v) => set("noWhey", v)} helper="Protein comes from dairy and legumes instead." />
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field
-                      label="CALORIE TARGET"
-                      type="number"
-                      inputMode="numeric"
-                      suffix="KCAL"
-                      value={draft.kcalTarget}
-                      onChange={(v) => set("kcalTarget", v)}
-                      error={errors.kcalTarget}
-                      helper="Training days only."
-                    />
-                    <Field
-                      label="PROTEIN TARGET"
-                      type="number"
-                      inputMode="numeric"
-                      suffix="G"
-                      value={draft.proteinTarget}
-                      onChange={(v) => set("proteinTarget", v)}
-                      error={errors.proteinTarget}
-                    />
-                  </div>
-                  <p className="t-micro text-frost-2">
-                    Your planned meals total 2445 kcal and 145 g protein. Set the target to match the plan, or lower it to
-                    push a deficit.
-                  </p>
+                  <MultiChoice
+                    label="HEALTH CONDITIONS"
+                    value={draft.conditions}
+                    options={CONDITION_OPTIONS.filter((o) => draft.sex === "female" || !FEMALE_ONLY_CONDITIONS.has(o.value))}
+                    onChange={(v) => set("conditions", v)}
+                    helper="Some adjust your targets. For a few, the System will not set targets at all and says why."
+                  />
                 </>
               ) : null}
 
-              {step === 4 ? <Summary draft={draft} /> : null}
+              {step === 4 ? (
+                <>
+                  <Summary draft={draft} />
+                  {plan ? <PlanReadout plan={plan} /> : null}
+                  <div>
+                    <p className="t-micro text-frost-2">
+                      {plan?.refused ? "YOUR TARGETS" : "OVERRIDE, OR LEAVE BLANK TO USE THE CALCULATION"}
+                    </p>
+                    <div className="mt-1.5 grid grid-cols-2 gap-3">
+                      <Field
+                        label="CALORIES"
+                        type="number"
+                        inputMode="numeric"
+                        suffix="KCAL"
+                        placeholder={plan && !plan.refused ? String(plan.kcal) : ""}
+                        value={draft.kcalOverride}
+                        onChange={(v) => set("kcalOverride", v)}
+                        error={errors.kcalOverride}
+                      />
+                      <Field
+                        label="PROTEIN"
+                        type="number"
+                        inputMode="numeric"
+                        suffix="G"
+                        placeholder={plan && !plan.refused ? String(plan.proteinG) : ""}
+                        value={draft.proteinOverride}
+                        onChange={(v) => set("proteinOverride", v)}
+                        error={errors.proteinOverride}
+                      />
+                    </div>
+                  </div>
+                  <MealPlanNote target={plan && !plan.refused ? plan.kcal : null} />
+                </>
+              ) : null}
             </m.div>
           </AnimatePresence>
 
@@ -449,39 +574,35 @@ export function AwakenFlow() {
 
 function Summary({ draft }: { draft: Draft }) {
   const bmi = num(draft.startWeightKg) / (num(draft.heightCm) / 100) ** 2;
-  const tdee = estimateTdee(num(draft.bmr));
-  const deficit = tdee - num(draft.kcalTarget);
   const rows: [string, string][] = [
-    ["HUNTER", draft.name],
-    ["HEIGHT", `${draft.heightCm} CM`],
-    ["START WEIGHT", `${draft.startWeightKg} KG`],
-    ["TARGET WEIGHT", `${draft.targetWeightKg} KG`],
-    ["BMI", Number.isFinite(bmi) ? bmi.toFixed(1) : "-"],
-    ["GYM WINDOW", `${draft.gymStart} TO ${draft.gymEnd}`],
-    ["REST DAYS", draft.restDays.length ? draft.restDays.map((d) => d.toUpperCase()).join(" ") : "NONE"],
-    ["TRAINING DAY INTAKE", `${draft.kcalTarget} KCAL / ${draft.proteinTarget} G PROTEIN`],
-    ["ESTIMATED TDEE", `${tdee} KCAL`],
-    ["TRAINING DAY DEFICIT", `${deficit} KCAL`],
+    ["HUNTER", `${draft.name}${draft.age ? `, ${draft.age}` : ""}`],
+    ["HEIGHT / BMI", `${draft.heightCm} CM / ${Number.isFinite(bmi) ? bmi.toFixed(1) : "-"}`],
+    ["WEIGHT", `${draft.startWeightKg} TO ${draft.targetWeightKg} KG`],
+    ["TRAINING", `${trainingDays(draft.restDays)} DAYS, ${draft.gymStart} TO ${draft.gymEnd}`],
   ];
   return (
-    <div>
-      <dl className="divide-y divide-line-1 border-y border-line-1">
-        {rows.map(([k, v]) => (
-          <div key={k} className="flex items-center justify-between gap-4 py-2.5">
-            <dt className="t-micro text-frost-2">{k}</dt>
-            <dd className="t-readout text-right text-frost-0">{v}</dd>
-          </div>
-        ))}
-      </dl>
-      {deficit < 250 ? (
-        <p className="t-micro mt-4 border border-glacier px-3 py-2 text-glacier">
-          At this intake your deficit is {deficit} kcal per day. Fat loss will be slow. Lower the calorie target if you
-          want a faster arc.
-        </p>
-      ) : null}
-      <p className="t-small mt-4 text-frost-1">
-        The arc starts today and runs 90 days. Accept to begin.
-      </p>
-    </div>
+    <dl className="divide-y divide-line-1 border-y border-line-1">
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex items-center justify-between gap-4 py-2.5">
+          <dt className="t-micro shrink-0 text-frost-2">{k}</dt>
+          <dd className="t-readout text-right text-frost-0">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * The starting meal plan is still the seed plan: food libraries that would
+ * rebuild it around the calculated target do not exist yet. Say so, with the
+ * gap in numbers, rather than leave two different calorie figures unexplained.
+ */
+function MealPlanNote({ target }: { target: number | null }) {
+  const meals = planTotals(seedDietPlan()).kcal;
+  if (target === null || Math.abs(meals - target) < 100) return null;
+  return (
+    <p className="t-micro border border-line-2 px-3 py-2 text-frost-1">
+      YOUR STARTING MEAL PLAN TOTALS {Math.round(meals)} KCAL. ADJUST PORTIONS IN SYSTEM TO BRING IT TO {target}.
+    </p>
   );
 }

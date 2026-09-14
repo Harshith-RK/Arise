@@ -578,6 +578,12 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **Targets come from the plan model, inside a cage.** Onboarding no longer asks for BMR or a
+  calorie target: it asks sex, age, experience, equipment, injuries and health conditions, and
+  shows what the System calculated with an override. Out-of-range profiles fall back to the
+  formula, clamps run in code after the model, carbs are derived so macros add up, and refusal
+  conditions get no numbers at all. The readout always says TRAINED MODEL or FORMULA. Existing
+  Hunters get the same calculation in System, Targets, with Apply. See ml/README.md.
 - **`m.*` components need a LazyMotion ancestor or they render invisible.** Without one they stay
   at `initial`, and for SystemWindow that is opacity 0: the page is present, focusable and
   readable by a screen reader, and completely blank on screen. AppShell and LiveDemo each provide

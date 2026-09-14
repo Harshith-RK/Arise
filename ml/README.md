@@ -132,11 +132,63 @@ predictions, and degrades by 250-300 kcal for anyone outside the sampled range.
 If a model does ship, the clamps have to be enforced in code afterwards
 regardless, which means `rules.py` ships too.
 
-## What is not here
+## Integration
 
-By instruction, no integration. The app still seeds every new Hunter with the
-plan in `src/lib/data/seed.ts`. Wiring any of this in, whether the formulas or
-the model, is a separate decision.
+The model now sets targets in the app. `ml/export.py` retrains compact versions
+and writes `src/lib/plan/model.json`; the browser walks the trees in plain
+TypeScript, with no inference runtime.
+
+```bash
+ml/.venv/bin/python -m ml.generate
+ml/.venv/bin/python -m ml.export    # writes model.json + parity fixture
+npx vitest run src/lib/plan         # TypeScript must reproduce Python
+```
+
+**Shipped size:** 767 KB, 196 KB gzipped, loaded as its own chunk only on the
+two screens that calculate (onboarding Confirm and System, Targets). The
+earlier 11.6 MB was cut by sweeping tree count against leaf count: the calorie
+head keeps 120 trees of 63 leaves; protein and fat need only 30 of 31, since
+within a gram is below the whole-number targets they produce.
+
+| | kcal MAE | shipped before |
+|---|---|---|
+| body fat known | 5.8 kcal | 5.2 |
+| body fat unknown | 19.8 kcal | 15.2 |
+
+Real-world error on any of these is the formula's ~15%, so a few kcal of fit
+was not worth several megabytes on a phone.
+
+**The cage around it** (`src/lib/plan/targets.ts`), each part answering a
+measured failure:
+
+- **Range check.** Out of range the model was off by 259 to 313 kcal with no
+  signal. A profile outside the trained ranges gets the formula instead, and
+  the screen says which one was used and why.
+- **Clamps in code.** The bare model put 2.57% of predictions under the
+  calorie floor. After the clamps: zero, over every training row in Python and
+  a 1,000+ body sweep in the TypeScript tests.
+- **Carbs derived.** The independent heads disagreed with each other by up to
+  102 kcal. Carbs are now calories minus protein and fat, so macros always add up.
+- **Refusals before the model runs.** Under 18, pregnancy, breastfeeding, kidney
+  disease, type 1 diabetes, eating disorder history and cancer treatment get no
+  targets, a plain reason, and a field for their clinician's numbers.
+
+**Parity.** `model.json` is checked against scikit-learn at export (worst drift
+0.00013 kcal), and the TypeScript walker is checked against the exported form on
+60 cases to six decimal places. The formula port matches `rules.py` on 7 profiles
+and the training split on 25.
+
+One rule changed while integrating: a cut now eats at most maintenance. A small
+body can have a TDEE below the absolute calorie floor, where "raise to the
+floor" turned a cut into a surplus. The floor now stops at TDEE.
+
+## What is still not here
+
+The model sets calorie and protein targets, BMR, and the weekly training
+prescription. It does not rebuild the meal plan or the exercise list: every
+Hunter still starts from the plans in `src/lib/data/seed.ts`. That needs the
+food and exercise libraries, which do not exist yet. Until they do, Confirm says
+plainly when the starting meal plan and the calculated target disagree.
 
 The food and exercise libraries are also not built. Those are needed either
 way: the numbers above are targets, and something still has to turn 1982 kcal

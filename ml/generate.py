@@ -112,9 +112,16 @@ def diet_conditions(base: list[dict], per_condition: int) -> list[dict]:
         # Sex-specific conditions only attach to the sex that has them.
         pool = [r for r in base if not ({"pcos"} & combo) or r["sex"] == "female"]
         for src in rng.sample(pool, min(per_condition, len(pool))):
+            # Works over either path: a Katch row carries body fat, a Mifflin
+            # row carries height and age instead.
+            katch = "bodyfat_pct" in src
             t = targets(
-                weight_kg=src["weight_kg"], height_cm=170.0, age=30, sex=src["sex"],
-                bodyfat_pct=src["bodyfat_pct"], days=src["days"], goal=src["goal"],
+                weight_kg=float(src["weight_kg"]),
+                height_cm=170.0 if katch else float(src["height_cm"]),
+                age=30 if katch else int(src["age"]),
+                sex=src["sex"],
+                bodyfat_pct=src["bodyfat_pct"] if katch else None,
+                days=src["days"], goal=src["goal"],
                 conditions=combo,
             )
             rows.append({**src, "condition": "+".join(sorted(combo)), **t.__dict__})
@@ -165,13 +172,16 @@ def main() -> None:
     katch = diet_katch()
     mifflin = diet_mifflin()
     cond = diet_conditions(katch, per_condition=4000)
+    # Conditions on the no-body-fat path too, or a Hunter who skips the scan
+    # would have their hypothyroidism silently ignored.
+    cond_m = diet_conditions(mifflin, per_condition=3000)
 
     write(OUT / "diet_katch.csv", katch + cond)
-    write(OUT / "diet_mifflin.csv", mifflin)
+    write(OUT / "diet_mifflin.csv", mifflin + cond_m)
     write(OUT / "session.csv", sessions())
     write(OUT / "refusals.csv", refusals())
 
-    total = len(katch) + len(cond) + len(mifflin) + len(sessions())
+    total = len(katch) + len(cond) + len(mifflin) + len(cond_m) + len(sessions())
     print(f"\n{'TOTAL TRAINING ROWS':20} {total:>8,}")
     print(f"{'refusal rows':20} {len(refusals()):>8,}  (never trained on)")
 
