@@ -188,9 +188,9 @@ The targets now become real plans. `src/lib/plan/library/` holds the content,
 `generate-diet.ts` and `generate-workout.ts` turn targets into plans, and
 `build.ts` is the single entry point.
 
-**Food library:** 70 foods, per 100 g as eaten (IFCT 2017 for Indian staples,
+**Food library:** 72 foods, per 100 g as eaten (IFCT 2017 for Indian staples,
 USDA otherwise), tagged vegan / vegetarian / egg / meat, whey and high-sodium.
-Calories are derived from the macros so meals always add up. **24 meal
+Calories are derived from the macros so meals always add up. **31 meal
 templates** are dish shapes whose components list foods in preference order, so
 one template becomes chicken for one Hunter and paneer for another.
 
@@ -202,16 +202,30 @@ measurable steps, then nudged across the whole day. A non-vegetarian is steered
 toward meat or fish at main meals; high blood pressure removes high-sodium
 foods. It also writes the week's supplies list.
 
-Measured over 1,296 profiles (both sexes, 45 to 150 kg, all goals, both diets,
-all equipment tiers, three schedules):
+**A different day for every weekday.** Plans store meals per weekday
+(`DietPlan.days`), with `meals` kept as the fallback so every older plan still
+loads. Each day is generated with memory of the week: yesterday's dish in the
+same slot is penalised hardest, dishes and proteins already used that week
+less. If a day comes in short on protein or off on calories, it is rebuilt with
+the week's penalties weaker, down to ignoring them, but never with yesterday's
+plate allowed back, since that is the repeat people notice.
 
-| | mean miss | worst |
-|---|---|---|
-| calories | 0.7% | 5.4% |
-| protein short of target | | 2.4% |
+Measured over 576 weeks (4,032 generated days; both sexes, 45 to 150 kg, all
+goals, both diets, two equipment tiers, three schedules):
 
-Protein is allowed to run over (worst +23%) and never more than 2.4% under,
-because over is harmless and under costs muscle. Getting there took two fixes
+| | |
+|---|---|
+| calorie miss per day, mean / worst | 1.0% / 6.5% |
+| protein short by more than 5% | 0.2% of days (tests hold every sampled day within 6%) |
+| a day identical to the day before | 0 |
+| distinct dishes per week | 25 |
+| time to build a week | ~40 ms |
+
+Protein is allowed to run over and not under, because over is harmless and
+under costs muscle. The hardest case, a large vegetarian with no eggs or whey
+at a high protein target, is why the library gained moong dal chilla, paneer
+paratha, a sprouts bowl, a curd parfait, tikka, soya chaat and makhana: without
+enough protein-dense vegetarian dishes, variety and protein could not both be met. Getting there took two fixes
 worth knowing: portion caps now grow with very high targets, and the per-meal
 balance term had to be weakened, since at full strength it cancelled every
 day-level correction on high-carbohydrate days.

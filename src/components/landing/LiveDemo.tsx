@@ -12,7 +12,7 @@ import { CeremonyHost } from "@/components/ceremonies/CeremonyHost";
 import { SystemToaster } from "@/components/system/SystemToaster";
 import { demoSnapshot } from "./demo-seed";
 import { useGame as useGameState } from "@/lib/store/GameProvider";
-import { makePlanLookup, trainingDayFor } from "@/lib/engine/day";
+import { makePlanLookup, mealsFor, trainingDayFor } from "@/lib/engine/day";
 import { lastSessionFor } from "@/lib/engine/derive";
 import { sendHeat } from "@/lib/heat-transfer";
 import { xpGained } from "@/lib/store/apply-outcome";
@@ -52,7 +52,7 @@ function DemoBody() {
   const wPlan = plans.workout(log?.workoutPlanVersion);
   const tday = trainingDayFor(today, wPlan);
   const exercises = tday.exerciseIds.map((id) => wPlan.exercises[id]).filter(Boolean).slice(0, 4);
-  const meals = plans.diet(log?.dietPlanVersion).meals.slice(0, 4);
+  const meals = mealsFor(plans.diet(log?.dietPlanVersion), today).slice(0, 4);
   const result = progress.days[today];
 
   const run = async (fn: () => Promise<Outcome>, origin?: Element | null) => {

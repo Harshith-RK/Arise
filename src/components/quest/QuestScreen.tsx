@@ -14,7 +14,7 @@ import { RecoveryRow } from "./RecoveryRow";
 import { IconBack, IconBonus, IconCalendar, IconDumbbell, IconForward, IconMeal, IconSleep } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { addDays, diffDays, formatReadout } from "@/lib/engine/dates";
-import { evaluateDay, isRestDay, makePlanLookup, mealLocked, trainingDayFor } from "@/lib/engine/day";
+import { evaluateDay, isRestDay, makePlanLookup, mealLocked, mealsFor, trainingDayFor } from "@/lib/engine/day";
 import { lastSessionFor, VITALITY_UNLOCK_LEVEL } from "@/lib/engine/derive";
 import { sendHeat } from "@/lib/heat-transfer";
 import { xpGained } from "@/lib/store/apply-outcome";
@@ -62,7 +62,7 @@ export function QuestScreen({ date }: { date: string }) {
       rest,
       trainingDay: tday,
       exercises: tday.exerciseIds.map((id) => wPlan.exercises[id]).filter(Boolean),
-      meals: dPlan.meals,
+      meals: mealsFor(dPlan, date),
     };
   }, [snapshot, progress, date]);
 

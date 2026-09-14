@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SETTINGS, seedDietPlan, seedProfile, seedSupplies, seedWorkoutPlan } from "@/lib/data/seed";
 import { addDays, dayKeyOf, toKey } from "./dates";
-import { evaluateDay, makePlanLookup, mealLocked, MEAL_GRACE_MINUTES } from "./day";
+import { evaluateDay, makePlanLookup, mealLocked, mealsFor, MEAL_GRACE_MINUTES } from "./day";
 import { deriveProgress } from "./derive";
 import { BADGES } from "./badges";
 import { diffProgress } from "./events";
@@ -457,5 +457,25 @@ describe("date rollover", () => {
   it("knows the weekday of a key", () => {
     expect(dayKeyOf(MONDAY)).toBe("mon");
     expect(dayKeyOf(addDays(MONDAY, 6))).toBe("sun");
+  });
+});
+
+describe("per-day meal plans", () => {
+  it("reads a weekday's own meals, and falls back to the default day", () => {
+    const plan = seedDietPlan("2026-10-01T00:00:00.000Z");
+    const tuesday = [{ ...plan.meals[0], id: "tue-meal-1", name: "Tuesday only" }];
+    const withDays = { ...plan, days: { tue: tuesday } };
+    expect(mealsFor(withDays, addDays(MONDAY, 1))).toEqual(tuesday);
+    expect(mealsFor(withDays, MONDAY)).toEqual(plan.meals);
+    expect(mealsFor(plan, MONDAY)).toEqual(plan.meals);
+  });
+
+  it("scores a day against that day's meals", () => {
+    const plans = makePlanLookup([workoutPlan], [{ ...dietPlan, days: { tue: [dietPlan.meals[0]] } }]);
+    const tue = addDays(MONDAY, 1);
+    const log = { ...emptyLog(tue), meals: { [dietPlan.meals[0].id]: { eaten: true, override: null } } };
+    const r = evaluateDay(tue, log, plans, { restDays: ["sat", "sun"] });
+    expect(r.mealTotal).toBe(1);
+    expect(r.dietComplete).toBe(true);
   });
 });

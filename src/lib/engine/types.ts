@@ -72,7 +72,14 @@ export type MealDef = z.infer<typeof MealDefSchema>;
 export const DietPlanSchema = z.object({
   version: z.number().int().min(1),
   createdAt: z.string(),
+  /** The default day. Every weekday without its own list eats this. */
   meals: z.array(MealDefSchema).min(1).max(12),
+  /**
+   * Optional meals per weekday, so the week is not one day on repeat. Absent on
+   * every plan made before it existed, which is why `meals` stays the fallback
+   * rather than being replaced.
+   */
+  days: z.partialRecord(DayKeySchema, z.array(MealDefSchema).min(1).max(12)).optional(),
 });
 export type DietPlan = z.infer<typeof DietPlanSchema>;
 

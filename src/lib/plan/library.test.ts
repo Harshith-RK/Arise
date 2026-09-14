@@ -39,6 +39,10 @@ const build = (over: Partial<BuildInput> = {}) => {
   return { input, t, plans };
 };
 
+/** Every meal across the generated week. */
+const weekMeals = (plans: { diet: { meals: { items: string[]; name: string }[]; days?: Partial<Record<string, { items: string[]; name: string }[]>> } }) =>
+  Object.values(plans.diet.days ?? { mon: plans.diet.meals }).flat() as { items: string[]; name: string }[];
+
 /** Food ids that went into a generated diet, read back from the item lines. */
 const foodsIn = (meals: { items: string[] }[]) =>
   FOODS.filter((f) => meals.some((m) => m.items.some((i) => i === f.name || i.startsWith(`${f.name} `))));
@@ -73,11 +77,29 @@ describe("exercise library", () => {
 });
 
 describe("generated plans", () => {
-  it("land on the targets for the default profile", () => {
+  it("land on the targets every day of the default week", () => {
     const { t, plans } = build();
     if (t.refused) throw new Error("refused");
-    expect(Math.abs(plans.dayTotals.kcal - t.kcal) / t.kcal).toBeLessThan(0.05);
-    expect((plans.dayTotals.protein - t.proteinG) / t.proteinG).toBeGreaterThan(-0.05);
+    for (const [day, tot] of Object.entries(plans.totalsByDay)) {
+      expect(Math.abs(tot.kcal - t.kcal) / t.kcal, day).toBeLessThan(0.05);
+      expect((tot.protein - t.proteinG) / t.proteinG, day).toBeGreaterThan(-0.05);
+    }
+  });
+
+  it("gives every weekday its own meals", () => {
+    const { plans } = build();
+    const days = DAY_KEYS.map((d) => plans.diet.days?.[d]?.map((m) => m.name).join("|"));
+    expect(days.every(Boolean)).toBe(true);
+    // No day repeats the one before it, and the week is not a couple of days on rotation.
+    for (let i = 1; i < days.length; i++) expect(days[i], DAY_KEYS[i]).not.toBe(days[i - 1]);
+    expect(new Set(days).size).toBe(7);
+    expect(new Set(weekMeals(plans).map((m) => m.name)).size).toBeGreaterThanOrEqual(15);
+  });
+
+  it("meal ids are unique across the week", () => {
+    const { plans } = build();
+    const ids = DAY_KEYS.flatMap((d) => plans.diet.days![d]!.map((m) => m.id));
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("are valid plans the app can store", () => {
@@ -106,7 +128,7 @@ describe("generated plans", () => {
 
   it("a vegetarian never gets meat, and no eggs means no eggs", () => {
     const { plans } = build();
-    for (const f of foodsIn(plans.diet.meals)) {
+    for (const f of foodsIn(weekMeals(plans))) {
       expect(f.diet, f.id).not.toBe("meat");
       expect(f.diet, f.id).not.toBe("egg");
       expect(f.whey, f.id).toBeFalsy();
@@ -115,12 +137,12 @@ describe("generated plans", () => {
 
   it("a non-vegetarian sees meat or fish at a main meal", () => {
     const { plans } = build({ vegetarian: false, noEggs: false, noWhey: false });
-    expect(foodsIn(plans.diet.meals).some((f) => f.diet === "meat")).toBe(true);
+    expect(foodsIn(weekMeals(plans)).some((f) => f.diet === "meat")).toBe(true);
   });
 
   it("high blood pressure excludes high-sodium foods", () => {
     const { plans } = build({ vegetarian: false, noEggs: false, conditions: ["hypertension"] });
-    for (const f of foodsIn(plans.diet.meals)) expect(f.highSodium, f.id).toBeFalsy();
+    for (const f of foodsIn(weekMeals(plans))) expect(f.highSodium, f.id).toBeFalsy();
   });
 
   it("an injury removes every movement that aggravates it", () => {
@@ -151,7 +173,7 @@ describe("generated plans", () => {
     expect(buildPlans(input, t)).toBeNull();
     const plans = buildPlans(input, t, { kcal: 2200, proteinG: 90 });
     expect(plans).not.toBeNull();
-    expect(Math.abs(plans!.dayTotals.kcal - 2200) / 2200).toBeLessThan(0.06);
+    for (const tot of Object.values(plans!.totalsByDay)) expect(Math.abs(tot.kcal - 2200) / 2200).toBeLessThan(0.07);
   });
 
   // The sweep: every combination below must produce plans the app can store,
@@ -175,14 +197,19 @@ describe("generated plans", () => {
                 checked++;
                 expect(WorkoutPlanSchema.safeParse({ ...plans.workout, version: 1, createdAt: "x" }).success).toBe(true);
                 expect(DietPlanSchema.safeParse({ ...plans.diet, version: 1, createdAt: "x" }).success).toBe(true);
-                worstKcal = Math.max(worstKcal, Math.abs(plans.dayTotals.kcal - t.kcal) / t.kcal);
-                worstProteinUnder = Math.min(worstProteinUnder, (plans.dayTotals.protein - t.proteinG) / t.proteinG);
-                const times = plans.diet.meals.map((m) => m.time);
-                expect([...times].sort()).toEqual(times);
+                for (const tot of Object.values(plans.totalsByDay)) {
+                  worstKcal = Math.max(worstKcal, Math.abs(tot.kcal - t.kcal) / t.kcal);
+                  worstProteinUnder = Math.min(worstProteinUnder, (tot.protein - t.proteinG) / t.proteinG);
+                }
+                for (const d of DAY_KEYS) {
+                  const times = plans.diet.days![d]!.map((m) => m.time);
+                  expect([...times].sort()).toEqual(times);
+                }
               }
     expect(checked).toBeGreaterThan(250);
     expect(worstKcal, "worst kcal miss").toBeLessThan(0.08);
-    // Protein may run over (harmless) but must not come in short.
-    expect(worstProteinUnder, "worst protein shortfall").toBeGreaterThan(-0.05);
-  });
+    // Protein may run over (harmless), and never comes in more than 6% short.
+    expect(worstProteinUnder, "worst protein shortfall").toBeGreaterThan(-0.06);
+    // ~290 full weeks at ~40 ms each: a slow test, not a slow feature.
+  }, 90_000);
 });

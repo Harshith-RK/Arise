@@ -89,14 +89,15 @@ export function evaluateDay(
   }
   const workoutComplete = defs.length > 0 && exercisesDone === defs.length;
 
-  const mealsEaten = dPlan.meals.filter((m) => log?.meals[m.id]?.eaten).length;
-  const dietComplete = mealsEaten === dPlan.meals.length;
+  const dayMeals = mealsFor(dPlan, date);
+  const mealsEaten = dayMeals.filter((m) => log?.meals[m.id]?.eaten).length;
+  const dietComplete = mealsEaten === dayMeals.length;
   const cardioComplete = !!log?.cardio.done;
   const cardioMandatory = !rest;
   const bonusDone = !!log?.bonus.done;
 
   const eaten: Macros = { protein: 0, carbs: 0, fat: 0, kcal: 0 };
-  for (const m of dPlan.meals) {
+  for (const m of dayMeals) {
     if (!log?.meals[m.id]?.eaten) continue;
     const mm = mealMacros(m, log);
     eaten.protein += mm.protein;
@@ -126,7 +127,7 @@ export function evaluateDay(
     exercisesDone,
     setsDone: sets,
     workoutComplete,
-    mealTotal: dPlan.meals.length,
+    mealTotal: dayMeals.length,
     mealsEaten,
     dietComplete,
     cardioComplete,
@@ -141,9 +142,17 @@ export function evaluateDay(
   };
 }
 
-/** Planned macros for the whole diet plan. */
-export function planTotals(plan: DietPlan): Macros {
-  return plan.meals.reduce(
+/**
+ * The meals planned for a date. Always go through this rather than
+ * `plan.meals`: a plan can give each weekday its own list.
+ */
+export function mealsFor(plan: DietPlan, date: string): MealDef[] {
+  return plan.days?.[dayKeyOf(date)] ?? plan.meals;
+}
+
+/** Planned macros for one day of the plan: `date`, or the default day. */
+export function planTotals(plan: DietPlan, date?: string): Macros {
+  return (date ? mealsFor(plan, date) : plan.meals).reduce(
     (t, m) => ({ protein: t.protein + m.protein, carbs: t.carbs + m.carbs, fat: t.fat + m.fat, kcal: t.kcal + m.kcal }),
     { protein: 0, carbs: 0, fat: 0, kcal: 0 },
   );

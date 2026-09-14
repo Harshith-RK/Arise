@@ -9,7 +9,7 @@ import { SystemWindow } from "@/components/system/SystemWindow";
 import { IconForward, IconSupplies } from "@/components/icons";
 import { useGame } from "@/lib/store/GameProvider";
 import { DAY_TITLES, dayKeyOf, formatTime, weekStart, addDays } from "@/lib/engine/dates";
-import { makePlanLookup, planTotals } from "@/lib/engine/day";
+import { makePlanLookup, mealsFor, planTotals } from "@/lib/engine/day";
 import type { DayKey } from "@/lib/engine/types";
 
 export function LogScreen() {
@@ -115,7 +115,8 @@ function DietTab() {
   const plan = plans.diet(log?.dietPlanVersion);
   const today = progress.days[progress.today];
   const eaten = today?.eaten ?? { protein: 0, carbs: 0, fat: 0, kcal: 0 };
-  const totals = planTotals(plan);
+  const totals = planTotals(plan, progress.today);
+  const todaysMeals = mealsFor(plan, progress.today);
   const profile = snapshot.profile;
   const kcalTarget = profile?.kcalTarget ?? totals.kcal;
   const proteinTarget = profile?.proteinTarget ?? totals.protein;
@@ -140,7 +141,7 @@ function DietTab() {
         <div className="mb-4 flex items-center justify-between">
           <h2 className="t-title text-frost-0">Today&apos;s intake</h2>
           <span className="t-micro text-frost-2">
-            {today?.mealsEaten ?? 0} / {plan.meals.length} MEALS
+            {today?.mealsEaten ?? 0} / {todaysMeals.length} MEALS
           </span>
         </div>
         <div className="space-y-3">
@@ -191,7 +192,7 @@ function DietTab() {
         }
       >
         <ol className="border-t border-line-1">
-          {plan.meals.map((meal) => {
+          {todaysMeals.map((meal) => {
             const isEaten = !!log?.meals[meal.id]?.eaten;
             return (
               <li key={meal.id} className="row-rule relative flex gap-4 px-4 py-4">

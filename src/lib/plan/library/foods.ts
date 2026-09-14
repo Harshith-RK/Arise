@@ -83,6 +83,8 @@ const ROWS: Row[] = [
   ["roasted-chana", "Roasted chana", "roasted chana", "protein", 22.5, 58, 5.2, "vegan", [15, 60, 5]],
   ["sprouts", "Sprouted moong", "sprouts", "protein", 5, 14, 0.5, "vegan", [80, 250, 10]],
   ["besan", "Besan", "besan", "protein", 22, 58, 6.7, "vegan", [30, 90, 5], dry],
+  ["moong-flour", "Moong dal batter", "moong dal", "protein", 24, 59, 1.2, "vegan", [30, 90, 5], dry],
+  ["makhana", "Roasted makhana", "makhana", "carb", 9.7, 77, 0.1, "vegan", [15, 50, 5]],
   ["hummus", "Hummus", "hummus", "protein", 8, 14, 10, "vegan", [40, 150, 10]],
   ["sambar", "Sambar", "sambar", "protein", 3, 8, 1.7, "vegan", [150, 300, 25]],
 

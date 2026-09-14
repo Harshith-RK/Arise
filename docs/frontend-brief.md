@@ -578,6 +578,10 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **Every weekday has its own meals.** `DietPlan.days` holds a list per weekday and `meals` is the
+  fallback, so plans made before it still work. Read meals through `mealsFor(plan, date)`, never
+  `plan.meals`: Quest, Log, meal toggling and diet completion all do. The diet editor edits one
+  day at a time, and a shared plan can be split into per-day lists from there.
 - **Plans are generated from the targets.** Food and exercise libraries live in
   src/lib/plan/library; onboarding and System, Targets build a meal plan, a training week and
   a supplies list from them, show a preview, and install on confirm. Onboarding writes version 1;

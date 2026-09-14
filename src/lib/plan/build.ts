@@ -17,8 +17,9 @@ export type BuiltPlans = {
   workout: Omit<WorkoutPlan, "version" | "createdAt">;
   diet: Omit<DietPlan, "version" | "createdAt">;
   supplies: SupplyItem[];
-  /** What the meals actually add up to, which the solver lands close to the targets. */
+  /** Each weekday's meals add up to its own totals; this is their average. */
   dayTotals: { kcal: number; protein: number; carbs: number; fat: number };
+  totalsByDay: Record<string, { kcal: number; protein: number; carbs: number; fat: number }>;
 };
 
 /**
@@ -73,5 +74,12 @@ export function buildPlans(
     injuries: input.injuries ?? [],
   });
 
-  return { workout, diet: { meals: diet.meals }, supplies: diet.supplies, dayTotals: diet.totals };
+  return {
+    workout,
+    // Monday doubles as the default day, for any code still reading `meals`.
+    diet: { meals: diet.days.mon, days: diet.days },
+    supplies: diet.supplies,
+    dayTotals: diet.average,
+    totalsByDay: diet.totals,
+  };
 }

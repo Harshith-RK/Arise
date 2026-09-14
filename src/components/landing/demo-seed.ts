@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS, seedDietPlan, seedProfile, seedSupplies, seedWorkoutPlan } from "@/lib/data/seed";
 import { addDays, dayKeyOf, todayKey } from "@/lib/engine/dates";
+import { mealsFor } from "@/lib/engine/day";
 import { DAY_KEYS, type DayKey, type Snapshot, type WorkoutPlan, type DayLog } from "@/lib/engine/types";
 
 /**
@@ -43,7 +44,7 @@ export function demoSnapshot(): Snapshot {
       workoutPlanVersion: 1,
       dietPlanVersion: 1,
       exercises: {},
-      meals: Object.fromEntries(diet.meals.map((m) => [m.id, { eaten: true, override: null }])),
+      meals: Object.fromEntries(mealsFor(diet, date).map((m) => [m.id, { eaten: true, override: null }])),
       cardio: { done: true, kcal: 200 + (i % 3) * 20, minutes: 45 },
       bonus: { done: isRest },
       sleep: null,

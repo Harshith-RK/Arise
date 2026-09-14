@@ -1,4 +1,4 @@
-import type { MealDef, SupplyItem } from "@/lib/engine/types";
+import type { DayKey, MealDef, SupplyItem } from "@/lib/engine/types";
 import { timeToMinutes } from "@/lib/engine/dates";
 import { allowed, FOOD_BY_ID, gramsOf, type DietPrefs, type Food } from "./library/foods";
 import { MEAL_TEMPLATES, type MealTemplate, type Slot } from "./library/meals";
@@ -28,9 +28,13 @@ type Macro4 = { p: number; c: number; f: number; k: number };
 type ChosenPart = { food: Food; amount: number; scale: boolean; index: number };
 type Meal = { slot: Slot; minutes: number; template: MealTemplate; parts: ChosenPart[]; target: Macro4 };
 
+type DayTotals = { protein: number; carbs: number; fat: number; kcal: number };
+
 export type GeneratedDiet = {
-  meals: MealDef[];
-  totals: { protein: number; carbs: number; fat: number; kcal: number };
+  /** A different day of meals for every weekday. */
+  days: Record<DayKey, MealDef[]>;
+  totals: Record<DayKey, DayTotals>;
+  average: DayTotals;
   supplies: SupplyItem[];
 };
 
@@ -117,7 +121,7 @@ function error(actual: Macro4, target: Macro4): number {
     // Going over on protein is close to harmless; under is the miss that costs
     // muscle. Weighting it that way stops protein-bearing carbs being refused
     // on high-carbohydrate days just because they bring a little protein along.
-    const w = key === "p" && actual.p > target.p ? W.p * 0.2 : W[key];
+    const w = key === "p" ? (actual.p > target.p ? W.p * 0.2 : W.p * 1.6) : W[key];
     e += w * ((actual[key] - target[key]) / scale) ** 2;
   }
   return e;
@@ -224,16 +228,24 @@ function itemFor(part: ChosenPart): string {
 
 /* ---------------------------------------------------------------- generate */
 
-export function generateDiet(input: DietInput): GeneratedDiet {
-  portionScale = Math.min(2.2, Math.max(1, input.kcal / 2100));
-  const day: Macro4 = {
-    p: input.proteinG,
-    c: input.carbsG,
-    f: input.fatG,
-    k: input.kcal,
-  };
-  const slots = schedule(input.kcal, input.gymStart, input.gymEnd);
+/**
+ * What the week has eaten so far, so each day can steer away from it: the
+ * same dish yesterday in the same slot is the repeat people notice most, and
+ * a dish on most days of the week is the next.
+ */
+type WeekMemory = {
+  yesterday: Map<Slot, { template: string; anchor: string }[]>;
+  templateCount: Map<string, number>;
+  anchorCount: Map<string, number>;
+};
 
+/**
+ * `variety` scales the week's repeat penalties: 1 is full strength. Not eating
+ * yesterday's plate again is held at full strength regardless, because that is
+ * the repeat the Hunter actually asked not to see.
+ */
+function generateDay(input: DietInput, day: Macro4, memory: WeekMemory, variety = 1): Meal[] {
+  const slots = schedule(input.kcal, input.gymStart, input.gymEnd);
   const totalShare = { p: 0, c: 0, f: 0, k: 0 };
   for (const s of slots) for (const key of KEYS) totalShare[key] += SHARE[s.slot][key];
 
@@ -244,21 +256,35 @@ export function generateDiet(input: DietInput): GeneratedDiet {
   for (const s of slots) {
     const target = { p: 0, c: 0, f: 0, k: 0 };
     for (const key of KEYS) target[key] = (day[key] * SHARE[s.slot][key]) / totalShare[key];
+    const yesterday = memory.yesterday.get(s.slot) ?? [];
+
+    // Anchors eaten often this week are tried last, so a template can land on
+    // a different protein before a different template is needed.
+    const avoid = new Set([
+      ...usedAnchors,
+      ...(variety > 0 ? [...memory.anchorCount].filter(([, n]) => n >= 2).map(([id]) => id) : []),
+    ]);
 
     let best: { meal: Meal; score: number } | null = null;
     for (const template of MEAL_TEMPLATES.filter((t) => t.slots.includes(s.slot))) {
-      const parts = resolve(template, input.prefs, usedAnchors);
+      const parts = resolve(template, input.prefs, avoid);
       if (!parts) continue;
       const meal: Meal = { slot: s.slot, minutes: s.minutes, template, parts, target };
       solveMeal(meal);
       const anchor = parts[0].food;
-      const repeat = (usedTemplates.has(template.id) ? 0.6 : 0) + (usedAnchors.has(anchor.id) ? 0.4 : 0);
+
+      const repeatToday = (usedTemplates.has(template.id) ? 0.6 : 0) + (usedAnchors.has(anchor.id) ? 0.4 : 0);
+      const sameAsYesterday = yesterday.some((y) => y.template === template.id) ? 0.8 : 0;
+      const anchorYesterday = yesterday.some((y) => y.anchor === anchor.id) ? 0.25 : 0;
+      const weekly = (memory.templateCount.get(template.id) ?? 0) * 0.4 + (memory.anchorCount.get(anchor.id) ?? 0) * 0.1;
+
       // A non-vegetarian should see meat or fish at a main meal, not a day of
       // dal that only happens to fit the numbers as well.
       const main = s.slot === "lunch" || s.slot === "dinner";
       const animal = anchor.diet === "meat" || anchor.diet === "egg";
       const preference = !input.prefs.vegetarian && main && !animal ? 0.35 : 0;
-      const score = error(sum(parts), target) + repeat + preference;
+
+      const score = error(sum(parts), target) + repeatToday + sameAsYesterday + (anchorYesterday + weekly) * variety + preference;
       if (!best || score < best.score) best = { meal, score };
     }
     if (!best) continue;
@@ -272,42 +298,102 @@ export function generateDiet(input: DietInput): GeneratedDiet {
   const dayScore = (ms: Meal[]) => {
     const t = { p: 0, c: 0, f: 0, k: 0 };
     for (const m of ms) {
-      const s = sum(m.parts);
-      for (const key of KEYS) t[key] += s[key];
+      const sm = sum(m.parts);
+      for (const key of KEYS) t[key] += sm[key];
     }
     // The day's totals are what the Hunter is held to. The per-meal term only
     // breaks ties, so one meal does not absorb the whole correction.
     return error(t, day) * 4 + ms.reduce((acc, m) => acc + error(sum(m.parts), m.target) * 0.02, 0);
   };
-  refine(meals, dayScore, 120);
+  refine(meals, dayScore, 300);
+  return meals;
+}
 
-  const out: MealDef[] = meals.map((m, i) => {
-    const s = sum(m.parts);
-    return {
-      id: `meal-${i + 1}`,
-      time: toTime(m.minutes),
-      name: nameFor(m),
-      items: m.parts.filter((p) => p.amount > 0).map(itemFor).slice(0, 12),
-      protein: Math.round(s.p),
-      carbs: Math.round(s.c),
-      fat: Math.round(s.f),
-      kcal: Math.round(s.k),
-      group: null,
-    };
-  });
+const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const satisfies readonly DayKey[];
 
-  const totals = out.reduce(
-    (t, m) => ({ protein: t.protein + m.protein, carbs: t.carbs + m.carbs, fat: t.fat + m.fat, kcal: t.kcal + m.kcal }),
-    { protein: 0, carbs: 0, fat: 0, kcal: 0 },
-  );
+export function generateDiet(input: DietInput): GeneratedDiet {
+  portionScale = Math.min(2.2, Math.max(1, input.kcal / 2100));
+  const day: Macro4 = { p: input.proteinG, c: input.carbsG, f: input.fatG, k: input.kcal };
 
-  return { meals: out, totals, supplies: suppliesFor(meals) };
+  const memory: WeekMemory = { yesterday: new Map(), templateCount: new Map(), anchorCount: new Map() };
+  const days = {} as Record<DayKey, MealDef[]>;
+  const totals = {} as Record<DayKey, GeneratedDiet["average"]>;
+  const allMeals: Meal[] = [];
+
+  const totalOf = (ms: Meal[]) => {
+    const t = { p: 0, c: 0, f: 0, k: 0 };
+    for (const m of ms) {
+      const sm = sum(m.parts);
+      for (const k of KEYS) t[k] += sm[k];
+    }
+    return t;
+  };
+
+  for (const key of DAYS) {
+    // Variety is worth having only while the day still hits its numbers. A day
+    // that comes in short on protein or off on calories is rebuilt with the
+    // week's repeat penalties weakened, then ignored.
+    // Never all the way to zero: that reproduces the single best-fitting day,
+    // which is exactly the week-on-repeat this exists to prevent. If no
+    // attempt hits, keep the one closest to its numbers.
+    let meals: Meal[] = [];
+    let bestMiss = Infinity;
+    for (const variety of [1, 0.6, 0.3, 0.1, 0]) {
+      const attempt = generateDay(input, day, memory, variety);
+      const t = totalOf(attempt);
+      const miss = Math.max(0, day.p * 0.96 - t.p) / day.p + Math.max(0, Math.abs(t.k - day.k) - day.k * 0.04) / day.k;
+      if (miss < bestMiss) {
+        bestMiss = miss;
+        meals = attempt;
+      }
+      if (miss === 0) break;
+    }
+    allMeals.push(...meals);
+
+    memory.yesterday = new Map();
+    for (const m of meals) {
+      const list = memory.yesterday.get(m.slot) ?? [];
+      list.push({ template: m.template.id, anchor: m.parts[0].food.id });
+      memory.yesterday.set(m.slot, list);
+      memory.templateCount.set(m.template.id, (memory.templateCount.get(m.template.id) ?? 0) + 1);
+      memory.anchorCount.set(m.parts[0].food.id, (memory.anchorCount.get(m.parts[0].food.id) ?? 0) + 1);
+    }
+
+    days[key] = meals.map((m, i) => {
+      const sm = sum(m.parts);
+      return {
+        // Unique across the week, so a meal id never means two different plates.
+        id: `${key}-meal-${i + 1}`,
+        time: toTime(m.minutes),
+        name: nameFor(m),
+        items: m.parts.filter((p) => p.amount > 0).map(itemFor).slice(0, 12),
+        protein: Math.round(sm.p),
+        carbs: Math.round(sm.c),
+        fat: Math.round(sm.f),
+        kcal: Math.round(sm.k),
+        group: null,
+      };
+    });
+    totals[key] = days[key].reduce(
+      (t, m) => ({ protein: t.protein + m.protein, carbs: t.carbs + m.carbs, fat: t.fat + m.fat, kcal: t.kcal + m.kcal }),
+      { protein: 0, carbs: 0, fat: 0, kcal: 0 },
+    );
+  }
+
+  const avg = (k: keyof GeneratedDiet["average"]) => Math.round(DAYS.reduce((s, d) => s + totals[d][k], 0) / DAYS.length);
+  return {
+    days,
+    totals,
+    average: { protein: avg("protein"), carbs: avg("carbs"), fat: avg("fat"), kcal: avg("kcal") },
+    supplies: suppliesFor(allMeals),
+  };
 }
 
 /** A week of the plan's ingredients, as a shopping list. */
 function suppliesFor(meals: Meal[]): SupplyItem[] {
   const weekly = new Map<string, number>();
-  for (const m of meals) for (const p of m.parts) weekly.set(p.food.id, (weekly.get(p.food.id) ?? 0) + p.amount * 7);
+  // Every day of the week is its own plate now, so sum them rather than scale one.
+  for (const m of meals) for (const p of m.parts) weekly.set(p.food.id, (weekly.get(p.food.id) ?? 0) + p.amount);
 
   const items: SupplyItem[] = [];
   for (const [id, amount] of weekly) {

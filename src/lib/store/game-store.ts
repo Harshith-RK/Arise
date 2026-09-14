@@ -2,7 +2,7 @@ import { createStore, type StoreApi } from "zustand/vanilla";
 import { deriveProgress, type Progress } from "@/lib/engine/derive";
 import { diffProgress, type SystemEvent } from "@/lib/engine/events";
 import { todayKey, weekStart } from "@/lib/engine/dates";
-import { makePlanLookup, trainingDayFor } from "@/lib/engine/day";
+import { makePlanLookup, mealsFor, trainingDayFor } from "@/lib/engine/day";
 import type {
   DayKey,
   DayLog,
@@ -392,7 +392,7 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
           ({ events, log }) => {
             const snap = get().snapshot!;
             const plans = makePlanLookup(snap.workoutPlans, snap.dietPlans);
-            const meal = plans.diet(log.dietPlanVersion).meals.find((m) => m.id === mealId);
+            const meal = mealsFor(plans.diet(log.dietPlanVersion), log.date).find((m) => m.id === mealId);
             const name = meal?.name ?? "Meal";
             if (!log.meals[mealId]?.eaten) return { tag: "Rollback", text: `${name} unmarked.${xpText(xpOf(events))}`, tone: "neutral" };
             const dietCleared = events.some((e) => e.type === "xp") && isDietComplete(snap, log);
@@ -648,7 +648,7 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
 
     function isDietComplete(snap: Snapshot, log: DayLog): boolean {
       const plans = makePlanLookup(snap.workoutPlans, snap.dietPlans);
-      return plans.diet(log.dietPlanVersion).meals.every((m) => log.meals[m.id]?.eaten);
+      return mealsFor(plans.diet(log.dietPlanVersion), log.date).every((m) => log.meals[m.id]?.eaten);
     }
 
     function questNotice(events: SystemEvent[], name: string, verb: string, date: string): Notice {
