@@ -5,9 +5,11 @@ import { Button, Panel } from "@/components/system/primitives";
 import { Choice, MultiChoice } from "@/components/system/Choice";
 import { Field } from "@/components/system/Field";
 import { PlanReadout } from "./PlanReadout";
+import { PlanPreview } from "./PlanPreview";
 import type { Profile } from "@/lib/engine/types";
 import { body } from "@/lib/plan/rules";
 import { planTargets } from "@/lib/plan/targets";
+import { buildPlans, type BuiltPlans } from "@/lib/plan/build";
 import { missingForPlan, planInputFromProfile } from "@/lib/plan/from-profile";
 import { usePlanModel } from "@/lib/plan/use-plan-model";
 import {
@@ -28,11 +30,14 @@ export function TargetsPanel({
   profile,
   currentWeightKg,
   save,
+  rebuild,
   className,
 }: {
   profile: Profile;
   currentWeightKg: number;
   save: (patch: Partial<Profile>) => Promise<void>;
+  /** Installs rebuilt plans as new versions. History keeps the old ones. */
+  rebuild: (plans: BuiltPlans) => Promise<void>;
   className?: string;
 }) {
   const model = usePlanModel();
@@ -42,6 +47,26 @@ export function TargetsPanel({
   const input = useMemo(() => planInputFromProfile(profile, currentWeightKg), [profile, currentWeightKg]);
   const plan = useMemo(() => (input ? planTargets(input, model) : null), [input, model]);
   const missing = missingForPlan({ sex: profile.sex ?? null, age: profile.age ?? null });
+  const [preview, setPreview] = useState<BuiltPlans | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  // Rebuilt from the targets as saved, so what gets built is what the Hunter applied.
+  const makePlans = () => {
+    if (!input || !plan) return null;
+    return buildPlans(
+      {
+        ...input,
+        restDays: profile.restDays,
+        gymStart: profile.gymStart,
+        gymEnd: profile.gymEnd,
+        vegetarian: profile.vegetarian,
+        noEggs: profile.noEggs,
+        noWhey: profile.noWhey,
+      },
+      plan,
+      { kcal: profile.kcalTarget, proteinG: profile.proteinTarget },
+    );
+  };
 
   const applied =
     plan && !plan.refused && plan.kcal === profile.kcalTarget && plan.proteinG === profile.proteinTarget;
@@ -124,6 +149,44 @@ export function TargetsPanel({
                 </p>
               </div>
             )}
+
+            <div className="border-t border-line-1 pt-4">
+              <p className="t-readout text-frost-0">Meal and training plans</p>
+              <p className="t-micro mt-1 text-frost-2">
+                BUILT FROM YOUR CURRENT TARGETS ({profile.kcalTarget} KCAL / {profile.proteinTarget} G), DIET CHOICES,
+                SCHEDULE, EQUIPMENT AND INJURIES.
+              </p>
+              {preview ? (
+                <div className="mt-3 space-y-3">
+                  <PlanPreview plans={preview} />
+                  <p className="t-micro border border-line-2 px-3 py-2 text-frost-1">
+                    THIS REPLACES YOUR CURRENT MEAL PLAN, TRAINING PLAN AND SUPPLIES. PAST DAYS KEEP THE PLAN THEY WERE LOGGED
+                    AGAINST.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      variant="primary"
+                      disabled={busy}
+                      onClick={async () => {
+                        setBusy(true);
+                        await rebuild(preview);
+                        setPreview(null);
+                        setBusy(false);
+                      }}
+                    >
+                      Use these plans
+                    </Button>
+                    <Button onClick={() => setPreview(null)} disabled={busy}>
+                      Keep my current plans
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button className="mt-3" onClick={() => setPreview(makePlans())}>
+                  Build plans
+                </Button>
+              )}
+            </div>
           </>
         ) : null}
       </div>

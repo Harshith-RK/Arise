@@ -578,6 +578,11 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **Plans are generated from the targets.** Food and exercise libraries live in
+  src/lib/plan/library; onboarding and System, Targets build a meal plan, a training week and
+  a supplies list from them, show a preview, and install on confirm. Onboarding writes version 1;
+  System writes a new version so logged days keep theirs. See ml/README.md for the accuracy
+  numbers and the ranking rules.
 - **Targets come from the plan model, inside a cage.** Onboarding no longer asks for BMR or a
   calorie target: it asks sex, age, experience, equipment, injuries and health conditions, and
   shows what the System calculated with an override. Out-of-range profiles fall back to the

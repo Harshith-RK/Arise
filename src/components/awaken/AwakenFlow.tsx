@@ -9,6 +9,7 @@ const BootSequence = dynamic(() => import("./BootSequence").then((m) => m.BootSe
 import { Field, Toggle } from "@/components/system/Field";
 import { Choice, MultiChoice } from "@/components/system/Choice";
 import { PlanReadout } from "@/components/plan/PlanReadout";
+import { PlanPreview } from "@/components/plan/PlanPreview";
 import { SignedInAs } from "@/components/auth/SignedInAs";
 import { SystemWindow } from "@/components/system/SystemWindow";
 import { Button } from "@/components/system/primitives";
@@ -16,8 +17,7 @@ import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { DAY_TITLES, todayKey } from "@/lib/engine/dates";
 import { ProfileSchema, type DayKey, type Profile } from "@/lib/engine/types";
 import { EASE } from "@/lib/motion";
-import { planTotals } from "@/lib/engine/day";
-import { seedDietPlan } from "@/lib/data/seed";
+import { buildPlans } from "@/lib/plan/build";
 import { body, type Condition, type Equipment, type Experience, type Injury, type Sex } from "@/lib/plan/rules";
 import { planTargets } from "@/lib/plan/targets";
 import { goalFor, trainingDays } from "@/lib/plan/from-profile";
@@ -215,6 +215,31 @@ export function AwakenFlow() {
   }, [draft]);
   const plan = useMemo(() => (planInput ? planTargets(planInput, model) : null), [planInput, model]);
 
+  // The meal and training plans those targets describe. Only needed on Confirm,
+  // and generation is the slowest thing on this screen, so it waits for it.
+  const built = useMemo(() => {
+    if (step !== STEPS.length - 1 || !planInput || !plan) return null;
+    const override = {
+      kcal: draft.kcalOverride.trim() === "" ? null : Math.round(num(draft.kcalOverride)),
+      proteinG: draft.proteinOverride.trim() === "" ? null : Math.round(num(draft.proteinOverride)),
+    };
+    const valid = (v: number | null, lo: number, hi: number) => v === null || (Number.isFinite(v) && v >= lo && v <= hi);
+    if (!valid(override.kcal, 800, 6000) || !valid(override.proteinG, 20, 400)) return null;
+    return buildPlans(
+      {
+        ...planInput,
+        restDays: draft.restDays,
+        gymStart: draft.gymStart,
+        gymEnd: draft.gymEnd,
+        vegetarian: draft.vegetarian,
+        noEggs: draft.noEggs,
+        noWhey: draft.noWhey,
+      },
+      plan,
+      override,
+    );
+  }, [step, planInput, plan, draft]);
+
   const validateStep = (): boolean => {
     if (step === 1 && scanSkipped) return true;
     const result = STEP_SCHEMAS[step].safeParse(parsedForStep);
@@ -285,7 +310,10 @@ export function AwakenFlow() {
       return;
     }
     setAwakening(true);
-    await actions.completeOnboarding(parsed.data);
+    await actions.completeOnboarding(
+      parsed.data,
+      built ? { workout: built.workout, diet: built.diet, supplies: built.supplies } : undefined,
+    );
     try {
       localStorage.removeItem(DRAFT_KEY);
     } catch {
@@ -531,7 +559,11 @@ export function AwakenFlow() {
                       />
                     </div>
                   </div>
-                  <MealPlanNote target={plan && !plan.refused ? plan.kcal : null} />
+                  {built ? (
+                    <PlanPreview plans={built} />
+                  ) : plan?.refused ? null : (
+                    <p className="t-micro text-frost-2">PLANS WILL BE BUILT WHEN THE TARGETS ABOVE ARE VALID.</p>
+                  )}
                 </>
               ) : null}
             </m.div>
@@ -592,17 +624,3 @@ function Summary({ draft }: { draft: Draft }) {
   );
 }
 
-/**
- * The starting meal plan is still the seed plan: food libraries that would
- * rebuild it around the calculated target do not exist yet. Say so, with the
- * gap in numbers, rather than leave two different calorie figures unexplained.
- */
-function MealPlanNote({ target }: { target: number | null }) {
-  const meals = planTotals(seedDietPlan()).kcal;
-  if (target === null || Math.abs(meals - target) < 100) return null;
-  return (
-    <p className="t-micro border border-line-2 px-3 py-2 text-frost-1">
-      YOUR STARTING MEAL PLAN TOTALS {Math.round(meals)} KCAL. ADJUST PORTIONS IN SYSTEM TO BRING IT TO {target}.
-    </p>
-  );
-}

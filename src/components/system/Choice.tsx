@@ -29,7 +29,9 @@ export function Choice<T extends string>({
             type="button"
             aria-pressed={value === o.value}
             onClick={() => onChange(o.value)}
-            className="pressable t-micro h-11 border border-line-2 px-1 text-frost-1 transition-none aria-pressed:border-ember aria-pressed:bg-ink-3 aria-pressed:text-ember"
+            // Filled when selected: ember text on a dark well fails contrast at the
+            // coldest rank, so this uses the pair the contrast script checks.
+            className="pressable t-micro h-11 border border-line-2 px-1 text-frost-1 transition-none aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-on-ember"
           >
             {o.label}
           </button>

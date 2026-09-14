@@ -69,7 +69,18 @@ export type GameState = {
   deleteWeighIn(date: string): Promise<Outcome>;
 
   /* profile, settings, plans */
-  completeOnboarding(profile: Profile): Promise<void>;
+  /**
+   * `plans`, when given, replace the starter plans. Safe only at onboarding:
+   * no day has been logged against the version they overwrite.
+   */
+  completeOnboarding(
+    profile: Profile,
+    plans?: {
+      workout: Omit<WorkoutPlan, "version" | "createdAt">;
+      diet: Omit<DietPlan, "version" | "createdAt">;
+      supplies: Supplies["items"];
+    },
+  ): Promise<void>;
   saveProfile(p: Profile): Promise<Outcome>;
   saveSettings(patch: Partial<Settings>): Promise<void>;
   saveWorkoutPlan(next: Omit<WorkoutPlan, "version" | "createdAt">): Promise<Outcome>;
@@ -502,11 +513,21 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
 
       /* ---------------- profile, settings, plans ---------------- */
 
-      async completeOnboarding(profile) {
+      async completeOnboarding(profile, plans) {
         const snap = get().snapshot;
         if (!snap) return;
+        let next: Snapshot = { ...snap, profile };
+        if (plans && !snap.dayLogs.length) {
+          const createdAt = now().toISOString();
+          const workout: WorkoutPlan = { ...plans.workout, version: 1, createdAt };
+          const diet: DietPlan = { ...plans.diet, version: 1, createdAt };
+          const supplies: Supplies = { weekOf: weekStart(get().today), items: plans.supplies };
+          await persist(() => repo.saveWorkoutPlan(workout));
+          await persist(() => repo.saveDietPlan(diet));
+          await persist(() => repo.saveSupplies(supplies));
+          next = { ...next, workoutPlans: [workout], dietPlans: [diet], supplies };
+        }
         await persist(() => repo.saveProfile(profile));
-        const next = { ...snap, profile };
         set({ snapshot: next, progress: derive(next), status: "ready" });
       },
 

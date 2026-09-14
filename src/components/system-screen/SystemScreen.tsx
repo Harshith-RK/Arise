@@ -98,6 +98,12 @@ export function SystemScreen() {
         profile={profile}
         currentWeightKg={latestWeight ?? profile.startWeightKg}
         save={saveProfile}
+        rebuild={async (plans) => {
+          dispatch(await actions.saveWorkoutPlan(plans.workout));
+          dispatch(await actions.saveDietPlan(plans.diet));
+          // Saving plans does not move the supplies week, so this snapshot's is current.
+          await actions.saveSupplies({ weekOf: snapshot.supplies.weekOf, items: plans.supplies });
+        }}
         className="mb-4"
       />
 

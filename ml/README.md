@@ -182,14 +182,56 @@ One rule changed while integrating: a cut now eats at most maintenance. A small
 body can have a TDEE below the absolute calorie floor, where "raise to the
 floor" turned a cut into a surplus. The floor now stops at TDEE.
 
-## What is still not here
+## Plans built from the targets
 
-The model sets calorie and protein targets, BMR, and the weekly training
-prescription. It does not rebuild the meal plan or the exercise list: every
-Hunter still starts from the plans in `src/lib/data/seed.ts`. That needs the
-food and exercise libraries, which do not exist yet. Until they do, Confirm says
-plainly when the starting meal plan and the calculated target disagree.
+The targets now become real plans. `src/lib/plan/library/` holds the content,
+`generate-diet.ts` and `generate-workout.ts` turn targets into plans, and
+`build.ts` is the single entry point.
 
-The food and exercise libraries are also not built. Those are needed either
-way: the numbers above are targets, and something still has to turn 1982 kcal
-and 136 g of protein into meals, and 73 weekly sets into exercises.
+**Food library:** 70 foods, per 100 g as eaten (IFCT 2017 for Indian staples,
+USDA otherwise), tagged vegan / vegetarian / egg / meat, whey and high-sodium.
+Calories are derived from the macros so meals always add up. **24 meal
+templates** are dish shapes whose components list foods in preference order, so
+one template becomes chicken for one Hunter and paneer for another.
+
+**Diet generation:** slots are scheduled around the gym window (a main meal
+right after training becomes the post-workout meal), macros are shared across
+slots by purpose, each slot takes the best-fitting dish the diet allows while
+avoiding repeats, portions are solved by bounded least squares and snapped to
+measurable steps, then nudged across the whole day. A non-vegetarian is steered
+toward meat or fish at main meals; high blood pressure removes high-sodium
+foods. It also writes the week's supplies list.
+
+Measured over 1,296 profiles (both sexes, 45 to 150 kg, all goals, both diets,
+all equipment tiers, three schedules):
+
+| | mean miss | worst |
+|---|---|---|
+| calories | 0.7% | 5.4% |
+| protein short of target | | 2.4% |
+
+Protein is allowed to run over (worst +23%) and never more than 2.4% under,
+because over is harmless and under costs muscle. Getting there took two fixes
+worth knowing: portion caps now grow with very high targets, and the per-meal
+balance term had to be weakened, since at full strength it cancelled every
+day-level correction on high-carbohydrate days.
+
+**Exercise library:** 80 movements tagged by muscle, region, gear, skill,
+aggravated injuries and swaps. Every muscle has a no-equipment option.
+
+**Workout generation:** the split is laid over the Hunter's actual training
+days, each muscle's weekly sets are divided across the sessions that train it
+(generated weekly sets match the model's prescription), and movements are
+ranked by fit: loaded work over floor work when gear exists, compounds leading
+for big muscles and isolation for arms and delt heads, skill matched to
+experience, a light repeat penalty, and a second movement for the same muscle
+hitting a different region only when that costs little. Swaps become the
+variants a Hunter can switch to. Sessions are trimmed to the gym window.
+
+**In the app:** onboarding builds both plans and the supplies list, previews
+them on Confirm, and installs them as version 1. Existing Hunters build them
+from System, Targets, preview, and confirm; they save as new versions, and past
+days keep the plan they were logged against.
+
+**Refusals** build meals only from the numbers the Hunter entered, and train at
+the gentlest prescription (beginner volume, maintenance).
