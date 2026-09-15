@@ -609,9 +609,11 @@ Decisions taken while building that a future session should not undo:
   readable by a screen reader, and completely blank on screen. AppShell and LiveDemo each provide
   one; anything outside /app must wrap itself in `MotionScope`. This cost an hour on /auth.
 - **Every screen is checked at phone widths.** `npm run mobile-audit` (against the local-only server
-  on :3100) opens every route, onboarding step and sheet at 320, 375 and 390 px and reports
-  sideways scroll, anything past the screen edge, controls under 40px, labels spilling out of
-  their box, inputs that make iOS zoom, and content hidden under the bottom nav. It reports zero.
+  on :3100) opens every route, onboarding step and sheet at 320, 360, 369, 375 and 390 px and
+  reports sideways scroll, anything past the screen edge, anything cut off inside a box that hides
+  overflow (the case a real 369px phone caught on the body scan step, which never crosses the
+  screen edge), controls under 40px, labels spilling out of their box, inputs that make iOS zoom,
+  and content hidden under the bottom nav. It reports zero.
   The rules behind that: `sm` buttons are 44px tall below `lg`; a Choice of four goes two by two
   and one of five or more wraps to rows of four under 400px, with labels allowed to wrap; day
   pickers use three-letter names; small text links get a 44px tap area; Panel headers wrap; and a

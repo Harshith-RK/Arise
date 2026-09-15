@@ -715,7 +715,9 @@ export function AwakenFlow() {
             </m.div>
           </AnimatePresence>
 
-          <div className="mt-7 flex items-center gap-3">
+          {/* Wraps: on the scan step three buttons do not fit a phone's width, so
+              the skip takes its own row above Back and Next. */}
+          <div className="mt-7 flex flex-wrap items-center gap-3">
             {step > 0 ? (
               <Button type="button" onClick={() => setStep((s) => s - 1)}>
                 Back
@@ -724,7 +726,8 @@ export function AwakenFlow() {
             {step === 1 && !draft.noScan ? (
               <Button
                 type="button"
-                variant="ghost"
+                variant="secondary"
+                className="order-first basis-full"
                 onClick={() => {
                   setEdits((prev) => ({ ...prev, noScan: true, bodyFatPct: "", muscleKg: "", visceral: "" }));
                   setErrors({});

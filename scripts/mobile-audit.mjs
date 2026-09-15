@@ -7,7 +7,8 @@
 import { chromium } from "playwright";
 
 const BASE = process.env.AUDIT_URL ?? "http://localhost:3100";
-const WIDTHS = [320, 375, 390];
+// 360 and 369 are the common Android widths; a real 369px phone caught what 375 did not.
+const WIDTHS = [320, 360, 369, 375, 390];
 const MIN_TAP = 40;
 
 const browser = await chromium.launch();
@@ -18,7 +19,7 @@ async function audit(page, width, where) {
   await page.waitForTimeout(700);
   const r = await page.evaluate(({ MIN_TAP }) => {
     const vw = window.innerWidth;
-    const out = { hscroll: document.documentElement.scrollWidth - vw, wide: [], small: [], spill: [], zoomInputs: [], hiddenByNav: [] };
+    const out = { hscroll: document.documentElement.scrollWidth - vw, wide: [], clipped: [], small: [], spill: [], zoomInputs: [], hiddenByNav: [] };
     const visible = (el) => {
       const s = getComputedStyle(el);
       if (s.visibility === "hidden" || s.display === "none" || Number(s.opacity) === 0) return false;
@@ -43,6 +44,30 @@ async function audit(page, width, where) {
         out.wide.push(`${label(el)} spans ${Math.round(b.left)}..${Math.round(b.right)}`);
       }
     }
+    // Cut off inside a container that hides overflow: never crosses the screen
+    // edge, so the check above cannot see it, but the user loses half a button.
+    const clippers = (el) => {
+      const list = [];
+      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+        const cs = getComputedStyle(p);
+        if (cs.overflowX === "auto" || cs.overflowX === "scroll") return null; // meant to scroll
+        if (cs.overflowX === "hidden" || cs.overflowX === "clip") list.push(p);
+      }
+      return list;
+    };
+    for (const el of document.querySelectorAll('button, a[href], input, label, h1, h2, p, [role="button"]')) {
+      if (!visible(el) || el.classList.contains("sr-only")) continue;
+      const list = clippers(el);
+      if (!list) continue;
+      const b = el.getBoundingClientRect();
+      for (const c of list) {
+        const cb = c.getBoundingClientRect();
+        if (b.right > cb.right + 1 || b.left < cb.left - 1) {
+          out.clipped.push(`${label(el)} spans ${Math.round(b.left)}..${Math.round(b.right)}, box ends ${Math.round(cb.left)}..${Math.round(cb.right)}`);
+          break;
+        }
+      }
+    }
     const controls = document.querySelectorAll('button, a[href], input, select, textarea, [role="button"], [role="tab"], [role="switch"], summary');
     for (const el of controls) {
       if (!visible(el) || el.closest("[aria-hidden='true']")) continue;
@@ -65,6 +90,7 @@ async function audit(page, width, where) {
 
   if (r.hscroll > 1) note(width, where, "scrolls sideways", `${r.hscroll}px wider than the screen`);
   for (const d of [...new Set(r.wide)].slice(0, 6)) note(width, where, "wider than screen", d);
+  for (const d of [...new Set(r.clipped)].slice(0, 6)) note(width, where, "cut off inside its box", d);
   for (const d of [...new Set(r.small)]) note(width, where, "small tap target", d);
   for (const d of [...new Set(r.zoomInputs)]) note(width, where, "input zooms on iPhone", d);
   for (const d of [...new Set(r.spill)]) note(width, where, "text spills out of its box", d);
@@ -117,6 +143,9 @@ async function onboard(page, width) {
   await page.getByLabel("CURRENT WEIGHT").fill("84");
   await page.getByLabel("TARGET WEIGHT").fill("76");
   await next();
+  await page.getByLabel("BODY FAT").fill("35.3");
+  await page.getByLabel("SKELETAL MUSCLE").fill("34.9");
+  await page.getByLabel("VISCERAL FAT").fill("14");
   await audit(page, width, "awaken 2 body scan");
   await page.getByLabel("BODY FAT").fill("24");
   await next();
