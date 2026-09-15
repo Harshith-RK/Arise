@@ -83,7 +83,7 @@ function DemoBody() {
               type="button"
               aria-pressed={tab === t}
               onClick={() => setTab(t)}
-              className="pressable t-micro h-9 border-r border-line-2 px-3 text-frost-2 transition-none last:border-r-0 aria-pressed:bg-ember aria-pressed:text-on-ember"
+              className="pressable t-micro h-11 border-r border-line-2 px-4 text-frost-2 transition-none last:border-r-0 aria-pressed:bg-ember aria-pressed:text-on-ember"
             >
               {t === "workout" ? "LIFT" : "EAT"}
             </button>

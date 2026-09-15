@@ -67,10 +67,10 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-[1100px] flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
           <p className="t-micro text-frost-2">LOCAL-FIRST. YOUR DATA STAYS ON THIS DEVICE.</p>
           <nav className="flex items-center gap-6" aria-label="Legal">
-            <Link href="/legal/terms" className="t-micro text-frost-2 transition-none hov:text-frost-0">
+            <Link href="/legal/terms" className="inline-flex min-h-11 items-center t-micro text-frost-2 transition-none hov:text-frost-0">
               TERMS
             </Link>
-            <Link href="/legal/privacy" className="t-micro text-frost-2 transition-none hov:text-frost-0">
+            <Link href="/legal/privacy" className="inline-flex min-h-11 items-center t-micro text-frost-2 transition-none hov:text-frost-0">
               PRIVACY
             </Link>
             <span className="t-micro text-frost-2">V{APP_VERSION}</span>

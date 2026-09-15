@@ -21,7 +21,8 @@ const VARIANT: Record<ButtonVariant, string> = {
 };
 
 const SIZE: Record<ButtonSize, string> = {
-  sm: "h-9 px-3 t-micro",
+  // 44px is the smallest target a thumb hits reliably. Desktop keeps the compact 36.
+  sm: "h-11 px-3 t-micro lg:h-9",
   md: "h-12 px-4 t-readout",
   lg: "h-14 px-6 t-readout",
 };
@@ -79,10 +80,12 @@ export function Panel({
   return (
     <section className={`surface-panel ${className ?? ""}`}>
       {title ? (
-        <header className="flex items-center justify-between gap-3 px-4 py-3">
+        <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
           <h2 className="t-readout text-frost-1">{title}</h2>
-          <div className="flex items-center gap-3">
-            {meta ? <span className="t-micro text-frost-2">{meta}</span> : null}
+          {/* On a narrow phone this drops under the title rather than breaking
+              "LOG WEIGH-IN" across two lines beside it. */}
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {meta ? <span className="t-micro whitespace-nowrap text-frost-2">{meta}</span> : null}
             {action}
           </div>
         </header>

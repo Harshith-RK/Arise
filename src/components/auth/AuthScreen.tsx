@@ -153,7 +153,7 @@ export function AuthScreen() {
                 setMode(mode === "in" ? "up" : "in");
                 setError(null);
               }}
-              className="pressable text-ember underline underline-offset-4 transition-none"
+              className="pressable inline-flex min-h-11 items-center text-ember underline underline-offset-4 transition-none"
             >
               {mode === "in" ? "Create one" : "Sign in"}
             </button>

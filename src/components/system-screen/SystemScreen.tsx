@@ -72,7 +72,7 @@ export function SystemScreen() {
         </div>
         <div className="border-t border-line-1 px-4 py-4">
           <p className="t-micro mb-2 text-frost-2">REST DAYS</p>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-4 gap-1 min-[400px]:grid-cols-7">
             {(Object.keys(DAY_TITLES) as DayKey[]).map((d) => {
               const on = profile.restDays.includes(d);
               return (
@@ -86,7 +86,7 @@ export function SystemScreen() {
                   onClick={() => void saveProfile({ restDays: on ? profile.restDays.filter((x) => x !== d) : [...profile.restDays, d] })}
                   className="pressable t-micro h-12 border border-line-2 text-frost-2 transition-none aria-pressed:border-glacier aria-pressed:bg-ink-3 aria-pressed:text-glacier"
                 >
-                  {d.slice(0, 1).toUpperCase()}
+                  {d.slice(0, 3).toUpperCase()}
                 </button>
               );
             })}
@@ -263,10 +263,10 @@ export function SystemScreen() {
         <div className="border-t border-line-1 px-4 py-4">
           <StorageNote />
           <div className="mt-3 flex gap-4">
-            <Link href="/legal/terms" className="t-micro text-ember hov:text-core">
+            <Link href="/legal/terms" className="inline-flex min-h-11 items-center t-micro text-ember hov:text-core">
               TERMS
             </Link>
-            <Link href="/legal/privacy" className="t-micro text-ember hov:text-core">
+            <Link href="/legal/privacy" className="inline-flex min-h-11 items-center t-micro text-ember hov:text-core">
               PRIVACY
             </Link>
           </div>

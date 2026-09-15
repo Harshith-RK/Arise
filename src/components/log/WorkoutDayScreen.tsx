@@ -86,7 +86,7 @@ function ExerciseItem({ def, onCommit }: { def: ExerciseDef; onCommit: () => voi
       <button
         type="button"
         onPointerDown={(e) => controls.start(e)}
-        className="pressable flex h-11 w-8 shrink-0 cursor-grab items-center justify-center text-frost-2 transition-none hov:text-frost-0"
+        className="pressable flex h-11 w-11 shrink-0 cursor-grab items-center justify-center text-frost-2 transition-none hov:text-frost-0"
         aria-label={`Reorder ${def.variants[0].name}`}
       >
         <IconGrip size={16} />

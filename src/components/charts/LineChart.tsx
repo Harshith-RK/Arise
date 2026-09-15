@@ -204,7 +204,7 @@ export function LineChart({
         <button
           type="button"
           onClick={() => setShowTable((v) => !v)}
-          className="t-micro text-frost-2 transition-none hov:text-frost-0"
+          className="t-micro -my-3 inline-flex min-h-11 items-center px-2 text-frost-2 transition-none hov:text-frost-0"
           aria-expanded={showTable}
         >
           {showTable ? "HIDE DATA" : "SHOW DATA"}

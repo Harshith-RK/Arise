@@ -9,6 +9,7 @@
     "lint": "eslint",
     "slop-check": "node scripts/slop-check.mjs",
     "contrast": "tsx scripts/contrast.ts",
+    "mobile-audit": "node scripts/mobile-audit.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test"

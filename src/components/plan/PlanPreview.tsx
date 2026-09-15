@@ -21,7 +21,7 @@ export function PlanPreview({ plans }: { plans: BuiltPlans }) {
   return (
     <div className="space-y-3">
       <details className="border border-line-2">
-        <summary className="pressable flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-3">
+        <summary className="pressable flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3 py-3">
           <span className="t-readout text-frost-0">Meal plan</span>
           <span className="t-micro text-frost-2">
             A DIFFERENT DAY OF MEALS FOR EACH WEEKDAY
@@ -50,7 +50,7 @@ export function PlanPreview({ plans }: { plans: BuiltPlans }) {
       </details>
 
       <details className="border border-line-2">
-        <summary className="pressable flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-3">
+        <summary className="pressable flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3 py-3">
           <span className="t-readout text-frost-0">Training week</span>
           <span className="t-micro text-frost-2">
             {DAY_KEYS.filter((d) => workout.days[d].exerciseIds.length).length} SESSIONS

@@ -177,7 +177,7 @@ export function StatusScreen() {
           <button
             type="button"
             onClick={() => setWeighIn(true)}
-            className="pressable t-micro flex h-9 items-center gap-2 border border-line-2 px-3 text-frost-1 transition-none hov:border-ember hov:text-ember"
+            className="pressable t-micro flex h-11 items-center gap-2 whitespace-nowrap border border-line-2 px-3 text-frost-1 lg:h-9 transition-none hov:border-ember hov:text-ember"
           >
             <IconScale size={14} />
             LOG WEIGH-IN

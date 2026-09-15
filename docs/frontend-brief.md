@@ -608,6 +608,14 @@ Decisions taken while building that a future session should not undo:
   at `initial`, and for SystemWindow that is opacity 0: the page is present, focusable and
   readable by a screen reader, and completely blank on screen. AppShell and LiveDemo each provide
   one; anything outside /app must wrap itself in `MotionScope`. This cost an hour on /auth.
+- **Every screen is checked at phone widths.** `npm run mobile-audit` (against the local-only server
+  on :3100) opens every route, onboarding step and sheet at 320, 375 and 390 px and reports
+  sideways scroll, anything past the screen edge, controls under 40px, labels spilling out of
+  their box, inputs that make iOS zoom, and content hidden under the bottom nav. It reports zero.
+  The rules behind that: `sm` buttons are 44px tall below `lg`; a Choice of four goes two by two
+  and one of five or more wraps to rows of four under 400px, with labels allowed to wrap; day
+  pickers use three-letter names; small text links get a 44px tap area; Panel headers wrap; and a
+  global rule holds fields at 16px on touch screens so Safari never zooms.
 - **A returning Hunter is welcomed back once per sign-in.** Sign-in (email or Google) adds
   `?welcome=1` to where it sends them; AppShell plays the boot sequence with SYSTEM RECONNECTED,
   WELCOME BACK, NAME, and their streak or day with level and rank, then strips the marker so a

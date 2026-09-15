@@ -83,7 +83,7 @@ export function WorkoutPlanEditor() {
         }
       />
 
-      <div className="mb-4 grid grid-cols-7 gap-1">
+      <div className="mb-4 grid grid-cols-4 gap-1 min-[400px]:grid-cols-7">
         {(Object.keys(DAY_TITLES) as DayKey[]).map((d) => (
           <button
             key={d}
@@ -92,7 +92,7 @@ export function WorkoutPlanEditor() {
             onClick={() => setDay(d)}
             className="pressable t-micro h-12 border border-line-2 text-frost-2 transition-none aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-on-ember"
           >
-            {d.slice(0, 1).toUpperCase()}
+            {d.slice(0, 3).toUpperCase()}
           </button>
         ))}
       </div>

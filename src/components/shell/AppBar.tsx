@@ -38,7 +38,7 @@ export function AppBar({ onOpenPalette }: { onOpenPalette: () => void }) {
         <button
           type="button"
           onClick={onOpenPalette}
-          className="pressable inline-flex h-9 shrink-0 items-center gap-2 border border-line-2 px-2.5 text-frost-2 transition-none hov:border-frost-2 hov:text-frost-0 lg:px-3"
+          className="pressable inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 border border-line-2 px-2.5 text-frost-2 transition-none hov:border-frost-2 hov:text-frost-0 lg:h-9 lg:min-w-0 lg:px-3"
           aria-label="Search commands"
         >
           <IconSearch size={15} />

@@ -32,7 +32,7 @@ export function BadgeScreen({ id }: { id: string }) {
 
   return (
     <>
-      <Link href="/app/progress?tab=badges" className="t-micro mb-4 inline-block text-frost-2 transition-none hov:text-frost-0">
+      <Link href="/app/progress?tab=badges" className="t-micro mb-2 inline-flex min-h-11 items-center text-frost-2 transition-none hov:text-frost-0">
         BACK TO BADGES
       </Link>
 

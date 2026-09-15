@@ -411,3 +411,14 @@
 :root[data-motion="reduced"] ::view-transition-new(*) {
   animation: none !important;
 }
+
+/* iOS Safari zooms the page into any focused field under 16px and does not
+   zoom back out. Unlayered, so it wins over utility classes on touch screens
+   without changing desktop type. */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
