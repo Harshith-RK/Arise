@@ -8,9 +8,18 @@ import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { DAY_TITLES } from "@/lib/engine/dates";
 import type { DayKey, ExerciseDef, WorkoutPlan } from "@/lib/engine/types";
 
+type NumberKey = "targetSets" | "repsMin" | "repsMax";
+
+const LIMITS: Record<NumberKey, { min: number; max: number; label: string }> = {
+  targetSets: { min: 1, max: 10, label: "Sets" },
+  repsMin: { min: 1, max: 100, label: "Reps" },
+  repsMax: { min: 1, max: 100, label: "Reps" },
+};
+
 /**
- * Editing the plan writes a new version. Past days keep the version they
- * were logged under, so history never shifts under you.
+ * Two ways to save. Updating the current version corrects it everywhere it is
+ * used, including days already logged on it. Saving a new version changes
+ * today onward and leaves logged days scored against what they were logged on.
  */
 export function WorkoutPlanEditor() {
   const snapshot = useGame((s) => s.snapshot);
@@ -19,6 +28,10 @@ export function WorkoutPlanEditor() {
   const [edited, setEdited] = useState<WorkoutPlan | null>(null);
   const [day, setDay] = useState<DayKey>("mon");
   const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  // What is typed in the number boxes, kept as text so a box can be empty while
+  // someone replaces the number. Only a valid number reaches the plan.
+  const [texts, setTexts] = useState<Record<string, string>>({});
 
   const current = snapshot?.workoutPlans.reduce((a, b) => (b.version > a.version ? b : a));
 
@@ -62,26 +75,53 @@ export function WorkoutPlanEditor() {
   const removeExercise = (id: string) =>
     update({ ...draft, days: { ...draft.days, [day]: { ...draft.days[day], exerciseIds: ids.filter((x) => x !== id) } } });
 
+  const numberValue = (def: ExerciseDef, key: NumberKey) => (key === "targetSets" ? def.targetSets : def.variants[0][key]);
+
+  /** The problem with one number box, or null. Checks what is typed, not what was last valid. */
+  const numberError = (def: ExerciseDef, key: NumberKey): string | null => {
+    const raw = texts[`${def.id}:${key}`] ?? String(numberValue(def, key));
+    const { min, max, label } = LIMITS[key];
+    if (raw.trim() === "") return `Enter ${label.toLowerCase()}`;
+    const n = Number(raw);
+    if (!Number.isInteger(n) || n < min || n > max) return `${min} to ${max}`;
+    if (key === "repsMax") {
+      const lo = Number(texts[`${def.id}:repsMin`] ?? def.variants[0].repsMin);
+      if (Number.isInteger(lo) && n < lo) return "Below min";
+    }
+    return null;
+  };
+
+  const setNumber = (def: ExerciseDef, key: NumberKey, raw: string) => {
+    setTexts((t) => ({ ...t, [`${def.id}:${key}`]: raw }));
+    setDirty(true);
+    const n = Number(raw);
+    const { min, max } = LIMITS[key];
+    if (raw.trim() === "" || !Number.isInteger(n) || n < min || n > max) return;
+    if (key === "targetSets") patchExercise(def.id, { targetSets: n });
+    else patchExercise(def.id, { variants: [{ ...def.variants[0], [key]: n }, ...def.variants.slice(1)] });
+  };
+
+  // Every exercise in the plan, not only today's, since a save writes all of them.
+  const invalid = Object.values(draft.exercises).some((def) =>
+    (["targetSets", "repsMin", "repsMax"] as NumberKey[]).some((k) => numberError(def, k)),
+  );
+
+  const save = async (mode: "update" | "new") => {
+    if (invalid || saving) return;
+    setSaving(true);
+    const body = { days: draft.days, exercises: draft.exercises };
+    dispatch(await (mode === "update" ? actions.updateWorkoutPlan(body) : actions.saveWorkoutPlan(body)));
+    setEdited(null);
+    setTexts({});
+    setDirty(false);
+    setSaving(false);
+  };
+
   return (
     <>
-      <PageHeader
-        title="Workout plan"
-        meta={<span className="t-micro text-frost-2">EDITING V{current?.version}</span>}
-        action={
-          <Button
-            variant="primary"
-            size="sm"
-            disabled={!dirty}
-            onClick={async () => {
-              dispatch(await actions.saveWorkoutPlan({ days: draft.days, exercises: draft.exercises }));
-              setEdited(null);
-              setDirty(false);
-            }}
-          >
-            Save as new version
-          </Button>
-        }
-      />
+      <PageHeader title="Workout plan" meta={<span className="t-micro text-frost-2">EDITING V{current.version}</span>} />
+
+      {dirty ? <SaveBar version={current.version} invalid={invalid} saving={saving} onSave={save} /> : null}
 
       <div className="mb-4 grid grid-cols-4 gap-1 min-[400px]:grid-cols-7">
         {(Object.keys(DAY_TITLES) as DayKey[]).map((d) => (
@@ -118,23 +158,21 @@ export function WorkoutPlanEditor() {
                     <Field label="NAME" value={def.variants[0].name} onChange={(v) => patchVariantName(id, v)} />
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                       <Field label="REGION" value={def.muscleRegion} onChange={(v) => patchExercise(id, { muscleRegion: v })} />
-                      <Field label="SETS" type="number" value={def.targetSets} onChange={(v) => patchExercise(id, { targetSets: Math.max(1, Math.min(10, Number(v) || 1)) })} />
-                      <Field
-                        label="REPS MIN"
-                        type="number"
-                        value={def.variants[0].repsMin}
-                        onChange={(v) =>
-                          patchExercise(id, { variants: [{ ...def.variants[0], repsMin: Number(v) || 1 }, ...def.variants.slice(1)] })
-                        }
-                      />
-                      <Field
-                        label="REPS MAX"
-                        type="number"
-                        value={def.variants[0].repsMax}
-                        onChange={(v) =>
-                          patchExercise(id, { variants: [{ ...def.variants[0], repsMax: Number(v) || 1 }, ...def.variants.slice(1)] })
-                        }
-                      />
+                      {([
+                        ["targetSets", "SETS"],
+                        ["repsMin", "REPS MIN"],
+                        ["repsMax", "REPS MAX"],
+                      ] as [NumberKey, string][]).map(([key, label]) => (
+                        <Field
+                          key={key}
+                          label={label}
+                          type="number"
+                          inputMode="numeric"
+                          value={texts[`${id}:${key}`] ?? String(numberValue(def, key))}
+                          onChange={(v) => setNumber(def, key, v)}
+                          error={numberError(def, key)}
+                        />
+                      ))}
                     </div>
                     {def.variants.length > 1 ? (
                       <p className="t-micro text-frost-2">ALTERNATE: {def.variants[1].name.toUpperCase()}</p>
@@ -163,10 +201,53 @@ export function WorkoutPlanEditor() {
       </Panel>
 
       {dirty ? (
-        <p className="t-micro mt-4 text-glacier">
-          UNSAVED CHANGES. SAVING CREATES VERSION {(current?.version ?? 1) + 1} AND KEEPS EVERY PAST LOG INTACT.
-        </p>
+        <div className="mt-4">
+          <SaveBar version={current.version} invalid={invalid} saving={saving} onSave={save} />
+        </div>
       ) : null}
     </>
+  );
+}
+
+/** Both ways to save, and what each one does to days already logged. */
+function SaveBar({
+  version,
+  invalid,
+  saving,
+  onSave,
+}: {
+  version: number;
+  invalid: boolean;
+  saving: boolean;
+  onSave: (mode: "update" | "new") => void;
+}) {
+  return (
+    <Panel title="Unsaved changes" className="mb-4">
+      <div className="space-y-4 border-t border-line-1 px-4 py-4">
+        {invalid ? (
+          <p className="t-micro text-fault" role="alert">
+            FIX THE HIGHLIGHTED NUMBERS BEFORE SAVING.
+          </p>
+        ) : null}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Button className="w-full" disabled={invalid || saving} onClick={() => onSave("update")}>
+              Update version {version}
+            </Button>
+            <p className="t-micro mt-2 text-frost-2">
+              CORRECTS THIS PLAN EVERYWHERE, INCLUDING DAYS ALREADY LOGGED ON IT. THEIR XP IS RECALCULATED. UNDO IS OFFERED.
+            </p>
+          </div>
+          <div>
+            <Button variant="primary" className="w-full" disabled={invalid || saving} onClick={() => onSave("new")}>
+              Save as version {version + 1}
+            </Button>
+            <p className="t-micro mt-2 text-frost-2">
+              APPLIES FROM TODAY. DAYS ALREADY LOGGED KEEP VERSION {version} AND THEIR XP.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Panel>
   );
 }

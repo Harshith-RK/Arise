@@ -259,6 +259,31 @@ test.describe("app", () => {
     await expect(page.getByText("Besan chilla and milk v2")).toBeVisible();
   });
 
+  test("workout sets can be cleared and retyped, and a version updated in place or saved as new", async ({ page }) => {
+    await page.goto("/app/system/plan/workout");
+    await expect(page.getByText(/EDITING V1/)).toBeVisible();
+    const sets = page.getByLabel("SETS").first();
+
+    // Clearing the box leaves it empty, not snapped back to 1.
+    await sets.fill("");
+    await expect(sets).toHaveValue("");
+    await expect(page.getByText("Enter sets").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Update version 1" }).first()).toBeDisabled();
+
+    await sets.fill("6");
+    await expect(sets).toHaveValue("6");
+    await page.getByRole("button", { name: "Update version 1" }).first().click();
+    await expect(page.getByText("[Plan Updated]")).toBeVisible();
+    await expect(page.getByText(/EDITING V1/)).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel("SETS").first()).toHaveValue("6");
+
+    await page.getByLabel("SETS").first().fill("3");
+    await page.getByRole("button", { name: "Save as version 2" }).first().click();
+    await expect(page.getByText(/EDITING V2/)).toBeVisible();
+    await expect(page.getByLabel("SETS").first()).toHaveValue("3");
+  });
+
   test("the command palette opens centered and dismisses", async ({ page }) => {
     await page.goto("/app/quest");
     await page.waitForTimeout(500);

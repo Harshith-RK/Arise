@@ -85,6 +85,12 @@ export type GameState = {
   saveProfile(p: Profile): Promise<Outcome>;
   saveSettings(patch: Partial<Settings>): Promise<void>;
   saveWorkoutPlan(next: Omit<WorkoutPlan, "version" | "createdAt">): Promise<Outcome>;
+  /**
+   * Overwrite the current workout version in place. Unlike saveWorkoutPlan this
+   * reaches every day already logged on that version, which is the point when a
+   * Hunter is correcting a mistake, and the reason the editor says so.
+   */
+  updateWorkoutPlan(next: Omit<WorkoutPlan, "version" | "createdAt">): Promise<Outcome>;
   saveDietPlan(next: Omit<DietPlan, "version" | "createdAt">): Promise<Outcome>;
   reorderDay(day: DayKey, exerciseIds: string[]): Promise<void>;
 
@@ -604,6 +610,25 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
         );
         const { events } = commit({ ...snap, workoutPlans: [...snap.workoutPlans, plan], dayLogs: logs }, today);
         return { events, notice: { tag: "Plan Updated", text: `Workout plan saved as version ${version}. History kept.`, tone: "neutral" }, undo: null };
+      },
+
+      async updateWorkoutPlan(next) {
+        const snap = get().snapshot;
+        if (!snap) return NONE;
+        const current = latest(snap.workoutPlans);
+        const plan: WorkoutPlan = { ...next, version: current.version, createdAt: current.createdAt };
+        await persist(() => repo.saveWorkoutPlan(plan));
+        const swap = (list: WorkoutPlan[], p: WorkoutPlan) => list.map((x) => (x.version === p.version ? p : x));
+        const { events } = commit({ ...snap, workoutPlans: swap(snap.workoutPlans, plan) }, get().today);
+        return {
+          events,
+          notice: { tag: "Plan Updated", text: `Workout plan version ${current.version} updated.`, tone: "neutral" },
+          undo: async () => {
+            await repo.saveWorkoutPlan(current);
+            const cur = get().snapshot!;
+            commit({ ...cur, workoutPlans: swap(cur.workoutPlans, current) }, get().today);
+          },
+        };
       },
 
       async saveDietPlan(next) {
