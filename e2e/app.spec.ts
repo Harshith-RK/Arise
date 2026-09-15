@@ -211,8 +211,15 @@ test.describe("app", () => {
 
     await page.waitForURL("**/awaken", { timeout: 15000 });
     await expect(page.getByText(/NEEDS YOUR DETAILS FROM THE START/)).toBeVisible();
+    await expect(page.getByText(/BEGINS AGAIN AT DAY 1/)).toBeVisible();
     await expect(page.getByLabel("HUNTER NAME")).toHaveValue("");
     await expect(page.getByLabel("HEIGHT")).toHaveValue("");
+
+    // That backup carried forty days and a level well past 5. Setting up again
+    // starts the arc today, so none of it carries over.
+    await awaken(page);
+    await expect(page.getByText(/ARC DAY 1\b/).first()).toBeVisible();
+    await expect(page.getByText(/^LVL 1$/).first()).toBeVisible();
   });
 
   test("a returning Hunter is welcomed back once per sign-in, not on reload", async ({ page }) => {

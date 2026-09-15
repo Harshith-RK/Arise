@@ -584,7 +584,9 @@ Decisions taken while building that a future session should not undo:
   schedule, rest days, experience, equipment, diet and whey must be answered, and skipping the
   scan is an explicit choice. The order is answers, then the System's message, then the issued
   plan, then Use this plan. Profiles carry `setupVersion`; anything below `SETUP_VERSION` is sent
-  back through onboarding from the name, keeping its arc and logged days. The draft is stored per
+  back through onboarding from the name, and setting up (again or for the first time) starts the
+  arc today. Progress counts only days and weigh-ins from the arc start, so a re-done account is
+  day 1 at level 1; older rows stay in the database but do not count. The draft is stored per
   account and cleared on sign out, and a local arc is only adopted into an account if it was set up
   under this flow.
 - **Every weekday has its own meals.** `DietPlan.days` holds a list per weekday and `meals` is the

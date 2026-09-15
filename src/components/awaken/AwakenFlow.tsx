@@ -360,8 +360,9 @@ export function AwakenFlow() {
       ...dietPrefs(draft.diet, draft.whey),
       kcalTarget: override.kcal ?? calculated?.kcal ?? 2000,
       proteinTarget: override.proteinG ?? calculated?.proteinG ?? 100,
-      // Setting up again keeps the arc it already has, so logged days still count.
-      arcStart: existing?.arcStart ?? todayKey(),
+      // Setting up starts the arc, including for a Hunter setting up again: day 1
+      // is today, and nothing logged before it counts toward their progress.
+      arcStart: todayKey(),
       arcLength: existing?.arcLength ?? null,
       createdAt: existing?.createdAt ?? new Date().toISOString(),
     };
@@ -482,7 +483,7 @@ export function AwakenFlow() {
 
         {existing && step === 0 ? (
           <p className="t-micro mt-5 border border-line-2 px-3 py-2 text-frost-1">
-            THE SYSTEM NEEDS YOUR DETAILS FROM THE START. YOUR LOGGED DAYS AND PROGRESS ARE KEPT.
+            THE SYSTEM NEEDS YOUR DETAILS FROM THE START. YOUR ARC BEGINS AGAIN AT DAY 1.
           </p>
         ) : null}
 

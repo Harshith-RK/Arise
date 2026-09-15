@@ -479,3 +479,33 @@ describe("per-day meal plans", () => {
     expect(r.dietComplete).toBe(true);
   });
 });
+
+describe("a new arc starts from zero", () => {
+  const w = (date: string, kg: number): WeighIn => ({ date, weightKg: kg, bodyFatPct: null, muscleKg: null, visceral: null });
+
+  it("is day 1 on the day it starts", () => {
+    const s = { ...snap(), profile: { ...seedProfile(MONDAY), arcStart: MONDAY } };
+    expect(deriveProgress(s, MONDAY).arcDay).toBe(1);
+  });
+
+  it("ignores days logged before it started", () => {
+    const restart = addDays(MONDAY, 14);
+    const before = Array.from({ length: 10 }, (_, i) => dayLog(addDays(MONDAY, i)));
+    const s = { ...snap(before, [w(MONDAY, 95.5), w(addDays(MONDAY, 7), 90)]), profile: { ...seedProfile(restart), arcStart: restart } };
+    const p = deriveProgress(s, restart);
+    expect(p.arcDay).toBe(1);
+    expect(p.xp).toBe(0);
+    expect(p.level).toBe(1);
+    expect(p.totals.sets).toBe(0);
+    expect(p.latestWeighIn).toBeNull();
+    expect(Object.values(p.badges).some((b) => b.unlockedOn)).toBe(false);
+  });
+
+  it("counts everything logged from the start onward as before", () => {
+    const restart = addDays(MONDAY, 14);
+    const s = { ...snap([dayLog(addDays(MONDAY, 2)), dayLog(restart)]), profile: { ...seedProfile(restart), arcStart: restart } };
+    const p = deriveProgress(s, restart);
+    expect(p.xp).toBeGreaterThan(0);
+    expect(p.xp).toBe(deriveProgress({ ...s, dayLogs: [dayLog(restart)] }, restart).xp);
+  });
+});

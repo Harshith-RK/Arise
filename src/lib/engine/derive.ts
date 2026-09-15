@@ -85,13 +85,16 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
   const profile = snap.profile;
   const plans = makePlanLookup(snap.workoutPlans, snap.dietPlans);
   const logsByDate = new Map<string, DayLog>(snap.dayLogs.map((l) => [l.date, l]));
-  const weighIns = [...snap.weighIns].sort((a, b) => (a.date < b.date ? -1 : 1));
-
   const arcStart = profile?.arcStart ?? today;
   const start = arcStart <= today ? arcStart : today;
-  // Include any logs dated before arc start (imported history) and future-dated logs are ignored.
-  const firstLog = snap.dayLogs.reduce<string | null>((m, l) => (m === null || l.date < m ? l.date : m), null);
-  const from = firstLog && firstLog < start ? firstLog : start;
+
+  // Progress belongs to the arc. Anything dated before it started (a Hunter who
+  // set up again, after logging against someone else's details) stays stored
+  // but does not count: day 1 is day 1, with no level carried in from before.
+  const weighIns = [...snap.weighIns]
+    .filter((w) => w.date >= start)
+    .sort((a, b) => (a.date < b.date ? -1 : 1));
+  const from = start;
 
   const days: Record<string, DayResult> = {};
   const streaks: Record<StreakCategory, Streak> = {
