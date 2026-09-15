@@ -606,6 +606,12 @@ Decisions taken while building that a future session should not undo:
   at `initial`, and for SystemWindow that is opacity 0: the page is present, focusable and
   readable by a screen reader, and completely blank on screen. AppShell and LiveDemo each provide
   one; anything outside /app must wrap itself in `MotionScope`. This cost an hour on /auth.
+- **A returning Hunter is welcomed back once per sign-in.** Sign-in (email or Google) adds
+  `?welcome=1` to where it sends them; AppShell plays the boot sequence with SYSTEM RECONNECTED,
+  WELCOME BACK, NAME, and their streak or day with level and rank, then strips the marker so a
+  reload does not replay it. A Hunter who has not set up is sent to onboarding instead and sees
+  the awakening sequence only. BootSequence takes `lines`, and under reduced motion now shows the
+  words without the scramble rather than an empty panel.
 - **With accounts on, nothing past the landing page opens signed out.** proxy.ts redirects /app
   and /awaken to /auth?next=, and sends a signed-in visitor on /auth to their quest; GameProvider
   catches a session that ends while a page is open. The landing page and legal pages stay public.

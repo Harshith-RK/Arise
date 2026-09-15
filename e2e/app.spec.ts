@@ -215,6 +215,23 @@ test.describe("app", () => {
     await expect(page.getByLabel("HEIGHT")).toHaveValue("");
   });
 
+  test("a returning Hunter is welcomed back once per sign-in, not on reload", async ({ page }) => {
+    // Sign-in adds the marker; the local-only suite cannot sign in, so it arrives the same way.
+    await page.goto("/app/quest?welcome=1");
+    const welcome = page.getByRole("status", { name: /SYSTEM RECONNECTED\. WELCOME BACK, TEST HUNTER\. /i });
+    await expect(welcome).toBeAttached();
+    await expect(page.getByText("SYSTEM RECONNECTED")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/LEVEL \d+ \/ RANK [A-Z]/)).toBeVisible({ timeout: 5000 });
+
+    await page.mouse.click(180, 200);
+    await expect(welcome).toHaveCount(0);
+    await expect(page).toHaveURL(/\/app\/quest$/);
+
+    await page.reload();
+    await page.waitForTimeout(1500);
+    await expect(page.getByRole("status", { name: /WELCOME BACK/ })).toHaveCount(0);
+  });
+
   test("the supplies list persists a new item", async ({ page }) => {
     await page.goto("/app/log/diet/supplies");
     await page.getByLabel("Add a supply item").fill("Oats");

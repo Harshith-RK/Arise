@@ -6,6 +6,7 @@ import { Field } from "@/components/system/Field";
 import { Button } from "@/components/system/primitives";
 import { MotionScope } from "@/components/system/MotionScope";
 import { SystemWindow } from "@/components/system/SystemWindow";
+import { withWelcome } from "@/lib/welcome";
 import {
   signInWithGoogle,
   signInWithPassword,
@@ -53,13 +54,17 @@ export function AuthScreen() {
       if ("needsConfirmation" in result) setMode("in");
       return;
     }
-    router.replace(next);
+    // Signing in to an existing Hunter earns a welcome back. A new account goes
+    // through onboarding, which has its own sequence.
+    router.replace(mode === "in" ? withWelcome(next) : next);
   };
 
   const google = async () => {
     setError(null);
     setBusy(true);
-    const result = await signInWithGoogle(next);
+    // Google does not say here whether the account is new. The shell only plays
+    // the welcome for a Hunter who has already set up, so marking it is safe.
+    const result = await signInWithGoogle(withWelcome(next));
     if (!result.ok) {
       setBusy(false);
       setError(result.error);
