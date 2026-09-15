@@ -1,4 +1,4 @@
-import type { DietPlan, ExerciseDef, Profile, Settings, Supplies, WorkoutPlan } from "@/lib/engine/types";
+import { SETUP_VERSION, type DietPlan, type ExerciseDef, type Profile, type Settings, type Supplies, type WorkoutPlan } from "@/lib/engine/types";
 import { weekStart } from "@/lib/engine/dates";
 
 /* ==========================================================================
@@ -98,6 +98,8 @@ export function seedDietPlan(now = new Date().toISOString()): DietPlan {
 export function seedProfile(arcStart: string, now = new Date().toISOString()): Profile {
   return {
     name: "Harshith RK",
+    // The demo and the test fixtures use this profile as a finished setup.
+    setupVersion: SETUP_VERSION,
     heightCm: 175.5,
     startWeightKg: 95.5,
     targetWeightKg: 72.7,

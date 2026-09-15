@@ -578,6 +578,15 @@ Decisions taken while building that a future session should not undo:
   the landing page from 5.3s LCP to 2.6s on throttled mobile.
 - **The landing demo rotates the training split onto today** (see demo-seed.ts). Without it the
   demo renders an empty "Rest day" every weekend, with nothing for a visitor to tap.
+- **Onboarding starts empty, and every Hunter sets up with their own details.** It used to open
+  pre-filled with one person's name, body, schedule and diet, so pressing Next produced their plan
+  for someone else. Now nothing is pre-filled except the name Google supplies; sex, age, body,
+  schedule, rest days, experience, equipment, diet and whey must be answered, and skipping the
+  scan is an explicit choice. The order is answers, then the System's message, then the issued
+  plan, then Use this plan. Profiles carry `setupVersion`; anything below `SETUP_VERSION` is sent
+  back through onboarding from the name, keeping its arc and logged days. The draft is stored per
+  account and cleared on sign out, and a local arc is only adopted into an account if it was set up
+  under this flow.
 - **Every weekday has its own meals.** `DietPlan.days` holds a list per weekday and `meals` is the
   fallback, so plans made before it still work. Read meals through `mealsFor(plan, date)`, never
   `plan.meals`: Quest, Log, meal toggling and diet completion all do. The diet editor edits one

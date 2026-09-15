@@ -20,17 +20,37 @@ export async function awaken(page: Page) {
   await page.goto("/awaken");
   await page.waitForTimeout(200);
   if (page.url().includes("/app/")) return;
-  // Sex and age are required: the plan model needs both.
-  await page.getByRole("button", { name: "MALE", exact: true }).click();
-  await page.getByLabel("AGE").fill("25");
-  for (let i = 0; i < 4; i++) {
+  const next = async () => {
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await page.waitForTimeout(200);
-  }
-  await page.getByRole("button", { name: "Accept the System" }).click();
-  // The boot sequence plays after the profile is accepted. Tap through it.
+  };
+
+  // Onboarding starts empty, so every answer that shapes the plan is filled in.
+  // These match the profile the suite was written against.
+  await page.getByLabel("HUNTER NAME").fill("Test Hunter");
+  await page.getByRole("button", { name: "MALE", exact: true }).click();
+  await page.getByLabel("AGE").fill("25");
+  await page.getByLabel("HEIGHT").fill("175.5");
+  await page.getByLabel("CURRENT WEIGHT").fill("95.5");
+  await page.getByLabel("TARGET WEIGHT").fill("72.7");
+  await next();
+  await page.getByLabel("BODY FAT").fill("35.3");
+  await next();
+  await page.getByLabel("GYM FROM").fill("19:00");
+  await page.getByLabel("GYM UNTIL").fill("21:00");
+  await page.getByRole("button", { name: "Saturday is a rest day" }).click();
+  await page.getByRole("button", { name: "Sunday is a rest day" }).click();
+  await page.getByRole("button", { name: "1 TO 3 YRS", exact: true }).click();
+  await page.getByRole("button", { name: "FULL GYM", exact: true }).click();
+  await next();
+  await page.getByRole("button", { name: "VEGETARIAN", exact: true }).click();
+  await page.getByRole("button", { name: "NO", exact: true }).click();
+  await page.getByRole("button", { name: "Awaken", exact: true }).click();
+
+  // The System speaks, then issues the plan. Tap through the message.
   await page.waitForTimeout(300);
   await page.mouse.click(180, 200);
+  await page.getByRole("button", { name: "Use this plan" }).click();
   await page.waitForURL("**/app/quest");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 }

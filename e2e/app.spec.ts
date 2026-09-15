@@ -194,6 +194,27 @@ test.describe("app", () => {
     await expect(page.getByText(/H SLEEP \/ .* L WATER/)).toBeVisible();
   });
 
+  test("a profile made before real onboarding is sent back to set up from the name", async ({ page }) => {
+    // A backup whose profile predates the setup gate, like accounts created
+    // when onboarding came pre-filled.
+    const { json } = buildLevel5Backup();
+    const file = JSON.parse(json);
+    delete file.data.profile.setupVersion;
+
+    await page.goto("/app/system");
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "old.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(file)),
+    });
+    await page.getByRole("button", { name: "Replace", exact: true }).click();
+
+    await page.waitForURL("**/awaken", { timeout: 15000 });
+    await expect(page.getByText(/NEEDS YOUR DETAILS FROM THE START/)).toBeVisible();
+    await expect(page.getByLabel("HUNTER NAME")).toHaveValue("");
+    await expect(page.getByLabel("HEIGHT")).toHaveValue("");
+  });
+
   test("the supplies list persists a new item", async ({ page }) => {
     await page.goto("/app/log/diet/supplies");
     await page.getByLabel("Add a supply item").fill("Oats");
@@ -356,5 +377,50 @@ test.describe("landing demo", () => {
     });
     expect(hasProfile).toBe(false);
     expect(errors).toEqual([]);
+  });
+});
+
+test.describe("onboarding", () => {
+  test("starts empty and will not move on without answers", async ({ page }) => {
+    await page.goto("/awaken");
+    await expect(page.getByLabel("HUNTER NAME")).toHaveValue("");
+    await expect(page.getByLabel("HEIGHT")).toHaveValue("");
+    await expect(page.getByLabel("CURRENT WEIGHT")).toHaveValue("");
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(page.getByText("Enter your name")).toBeVisible();
+    await expect(page.getByText("Enter your height")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Identity" })).toBeVisible();
+  });
+
+  test("shows the System's message before the plan, and the plan before the first quest", async ({ page }) => {
+    await page.goto("/awaken");
+    await page.getByLabel("HUNTER NAME").fill("Asha");
+    await page.getByRole("button", { name: "FEMALE", exact: true }).click();
+    await page.getByLabel("AGE").fill("29");
+    await page.getByLabel("HEIGHT").fill("162");
+    await page.getByLabel("CURRENT WEIGHT").fill("70");
+    await page.getByLabel("TARGET WEIGHT").fill("62");
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: "I don't have a scan" }).click();
+    await page.getByLabel("GYM FROM").fill("07:00");
+    await page.getByLabel("GYM UNTIL").fill("08:00");
+    await page.getByRole("button", { name: "Sunday is a rest day" }).click();
+    await page.getByRole("button", { name: "Wednesday is a rest day" }).click();
+    await page.getByRole("button", { name: "NEW", exact: true }).click();
+    await page.getByRole("button", { name: "DUMBBELLS", exact: true }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: "NON-VEG", exact: true }).click();
+    await page.getByRole("button", { name: "YES", exact: true }).click();
+    await page.getByRole("button", { name: "Awaken", exact: true }).click();
+
+    await expect(page.getByRole("status", { name: /ASHA HAS BEEN SELECTED/ })).toBeAttached();
+    await page.mouse.click(180, 200);
+    await expect(page.getByText("THE SYSTEM HAS ISSUED YOUR PLAN")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Asha" })).toBeVisible();
+    await expect(page).toHaveURL(/awaken/);
+
+    await page.getByRole("button", { name: "Use this plan" }).click();
+    await page.waitForURL("**/app/quest");
   });
 });

@@ -3,6 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createDexieRepo } from "@/lib/data/dexie-repo";
 import { createSupabaseRepo } from "@/lib/data/supabase-repo";
+import { isSetUp } from "@/lib/engine/types";
 
 /**
  * First sign-in on a device that already has an arc.
@@ -22,8 +23,11 @@ export async function adoptLocalArc(
   const existing = await remote.load();
   if (existing?.profile) return "account-already-had-one";
 
+  // Only an arc someone set up themselves is worth carrying over. One left from
+  // the pre-filled onboarding holds another person's details, and copying it in
+  // is exactly how a new account ended up showing them.
   const local = await createDexieRepo().load();
-  if (!local?.profile) return "nothing-local";
+  if (!isSetUp(local?.profile)) return "nothing-local";
 
   await remote.replaceAll(local);
   return "adopted";

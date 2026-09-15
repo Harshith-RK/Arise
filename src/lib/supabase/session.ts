@@ -10,7 +10,7 @@ export type AuthState =
   | { status: "disabled" }                       // no backend configured: local-only, as before
   | { status: "loading" }
   | { status: "signed-out" }
-  | { status: "signed-in"; userId: string; email: string | null };
+  | { status: "signed-in"; userId: string; email: string | null; name: string | null };
 
 /**
  * Who is signed in. Resolves once on mount and then follows auth events, so a
@@ -26,7 +26,13 @@ export function useAuth(): AuthState {
     const apply = (session: Session | null) =>
       setState(
         session
-          ? { status: "signed-in", userId: session.user.id, email: session.user.email ?? null }
+          ? {
+              status: "signed-in",
+              userId: session.user.id,
+              email: session.user.email ?? null,
+              // Google puts the account's name here. Email sign-ups have none.
+              name: nameFrom(session.user.user_metadata),
+            }
           : { status: "signed-out" },
       );
 
@@ -38,7 +44,28 @@ export function useAuth(): AuthState {
   return state;
 }
 
+function nameFrom(meta: Record<string, unknown> | undefined): string | null {
+  const raw = meta?.full_name ?? meta?.name;
+  return typeof raw === "string" && raw.trim() ? raw.trim().slice(0, 40) : null;
+}
+
+/** Where a part-finished onboarding is kept, per account so two never mix. */
+export const draftKey = (userId: string | null) => `wa:awaken-draft:${userId ?? "local"}`;
+
+/** Forget every part-finished onboarding on this device, including the old unscoped one. */
+export function clearDrafts(): void {
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (key === "wa:awaken-draft" || key.startsWith("wa:awaken-draft:")) localStorage.removeItem(key);
+    }
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 export async function signOut(): Promise<void> {
+  // Half-filled answers belong to whoever typed them, not the next person here.
+  clearDrafts();
   await supabase()?.auth.signOut();
 }
 

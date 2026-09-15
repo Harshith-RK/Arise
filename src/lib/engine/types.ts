@@ -170,7 +170,21 @@ export const ProfileSchema = z.object({
   injuries: z.array(z.string().max(40)).max(10).optional(),
   /** Where kcalTarget and proteinTarget came from, so the UI can say. */
   targetSource: z.enum(["model", "formula", "manual"]).optional(),
+  /**
+   * Which onboarding produced this profile. Missing or older means it was made
+   * when onboarding came pre-filled with one person's details, so its numbers
+   * cannot be trusted to be the Hunter's own and they set up again.
+   */
+  setupVersion: z.number().int().min(0).optional(),
 });
+
+/** The onboarding a profile must have completed to be used. */
+export const SETUP_VERSION = 2;
+
+/** Whether this profile came from a Hunter filling in their own details. */
+export function isSetUp(profile: Profile | null | undefined): profile is Profile {
+  return !!profile && (profile.setupVersion ?? 0) >= SETUP_VERSION;
+}
 export type Profile = z.infer<typeof ProfileSchema>;
 
 export const SettingsSchema = z.object({

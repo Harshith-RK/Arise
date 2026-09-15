@@ -18,6 +18,7 @@ import type {
   WeighIn,
   WorkoutPlan,
 } from "@/lib/engine/types";
+import { isSetUp } from "@/lib/engine/types";
 import { DEFAULT_SETTINGS, seedDietPlan, seedSupplies, seedWorkoutPlan } from "@/lib/data/seed";
 import { toExportFile, type ExportFile, type Repository } from "@/lib/data/repo";
 
@@ -272,7 +273,7 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
           set({
             snapshot: snap,
             progress: derive(snap),
-            status: snap.profile ? "ready" : "onboarding",
+            status: isSetUp(snap.profile) ? "ready" : "onboarding",
             error: null,
           });
         } catch {
@@ -307,7 +308,7 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
           set({
             snapshot: snap,
             progress: derive(snap),
-            status: snap.profile ? "ready" : "onboarding",
+            status: isSetUp(snap.profile) ? "ready" : "onboarding",
             error: null,
           });
         } catch (e) {
@@ -517,15 +518,42 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
         const snap = get().snapshot;
         if (!snap) return;
         let next: Snapshot = { ...snap, profile };
-        if (plans && !snap.dayLogs.length) {
+        if (plans) {
           const createdAt = now().toISOString();
-          const workout: WorkoutPlan = { ...plans.workout, version: 1, createdAt };
-          const diet: DietPlan = { ...plans.diet, version: 1, createdAt };
           const supplies: Supplies = { weekOf: weekStart(get().today), items: plans.supplies };
-          await persist(() => repo.saveWorkoutPlan(workout));
-          await persist(() => repo.saveDietPlan(diet));
           await persist(() => repo.saveSupplies(supplies));
-          next = { ...next, workoutPlans: [workout], dietPlans: [diet], supplies };
+          if (!snap.dayLogs.length) {
+            // A new Hunter: nothing refers to the starter plans, so replace them.
+            const workout: WorkoutPlan = { ...plans.workout, version: 1, createdAt };
+            const diet: DietPlan = { ...plans.diet, version: 1, createdAt };
+            await persist(() => repo.saveWorkoutPlan(workout));
+            await persist(() => repo.saveDietPlan(diet));
+            next = { ...next, workoutPlans: [workout], dietPlans: [diet], supplies };
+          } else {
+            // Setting up again over an existing arc: the new plans become the
+            // next versions, and only today onward moves to them. Logged days
+            // keep the plan they were logged against.
+            const workout: WorkoutPlan = { ...plans.workout, version: latest(snap.workoutPlans).version + 1, createdAt };
+            const diet: DietPlan = { ...plans.diet, version: latest(snap.dietPlans).version + 1, createdAt };
+            await persist(() => repo.saveWorkoutPlan(workout));
+            await persist(() => repo.saveDietPlan(diet));
+            const today = get().today;
+            const dayLogs = await Promise.all(
+              snap.dayLogs.map(async (l) => {
+                if (l.date < today) return l;
+                const moved = { ...l, workoutPlanVersion: workout.version, dietPlanVersion: diet.version };
+                await persist(() => repo.saveDayLog(moved));
+                return moved;
+              }),
+            );
+            next = {
+              ...next,
+              workoutPlans: [...snap.workoutPlans, workout],
+              dietPlans: [...snap.dietPlans, diet],
+              dayLogs,
+              supplies,
+            };
+          }
         }
         await persist(() => repo.saveProfile(profile));
         set({ snapshot: next, progress: derive(next), status: "ready" });
@@ -626,7 +654,7 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
       async importData(s) {
         await persist(() => repo.replaceAll(s));
         opts.onSettings?.(s.settings);
-        set({ snapshot: s, progress: derive(s), status: s.profile ? "ready" : "onboarding" });
+        set({ snapshot: s, progress: derive(s), status: isSetUp(s.profile) ? "ready" : "onboarding" });
       },
 
       async resetArc() {

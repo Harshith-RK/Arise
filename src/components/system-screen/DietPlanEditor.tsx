@@ -6,7 +6,7 @@ import { Button, PageHeader, Panel, Placeholder } from "@/components/system/prim
 import { Field } from "@/components/system/Field";
 import { IconClose, IconPlus } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
-import { DAY_TITLES } from "@/lib/engine/dates";
+import { DAY_TITLES, dayKeyOf } from "@/lib/engine/dates";
 import { DAY_KEYS, type DayKey, type DietPlan, type MealDef } from "@/lib/engine/types";
 
 const DAY_OPTIONS = DAY_KEYS.map((d) => ({ value: d, label: DAY_TITLES[d].slice(0, 3).toUpperCase() }));
@@ -24,7 +24,10 @@ export function DietPlanEditor() {
   // null means "untouched": the current plan version is shown as-is.
   const [edited, setEdited] = useState<DietPlan | null>(null);
   const [dirty, setDirty] = useState(false);
-  const [day, setDay] = useState<DayKey>("mon");
+  // Open on today: that is the day Quest and Log are showing, so an edit here
+  // is the one the Hunter expects to see there.
+  const today = useGame((s) => s.today);
+  const [day, setDay] = useState<DayKey>(() => dayKeyOf(today));
 
   const current = snapshot?.dietPlans.reduce((a, b) => (b.version > a.version ? b : a));
 
