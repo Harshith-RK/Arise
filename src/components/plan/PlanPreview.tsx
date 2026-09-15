@@ -14,23 +14,34 @@ import type { BuiltPlans } from "@/lib/plan/build";
 const DAY_OPTIONS = DAY_KEYS.map((d) => ({ value: d, label: DAY_TITLES[d].slice(0, 3).toUpperCase() }));
 
 export function PlanPreview({ plans }: { plans: BuiltPlans }) {
-  const { diet, workout, dayTotals, totalsByDay } = plans;
+  const { diet, workout, dayTotals, totalsByDay, costByDay, averageCost, proteinGap } = plans;
   const [day, setDay] = useState<DayKey>("mon");
   const meals = diet.days?.[day] ?? diet.meals;
   const totals = totalsByDay[day] ?? dayTotals;
   return (
     <div className="space-y-3">
+      {proteinGap ? (
+        <p className="t-micro border border-glacier px-3 py-2.5 text-glacier" role="note">
+          THESE MEALS REACH ABOUT {proteinGap.reached} G OF YOUR {proteinGap.target} G PROTEIN TARGET. EVERYDAY VEGETARIAN
+          FOODS RUN OUT BEFORE THE CALORIES DO AT THIS TARGET. EGGS OR WHEY CLOSE THE GAP.
+        </p>
+      ) : null}
       <details className="border border-line-2">
         <summary className="pressable flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3 py-3">
           <span className="t-readout text-frost-0">Meal plan</span>
           <span className="t-micro text-frost-2">
-            A DIFFERENT DAY OF MEALS FOR EACH WEEKDAY
+            ABOUT ₹{averageCost} A DAY
           </span>
         </summary>
+        <p className="t-micro border-t border-line-1 px-3 py-2.5 text-frost-2">
+          A DIFFERENT DAY OF MEALS FOR EACH WEEKDAY, FROM FOODS ANY LOCAL SHOP SELLS. ABOUT ₹{averageCost * 30} A MONTH
+          AT LOCAL MARKET PRICES, WHICH VARY BY CITY.
+        </p>
         <div className="border-t border-line-1 px-3 py-3">
           <Choice label="DAY" value={day} options={DAY_OPTIONS} onChange={setDay} />
           <p className="t-micro mt-2 text-frost-2">
-            {meals.length} MEALS / {totals.kcal} KCAL / {totals.protein} G PROTEIN / {totals.carbs} G CARBS / {totals.fat} G FAT
+            {meals.length} MEALS / {totals.kcal} KCAL / {totals.protein} G PROTEIN / {totals.carbs} G CARBS / {totals.fat} G FAT / ABOUT ₹
+            {costByDay[day] ?? averageCost}
           </p>
         </div>
         <ol className="border-t border-line-1">

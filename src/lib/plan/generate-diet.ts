@@ -1,6 +1,6 @@
 import type { DayKey, MealDef, SupplyItem } from "@/lib/engine/types";
 import { timeToMinutes } from "@/lib/engine/dates";
-import { allowed, FOOD_BY_ID, gramsOf, type DietPrefs, type Food } from "./library/foods";
+import { allowed, costOf, DAILY_MAX_GRAMS, FOOD_BY_ID, gramsOf, type DietPrefs, type Food } from "./library/foods";
 import { MEAL_TEMPLATES, type MealTemplate, type Slot } from "./library/meals";
 
 /* ==========================================================================
@@ -25,7 +25,8 @@ export type DietInput = DietTargets & {
 
 type Macro4 = { p: number; c: number; f: number; k: number };
 
-type ChosenPart = { food: Food; amount: number; scale: boolean; index: number };
+/** `floor` overrides the food's minimum, for a stir-in the solver may leave at 0. */
+type ChosenPart = { food: Food; amount: number; scale: boolean; index: number; floor?: number };
 type Meal = { slot: Slot; minutes: number; template: MealTemplate; parts: ChosenPart[]; target: Macro4 };
 
 type DayTotals = { protein: number; carbs: number; fat: number; kcal: number };
@@ -35,8 +36,43 @@ export type GeneratedDiet = {
   days: Record<DayKey, MealDef[]>;
   totals: Record<DayKey, DayTotals>;
   average: DayTotals;
+  /** Approximate rupees per day, from the food library's prices. */
+  cost: Record<DayKey, number>;
+  averageCost: number;
   supplies: SupplyItem[];
 };
+
+/**
+ * What a rupee is worth against fit. At this weight a dish that costs ₹50 more
+ * has to fit the day's numbers clearly better to be chosen, so plans lean on
+ * dal, soya, eggs, curd and chicken, and paneer or mutton appear as variety
+ * rather than as the default. Swept against 0.006 and 0.015 over 180 weeks:
+ * this is where protein stopped ever falling more than 5% short, and heavier
+ * weights saved about ₹4 a day more.
+ */
+const RUPEE = 0.01;
+const mealCost = (parts: ChosenPart[]) => parts.reduce((s, p) => s + costOf(p.food, p.amount), 0);
+
+/**
+ * Cost as it weighs on choosing, which is not quite what the day costs. Whey
+ * only reaches a plan for a Hunter who said they take it, and they have already
+ * bought the tub: counting it as a fresh ₹280 per 100 g kept it out of every
+ * plan, including the ones that could not reach protein without it. It still
+ * counts toward the daily cost shown.
+ */
+const choiceCost = (parts: ChosenPart[]) => parts.reduce((s, p) => s + (p.food.whey ? 0 : costOf(p.food, p.amount)), 0);
+
+/** How far a set of meals goes past the daily limits, weighted to dominate fit. */
+function overLimit(meals: { parts: ChosenPart[] }[]): number {
+  const grams = new Map<string, number>();
+  for (const m of meals) for (const p of m.parts) grams.set(p.food.id, (grams.get(p.food.id) ?? 0) + gramsOf(p.food, p.amount));
+  let over = 0;
+  for (const [id, g] of grams) {
+    const cap = DAILY_MAX_GRAMS[id];
+    if (cap && g > cap) over += (g - cap) / cap;
+  }
+  return over * 6;
+}
 
 /* ---------------------------------------------------------------- schedule */
 
@@ -137,6 +173,14 @@ const bounds = (f: Food) => ({
   lo: f.min,
   hi: Math.max(f.max, Math.round((f.max * portionScale) / f.step) * f.step),
 });
+const partBounds = (p: ChosenPart) => {
+  const b = bounds(p.food);
+  return { lo: p.floor ?? b.lo, hi: b.hi };
+};
+const snapPart = (p: ChosenPart, v: number) => {
+  const { lo, hi } = partBounds(p);
+  return Math.max(lo, Math.min(hi, Math.round(v / p.food.step) * p.food.step));
+};
 const snap = (f: Food, v: number) => {
   const { lo, hi } = bounds(f);
   const stepped = Math.round(v / f.step) * f.step;
@@ -157,11 +201,11 @@ function solveMeal(meal: Meal): void {
         num += (W[key] * u[key] * (meal.target[key] - rest[key])) / s;
         den += (W[key] * u[key] * u[key]) / s;
       }
-      const { lo, hi } = bounds(part.food);
+      const { lo, hi } = partBounds(part);
       part.amount = den > 0 ? Math.max(lo, Math.min(hi, num / den)) : part.amount;
     }
   }
-  for (const part of scaled) part.amount = snap(part.food, part.amount);
+  for (const part of scaled) part.amount = snapPart(part, part.amount);
   refine([meal], (meals) => error(sum(meals[0].parts), meals[0].target), 30);
 }
 
@@ -175,7 +219,7 @@ function refine(meals: Meal[], score: (m: Meal[]) => number, maxMoves: number): 
         if (!part.scale) continue;
         const from = part.amount;
         for (const to of [from - part.food.step, from + part.food.step]) {
-          const { lo, hi } = bounds(part.food);
+          const { lo, hi } = partBounds(part);
           if (to < lo - 1e-9 || to > hi + 1e-9) continue;
           part.amount = to;
           const value = score(meals);
@@ -204,8 +248,24 @@ function resolve(template: MealTemplate, prefs: DietPrefs, usedAnchors: Set<stri
     const food = index === 0 ? (options.find((f) => !usedAnchors.has(f.id)) ?? options[0]) : options[0];
     parts.push({ food, amount: snap(food, comp.amount), scale: comp.scale, index });
   }
+
+  // A dairy dish can take a stir-in of milk powder, or whey for a Hunter who
+  // takes it, from nothing up. Milk powder is the cheapest protein a kirana
+  // sells and a common gym-goer habit; together they give a vegetarian day a
+  // lever to reach protein that soya, capped, cannot. The cost term and the
+  // daily limits leave them at 0 whenever the day does not need them.
+  if (parts.some((p) => DAIRY_BASES.has(p.food.id))) {
+    for (const [id, index] of [["milk-powder", 98], ["whey", 99]] as const) {
+      const food = FOOD_BY_ID[id];
+      if (food && allowed(food, prefs) && !parts.some((p) => p.food.id === id)) {
+        parts.push({ food, amount: 0, scale: true, index, floor: 0 });
+      }
+    }
+  }
   return parts;
 }
+
+const DAIRY_BASES = new Set(["milk", "skim-milk", "curd", "hung-curd", "buttermilk"]);
 
 function nameFor(meal: Meal): string {
   const shorts: Record<number, string> = {};
@@ -276,7 +336,7 @@ function generateDay(input: DietInput, day: Macro4, memory: WeekMemory, variety 
       const repeatToday = (usedTemplates.has(template.id) ? 0.6 : 0) + (usedAnchors.has(anchor.id) ? 0.4 : 0);
       const sameAsYesterday = yesterday.some((y) => y.template === template.id) ? 0.8 : 0;
       const anchorYesterday = yesterday.some((y) => y.anchor === anchor.id) ? 0.25 : 0;
-      const weekly = (memory.templateCount.get(template.id) ?? 0) * 0.4 + (memory.anchorCount.get(anchor.id) ?? 0) * 0.1;
+      const weekly = (memory.templateCount.get(template.id) ?? 0) * 0.5 + (memory.anchorCount.get(anchor.id) ?? 0) * 0.12;
 
       // A non-vegetarian should see meat or fish at a main meal, not a day of
       // dal that only happens to fit the numbers as well.
@@ -284,7 +344,14 @@ function generateDay(input: DietInput, day: Macro4, memory: WeekMemory, variety 
       const animal = anchor.diet === "meat" || anchor.diet === "egg";
       const preference = !input.prefs.vegetarian && main && !animal ? 0.35 : 0;
 
-      const score = error(sum(parts), target) + repeatToday + sameAsYesterday + (anchorYesterday + weekly) * variety + preference;
+      const score =
+        error(sum(parts), target) +
+        repeatToday +
+        sameAsYesterday +
+        (anchorYesterday + weekly) * variety +
+        preference +
+        choiceCost(parts) * RUPEE +
+        overLimit([...meals, meal]);
       if (!best || score < best.score) best = { meal, score };
     }
     if (!best) continue;
@@ -303,7 +370,13 @@ function generateDay(input: DietInput, day: Macro4, memory: WeekMemory, variety 
     }
     // The day's totals are what the Hunter is held to. The per-meal term only
     // breaks ties, so one meal does not absorb the whole correction.
-    return error(t, day) * 4 + ms.reduce((acc, m) => acc + error(sum(m.parts), m.target) * 0.02, 0);
+    // A light cost term too, so when two portions fit equally the cheaper food
+    // takes the grams.
+    return (
+      error(t, day) * 4 +
+      overLimit(ms) +
+      ms.reduce((acc, m) => acc + error(sum(m.parts), m.target) * 0.02 + choiceCost(m.parts) * RUPEE * 0.05, 0)
+    );
   };
   refine(meals, dayScore, 300);
   return meals;
@@ -318,7 +391,9 @@ export function generateDiet(input: DietInput): GeneratedDiet {
   const memory: WeekMemory = { yesterday: new Map(), templateCount: new Map(), anchorCount: new Map() };
   const days = {} as Record<DayKey, MealDef[]>;
   const totals = {} as Record<DayKey, GeneratedDiet["average"]>;
+  const cost = {} as Record<DayKey, number>;
   const allMeals: Meal[] = [];
+  const seenDays = new Set<string>();
 
   const totalOf = (ms: Meal[]) => {
     const t = { p: 0, c: 0, f: 0, k: 0 };
@@ -336,18 +411,25 @@ export function generateDiet(input: DietInput): GeneratedDiet {
     // Never all the way to zero: that reproduces the single best-fitting day,
     // which is exactly the week-on-repeat this exists to prevent. If no
     // attempt hits, keep the one closest to its numbers.
+    // A day identical to one earlier in the week is the repeat this exists to
+    // prevent, so it counts as a miss too, and the next attempt pushes harder
+    // for variety before it relaxes toward the numbers.
     let meals: Meal[] = [];
     let bestMiss = Infinity;
-    for (const variety of [1, 0.6, 0.3, 0.1, 0]) {
+    for (const variety of [1, 2, 0.6, 0.3, 0.1, 0]) {
       const attempt = generateDay(input, day, memory, variety);
       const t = totalOf(attempt);
-      const miss = Math.max(0, day.p * 0.96 - t.p) / day.p + Math.max(0, Math.abs(t.k - day.k) - day.k * 0.04) / day.k;
+      const signature = attempt.map((m) => nameFor(m)).join("|");
+      const repeat = seenDays.has(signature) ? 1 : 0;
+      const miss =
+        Math.max(0, day.p * 0.96 - t.p) / day.p + Math.max(0, Math.abs(t.k - day.k) - day.k * 0.04) / day.k + repeat;
       if (miss < bestMiss) {
         bestMiss = miss;
         meals = attempt;
       }
       if (miss === 0) break;
     }
+    seenDays.add(meals.map((m) => nameFor(m)).join("|"));
     allMeals.push(...meals);
 
     memory.yesterday = new Map();
@@ -374,6 +456,7 @@ export function generateDiet(input: DietInput): GeneratedDiet {
         group: null,
       };
     });
+    cost[key] = Math.round(meals.reduce((s, m) => s + mealCost(m.parts), 0));
     totals[key] = days[key].reduce(
       (t, m) => ({ protein: t.protein + m.protein, carbs: t.carbs + m.carbs, fat: t.fat + m.fat, kcal: t.kcal + m.kcal }),
       { protein: 0, carbs: 0, fat: 0, kcal: 0 },
@@ -385,6 +468,8 @@ export function generateDiet(input: DietInput): GeneratedDiet {
     days,
     totals,
     average: { protein: avg("protein"), carbs: avg("carbs"), fat: avg("fat"), kcal: avg("kcal") },
+    cost,
+    averageCost: Math.round(DAYS.reduce((s, d) => s + cost[d], 0) / DAYS.length),
     supplies: suppliesFor(allMeals),
   };
 }
@@ -403,7 +488,8 @@ function suppliesFor(meals: Meal[]): SupplyItem[] {
     if (food.unit === "piece") qty = `${amount} ${food.pieceName ?? "pieces"}${amount === 1 ? "" : "s"}`;
     else if (food.unit === "ml") qty = amount >= 1000 ? `${(amount / 1000).toFixed(1)} L` : `${amount} ml`;
     else qty = amount >= 1000 ? `${(amount / 1000).toFixed(1)} kg` : `${amount} g`;
-    items.push({ id: `supply-${items.length + 1}`, name: `${food.name}, ${qty}${food.state ? ` ${food.state}` : ""}`.slice(0, 60), checked: false });
+    const price = Math.max(1, Math.round(costOf(food, amount)));
+    items.push({ id: `supply-${items.length + 1}`, name: `${food.name}, ${qty}${food.state ? ` ${food.state}` : ""}, about ₹${price}`.slice(0, 60), checked: false });
   }
   return items.slice(0, 60);
 }

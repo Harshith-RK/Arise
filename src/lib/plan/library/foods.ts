@@ -16,6 +16,14 @@ export type FoodDiet = "vegan" | "vegetarian" | "egg" | "meat";
 /** The job a food does in a meal. The solver scales these, not "fixed". */
 export type FoodRole = "protein" | "carb" | "fat" | "veg" | "fruit";
 
+/**
+ * Where a Hunter can buy it.
+ *   everyday   any kirana, sabzi market or local meat shop, in any town
+ *   city       mostly supermarkets and larger cities
+ *   specialty  imported or health-store items
+ */
+export type Availability = "everyday" | "city" | "specialty";
+
 export type Food = {
   id: string;
   name: string;
@@ -37,6 +45,9 @@ export type Food = {
   whey?: boolean;
   /** Excluded when a Hunter has high blood pressure. */
   highSodium?: boolean;
+  /** Approximate Indian retail price, rupees per 100 g or ml as eaten. */
+  inr: number;
+  availability: Availability;
 };
 
 export const kcalPer100 = (f: Food) => f.per100.p * 4 + f.per100.c * 4 + f.per100.f * 9;
@@ -71,6 +82,7 @@ const ROWS: Row[] = [
   ["curd", "Curd", "curd", "protein", 3.5, 4.5, 3.3, "vegetarian", [100, 300, 25]],
   ["milk", "Toned milk", "milk", "protein", 3.3, 4.8, 3, "vegetarian", [150, 400, 50], ml],
   ["skim-milk", "Skimmed milk", "milk", "protein", 3.4, 5, 0.2, "vegetarian", [150, 400, 50], ml],
+  ["milk-powder", "Skimmed milk powder", "milk powder", "protein", 35, 52, 1, "vegetarian", [10, 40, 5]],
   ["soy-milk", "Unsweetened soy milk", "soy milk", "protein", 3.3, 1.8, 1.8, "vegan", [150, 400, 50], ml],
   ["whey", "Whey protein", "whey", "protein", 78, 8, 6, "vegetarian", [20, 45, 5], { whey: true }],
   ["tempeh", "Tempeh", "tempeh", "protein", 20, 7.6, 10.8, "vegan", [60, 200, 10]],
@@ -85,6 +97,8 @@ const ROWS: Row[] = [
   ["besan", "Besan", "besan", "protein", 22, 58, 6.7, "vegan", [30, 90, 5], dry],
   ["moong-flour", "Moong dal batter", "moong dal", "protein", 24, 59, 1.2, "vegan", [30, 90, 5], dry],
   ["makhana", "Roasted makhana", "makhana", "carb", 9.7, 77, 0.1, "vegan", [15, 50, 5]],
+  ["murmura", "Murmura", "murmura", "carb", 7.5, 77, 0.5, "vegan", [20, 60, 5]],
+  ["sattu", "Sattu", "sattu", "protein", 20.6, 60, 6.5, "vegan", [25, 70, 5]],
   ["hummus", "Hummus", "hummus", "protein", 8, 14, 10, "vegan", [40, 150, 10]],
   ["sambar", "Sambar", "sambar", "protein", 3, 8, 1.7, "vegan", [150, 300, 25]],
 
@@ -150,19 +164,138 @@ const ROWS: Row[] = [
   ["buttermilk", "Buttermilk", "chaas", "protein", 1.5, 2, 0.9, "vegetarian", [200, 400, 50], ml],
 ];
 
-export const FOODS: Food[] = ROWS.map(([id, name, short, role, p, c, f, diet, [min, max, step], extra]) => ({
-  id,
-  name,
-  short,
-  role,
-  per100: { p, c, f },
-  diet,
-  unit: "g",
-  min,
-  max,
-  step,
-  ...extra,
-}));
+/*
+ * Price and availability, per 100 g or ml as eaten.
+ *
+ * Typical Indian retail in 2026, from kirana, sabzi market and local meat shop
+ * prices rather than supermarkets. Cooked foods are priced from their dry
+ * weight (100 g cooked dal is about 33 g dry), a roti from its atta. They vary
+ * by city and season; they are here to rank foods and give an honest ballpark,
+ * not to be a price list.
+ */
+const PRICE: Record<string, [inr: number, availability: Availability]> = {
+  // dairy and plant protein
+  paneer: [40, "everyday"],
+  tofu: [35, "city"],
+  "soya-chunks": [18, "everyday"],
+  "hung-curd": [16, "everyday"], // curd strained at home, about 2 kg curd to 1 kg
+  curd: [7, "everyday"],
+  milk: [5.6, "everyday"],
+  "skim-milk": [5, "everyday"],
+  // Sold loose and in Amul or Sagar packs at most kiranas. Cheaper per gram of
+  // protein than paneer, and the answer for a vegetarian with no eggs or whey.
+  "milk-powder": [45, "everyday"],
+  "soy-milk": [15, "city"],
+  whey: [280, "city"],
+  tempeh: [80, "specialty"],
+  edamame: [50, "specialty"],
+  dal: [4, "everyday"],
+  masoor: [3.5, "everyday"],
+  rajma: [6, "everyday"],
+  chana: [4, "everyday"],
+  lobia: [5, "everyday"],
+  "roasted-chana": [14, "everyday"],
+  sprouts: [6, "everyday"],
+  besan: [10, "everyday"],
+  "moong-flour": [12, "everyday"],
+  makhana: [100, "city"],
+  hummus: [90, "specialty"],
+  sambar: [4, "everyday"],
+  murmura: [8, "everyday"],
+  sattu: [12, "everyday"],
+  // egg, meat, fish
+  egg: [14, "everyday"],
+  "egg-white": [21, "everyday"],
+  "chicken-breast": [43, "everyday"],
+  "chicken-thigh": [32, "everyday"],
+  fish: [31, "everyday"],
+  prawns: [75, "city"],
+  tuna: [97, "specialty"],
+  mutton: [107, "everyday"],
+  // carbohydrate
+  rice: [1.7, "everyday"],
+  "brown-rice": [4.5, "city"],
+  roti: [4, "everyday"],
+  "jowar-roti": [5, "everyday"],
+  oats: [18, "everyday"],
+  poha: [6, "everyday"],
+  rava: [5, "everyday"],
+  dalia: [6, "everyday"],
+  idli: [8, "everyday"],
+  dosa: [8, "everyday"],
+  quinoa: [20, "specialty"],
+  "sweet-potato": [6, "everyday"],
+  potato: [3, "everyday"],
+  bread: [12.5, "everyday"],
+  corn: [8, "everyday"],
+  honey: [40, "everyday"],
+  jaggery: [6, "everyday"],
+  // fruit
+  banana: [3.5, "everyday"],
+  apple: [18, "everyday"],
+  orange: [8, "everyday"],
+  guava: [8, "everyday"],
+  papaya: [4, "everyday"],
+  dates: [30, "everyday"],
+  // vegetables
+  "mixed-veg": [5, "everyday"],
+  palak: [4, "everyday"],
+  salad: [4, "everyday"],
+  broccoli: [30, "specialty"],
+  mushroom: [25, "city"],
+  bhindi: [6, "everyday"],
+  // fats
+  ghee: [65, "everyday"],
+  oil: [16, "everyday"],
+  "olive-oil": [100, "specialty"],
+  peanuts: [14, "everyday"],
+  "peanut-butter": [35, "city"],
+  almonds: [90, "everyday"],
+  walnuts: [120, "city"],
+  chia: [50, "city"],
+  flax: [20, "everyday"],
+  "pumpkin-seeds": [90, "specialty"],
+  coconut: [13, "everyday"],
+  // drinks
+  buttermilk: [3, "everyday"],
+};
+
+export const FOODS: Food[] = ROWS.map(([id, name, short, role, p, c, f, diet, [min, max, step], extra]) => {
+  const [inr, availability] = PRICE[id] ?? [Number.NaN, "specialty"];
+  return {
+    id,
+    name,
+    short,
+    role,
+    per100: { p, c, f },
+    diet,
+    unit: "g" as const,
+    min,
+    max,
+    step,
+    inr,
+    availability,
+    ...extra,
+  };
+});
+
+/**
+ * Most of a food anyone should be given in a day, in grams as listed. Cheap is
+ * not the same as fine in any amount: left alone, a budget plan fills protein
+ * with soya chunks and calories with oil, well past sensible amounts.
+ */
+export const DAILY_MAX_GRAMS: Record<string, number> = {
+  "soya-chunks": 60, // dry; a common guideline is 30 to 60 g a day
+  oil: 30,
+  ghee: 15,
+  jaggery: 25,
+  honey: 25,
+  "milk-powder": 50,
+  whey: 60, // two scoops
+};
+
+/** Rupees for a portion in the food's own unit. */
+export const costOf = (f: Food, amount: number) => (gramsOf(f, amount) * f.inr) / 100;
 
 export const FOOD_BY_ID: Record<string, Food> = Object.fromEntries(FOODS.map((f) => [f.id, f]));
 
@@ -174,8 +307,15 @@ export type DietPrefs = {
   lowSodium: boolean;
 };
 
-/** Whether a food fits a Hunter's diet. */
+/**
+ * Whether a food fits a Hunter's diet and can be bought anywhere.
+ *
+ * Plans use only what a kirana, sabzi market or local meat shop sells, so they
+ * work in any town and on a gym-goer's budget. Whey is the one exception, and
+ * only for a Hunter who said they take it: they already buy it.
+ */
 export function allowed(food: Food, prefs: DietPrefs): boolean {
+  if (food.availability !== "everyday" && !(food.whey && !prefs.noWhey)) return false;
   if (food.diet === "meat" && prefs.vegetarian) return false;
   // Vegetarian and "no eggs" are separate choices: a vegetarian who eats eggs is common.
   if (food.diet === "egg" && prefs.noEggs) return false;

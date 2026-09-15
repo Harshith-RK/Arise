@@ -36,47 +36,60 @@ const c = (foods: string[], amount: number, scale = true, optional = false): Com
   optional,
 });
 
-const MAIN_PROTEIN = ["chicken-breast", "fish", "paneer", "tofu", "soya-chunks"];
-const CURRY_PROTEIN = ["chicken-thigh", "prawns", "mutton", "paneer", "chana", "tofu"];
+// Cheapest protein first in every list: the generator takes the first one a
+// diet allows, and moves down the list only for variety across the week.
+const MAIN_PROTEIN = ["chicken-thigh", "fish", "egg", "soya-chunks", "chicken-breast", "paneer", "tofu"];
+const CURRY_PROTEIN = ["chicken-thigh", "egg", "soya-chunks", "chana", "fish", "paneer", "mutton", "prawns", "tofu"];
 
 export const MEAL_TEMPLATES: MealTemplate[] = [
   // ---- breakfast
   { id: "chilla", slots: ["breakfast"], name: "Besan chilla with {1}", components: [c(["besan"], 50), c(["hung-curd", "curd", "soy-milk"], 150), c(["oil"], 5), c(["salad"], 80, false, true)] },
-  { id: "oats-bowl", slots: ["breakfast", "pre"], name: "Oats with {1} and {3}", components: [c(["oats"], 50), c(["skim-milk", "soy-milk", "milk"], 250), c(["whey"], 25, true, true), c(["banana"], 1), c(["peanut-butter", "almonds", "chia"], 12, true, true)] },
+  { id: "oats-bowl", slots: ["breakfast", "pre"], name: "Oats with {1} and {3}", components: [c(["oats"], 50), c(["milk", "skim-milk", "soy-milk"], 250), c(["whey", "milk-powder"], 25, true, true), c(["banana"], 1), c(["peanut-butter", "almonds", "chia"], 12, true, true)] },
   { id: "eggs-toast", slots: ["breakfast", "post"], name: "{0}s on toast", components: [c(["egg", "egg-white"], 3), c(["bread"], 2), c(["egg-white"], 3, true, true), c(["salad"], 80, false, true)] },
   { id: "poha", slots: ["breakfast"], name: "Poha with {2}", components: [c(["poha"], 50), c(["mixed-veg"], 80, false), c(["hung-curd", "curd", "tofu"], 150), c(["peanuts", "oil"], 15)] },
   { id: "idli", slots: ["breakfast"], name: "Idli, sambar and {2}", components: [c(["idli"], 3), c(["sambar"], 200), c(["curd", "hung-curd", "tofu"], 150), c(["coconut", "peanuts"], 15, true, true)] },
-  { id: "bhurji", slots: ["breakfast", "dinner"], name: "{0} bhurji with {1}", components: [c(["egg", "paneer", "tofu"], 150), c(["roti", "bread"], 2), c(["mixed-veg"], 80, false), c(["oil"], 5)] },
+  { id: "bhurji", slots: ["breakfast", "dinner"], name: "{0} bhurji with {1}", components: [c(["egg", "soya-chunks", "paneer", "tofu"], 150), c(["roti", "bread"], 2), c(["mixed-veg"], 80, false), c(["oil"], 5)] },
   { id: "upma", slots: ["breakfast"], name: "Upma with {2}", components: [c(["rava", "dalia"], 50), c(["mixed-veg"], 80, false), c(["curd", "hung-curd", "soy-milk"], 150), c(["ghee", "oil"], 5)] },
 
   { id: "moong-chilla", slots: ["breakfast"], name: "Moong dal chilla with {1}", components: [c(["moong-flour"], 50), c(["paneer", "tofu", "egg"], 60), c(["mixed-veg"], 60, false), c(["oil", "ghee"], 5)] },
-  { id: "parfait", slots: ["breakfast", "snack"], name: "{0}, oats and {2}", components: [c(["hung-curd", "soy-milk"], 200), c(["oats"], 40), c(["banana", "apple"], 1), c(["chia", "flax", "almonds"], 10)] },
+  { id: "parfait", slots: ["breakfast", "snack"], name: "{0}, oats and {2}", components: [c(["curd", "hung-curd", "soy-milk"], 200), c(["oats"], 40), c(["banana", "apple"], 1), c(["milk-powder"], 15, true, true), c(["flax", "peanuts", "chia", "almonds"], 10)] },
   { id: "paneer-paratha", slots: ["breakfast"], name: "{0} paratha with {2}", components: [c(["paneer", "tofu"], 70), c(["roti"], 2), c(["curd", "hung-curd", "soy-milk"], 150), c(["ghee", "oil"], 5)] },
   { id: "sprouts-bowl", slots: ["breakfast"], name: "Sprouts and {1} bowl", components: [c(["sprouts"], 150), c(["paneer", "tofu", "egg"], 70), c(["salad"], 80, false), c(["bread", "roti"], 1)] },
+
+  { id: "sattu-paratha", slots: ["breakfast"], name: "Sattu paratha with {2}", components: [c(["sattu"], 40), c(["roti"], 2), c(["curd"], 150), c(["ghee", "oil"], 5)] },
 
   // ---- lunch and dinner
   { id: "protein-rice-dal", slots: ["lunch", "dinner"], name: "{0}, rice and dal", components: [c(MAIN_PROTEIN, 120), c(["rice", "brown-rice"], 150), c(["dal", "masoor"], 150), c(["mixed-veg", "palak"], 100, false), c(["ghee", "oil"], 5)] },
   { id: "curry-roti", slots: ["lunch", "dinner"], name: "{0} curry with {1}", components: [c(CURRY_PROTEIN, 130), c(["roti", "jowar-roti"], 2), c(["salad"], 100, false), c(["oil", "ghee"], 5)] },
   { id: "rajma-chawal", slots: ["lunch"], name: "{0} and rice with {2}", components: [c(["rajma", "chana", "lobia"], 175), c(["rice", "brown-rice"], 150), c(["curd", "hung-curd", "tofu"], 100), c(["salad"], 80, false), c(["ghee", "oil"], 5)] },
   { id: "khichdi", slots: ["dinner"], name: "Khichdi with {2}", components: [c(["rice", "dalia"], 120), c(["dal", "masoor"], 175), c(["curd", "hung-curd", "tofu"], 150), c(["mixed-veg"], 80, false), c(["ghee", "oil"], 5)] },
-  { id: "power-bowl", slots: ["lunch", "dinner"], name: "{0} bowl with {1}", components: [c(["chicken-breast", "tofu", "tempeh", "chana", "paneer"], 130), c(["quinoa", "sweet-potato", "brown-rice"], 150), c(["broccoli", "mushroom"], 100, false), c(["olive-oil", "oil"], 5)] },
+  { id: "power-bowl", slots: ["lunch", "dinner"], name: "{0} bowl with {1}", components: [c(["chicken-breast", "chana", "soya-chunks", "paneer", "tofu", "tempeh"], 130), c(["sweet-potato", "rice", "quinoa", "brown-rice"], 150), c(["mixed-veg", "broccoli", "mushroom"], 100, false), c(["oil", "olive-oil"], 5)] },
+  { id: "dal-roti", slots: ["lunch", "dinner"], name: "Dal tadka with roti and {2}", components: [c(["dal", "masoor"], 200), c(["roti", "jowar-roti"], 3), c(["soya-chunks", "egg", "chicken-thigh", "paneer"], 40, true, true), c(["salad"], 80, false), c(["oil", "ghee"], 5)] },
+  { id: "soya-pulao", slots: ["lunch", "dinner"], name: "Soya pulao with raita", components: [c(["soya-chunks"], 35), c(["rice"], 150), c(["curd"], 150), c(["mixed-veg"], 80, false), c(["oil"], 5)] },
+  { id: "kadhi-rice", slots: ["lunch", "dinner"], name: "Kadhi rice with {3}", components: [c(["curd"], 200), c(["besan"], 20), c(["rice"], 150), c(["chana", "soya-chunks", "egg", "chicken-thigh"], 80, true, true), c(["oil"], 5)] },
+  { id: "sambar-rice", slots: ["lunch", "dinner"], name: "Sambar rice with {2}", components: [c(["sambar"], 200), c(["rice"], 150), c(["curd", "egg", "soya-chunks"], 150), c(["bhindi", "mixed-veg"], 80, false)] },
+  { id: "curd-rice", slots: ["lunch", "dinner"], name: "Curd rice with {2}", components: [c(["rice"], 150), c(["curd"], 200), c(["soya-chunks", "egg", "chana", "fish"], 40), c(["salad"], 80, false)] },
   { id: "palak-roti", slots: ["dinner", "lunch"], name: "Palak {0} with {1}", components: [c(["paneer", "tofu", "chicken-thigh"], 120), c(["roti", "jowar-roti"], 2), c(["palak"], 150, false), c(["dal", "masoor"], 100, true, true), c(["oil", "ghee"], 5)] },
 
   // ---- snacks
   { id: "sprouts-chaat", slots: ["snack"], name: "Sprouts chaat", components: [c(["sprouts"], 120), c(["roasted-chana"], 20), c(["salad"], 80, false)] },
-  { id: "yogurt-bowl", slots: ["snack"], name: "{0} with {1} and {2}", components: [c(["hung-curd", "curd", "soy-milk"], 150), c(["papaya", "apple"], 150, false), c(["almonds", "walnuts", "chia"], 15)] },
+  { id: "yogurt-bowl", slots: ["snack"], name: "{0} with {1} and {2}", components: [c(["curd", "hung-curd", "soy-milk"], 150), c(["papaya", "apple"], 150, false), c(["peanuts", "flax", "almonds", "walnuts", "chia"], 15)] },
   { id: "chana-fruit", slots: ["snack"], name: "{0} and {1}", components: [c(["roasted-chana", "peanuts"], 35), c(["apple", "orange", "guava"], 1, false)] },
   { id: "eggs-fruit", slots: ["snack"], name: "Boiled {0}s and {1}", components: [c(["egg", "egg-white"], 2), c(["orange", "apple", "guava"], 1, false)] },
-  { id: "hummus-veg", slots: ["snack"], name: "Hummus with vegetables", components: [c(["hummus"], 80), c(["salad"], 120, false), c(["roasted-chana"], 15, true, true)] },
-  { id: "tikka", slots: ["snack", "dinner"], name: "{0} tikka with salad", components: [c(["paneer", "tofu", "chicken-breast", "fish"], 100), c(["salad"], 120, false), c(["hung-curd", "curd"], 50), c(["oil"], 5)] },
+  { id: "chana-chaat", slots: ["snack"], name: "Chana chaat", components: [c(["chana"], 120), c(["salad"], 100, false), c(["roasted-chana"], 15, true, true)] },
+  { id: "bhel", slots: ["snack"], name: "Bhel with {1}", components: [c(["murmura"], 30), c(["roasted-chana", "peanuts", "sprouts"], 25), c(["salad"], 60, false)] },
+  { id: "sattu-drink", slots: ["snack", "pre"], name: "Sattu sharbat", components: [c(["sattu"], 40), c(["milk-powder"], 15, true, true), c(["jaggery"], 10, true, true), c(["banana"], 1, true, true)] },
+  { id: "tikka", slots: ["snack", "dinner"], name: "{0} tikka with salad", components: [c(["chicken-breast", "fish", "paneer", "tofu"], 100), c(["salad"], 120, false), c(["curd", "hung-curd"], 50), c(["oil"], 5)] },
   { id: "soya-chaat", slots: ["snack"], name: "Soya chaat", components: [c(["soya-chunks"], 30), c(["salad"], 100, false), c(["roasted-chana", "peanuts"], 15, true, true)] },
   { id: "makhana-curd", slots: ["snack", "pre"], name: "Makhana and {1}", components: [c(["makhana"], 25), c(["curd", "hung-curd", "soy-milk"], 150), c(["dates", "banana"], 2, true, true)] },
   { id: "chaas-peanuts", slots: ["snack"], name: "Chaas and {1}", components: [c(["buttermilk"], 250), c(["peanuts", "roasted-chana"], 25)] },
 
   // ---- around training
   { id: "banana-chana", slots: ["pre"], name: "{0} and {1}", components: [c(["banana"], 1), c(["roasted-chana", "whey"], 20), c(["dates"], 2, true, true)] },
+  { id: "protein-lassi", slots: ["post", "snack", "pre"], name: "Protein lassi", components: [c(["curd"], 200), c(["milk-powder"], 25), c(["banana", "jaggery"], 1, true, true)] },
+  { id: "chana-jaggery", slots: ["pre", "snack"], name: "Roasted chana and jaggery", components: [c(["roasted-chana"], 30), c(["jaggery"], 10), c(["banana"], 1, true, true)] },
   { id: "toast-honey", slots: ["pre"], name: "Toast with {1}", components: [c(["bread"], 2), c(["honey", "jaggery"], 10), c(["skim-milk", "soy-milk"], 200, true, true)] },
-  { id: "shake", slots: ["post"], name: "{0} shake with {1}", components: [c(["whey"], 30), c(["banana"], 1), c(["skim-milk", "soy-milk"], 250), c(["oats"], 30, true, true)] },
-  { id: "milk-banana", slots: ["post"], name: "{0}, {1} and {2}", components: [c(["milk", "soy-milk"], 300), c(["banana"], 1), c(["dates", "roasted-chana"], 3), c(["hung-curd", "tofu"], 100, true, true)] },
-  { id: "curd-fruit", slots: ["post"], name: "{0}, {1} and {2}", components: [c(["hung-curd", "curd", "tofu"], 200), c(["banana", "apple"], 1), c(["roasted-chana", "oats"], 30)] },
+  { id: "shake", slots: ["post"], name: "{0} shake with {1}", components: [c(["whey"], 30), c(["banana"], 1), c(["milk", "skim-milk", "soy-milk"], 250), c(["oats"], 30, true, true)] },
+  { id: "milk-banana", slots: ["post"], name: "{0}, {1} and {2}", components: [c(["milk", "soy-milk"], 300), c(["banana"], 1), c(["roasted-chana", "dates"], 3), c(["milk-powder"], 20, true, true), c(["curd", "hung-curd", "tofu"], 100, true, true)] },
+  { id: "curd-fruit", slots: ["post"], name: "{0}, {1} and {2}", components: [c(["curd", "hung-curd", "tofu"], 200), c(["banana", "apple"], 1), c(["roasted-chana", "oats"], 30)] },
 ];

@@ -230,6 +230,27 @@ worth knowing: portion caps now grow with very high targets, and the per-meal
 balance term had to be weakened, since at full strength it cancelled every
 day-level correction on high-carbohydrate days.
 
+**Budget and availability.** Every food carries an approximate Indian retail
+price (kirana, sabzi market and local meat shop prices, per 100 g as eaten) and
+where it can be bought: everyday, city or specialty. Plans use everyday foods
+only, plus whey for a Hunter who takes it. Cost weighs against a dish when
+choosing and sizing (0.01 per rupee, swept against 0.006 and 0.015), and daily
+limits keep a cheap plan sensible: soya chunks 60 g dry, oil 30 g, ghee 15 g,
+milk powder 50 g, whey 60 g. Any dairy dish can take a stir-in of milk powder,
+or whey for someone who takes it, which the solver leaves at 0 unless the day
+needs the protein. Over 360 generated weeks:
+
+| | before | after |
+|---|---|---|
+| cost per day | about ₹270 to ₹290 | ₹128 vegetarian, ₹139 non-veg, ₹150 with whey |
+| foods not sold everywhere | tofu, tempeh, quinoa, broccoli, hummus, olive oil and more | none |
+| days over a daily limit | not tracked (a day reached 165 g soya) | 0 of 2,520 |
+| calorie miss, worst | 4.0% | 4.6% |
+
+The limit that costs something: a vegetarian with no eggs and no whey at a very
+high protein target (130 kg on a cut wants 223 g) reaches about 211 g on
+everyday foods. The plan preview says so, and eggs or whey close it.
+
 **Exercise library:** 80 movements tagged by muscle, region, gear, skill,
 aggravated injuries and swaps. Every muscle has a no-equipment option.
 

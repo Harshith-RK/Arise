@@ -608,7 +608,12 @@ Decisions taken while building that a future session should not undo:
   at `initial`, and for SystemWindow that is opacity 0: the page is present, focusable and
   readable by a screen reader, and completely blank on screen. AppShell and LiveDemo each provide
   one; anything outside /app must wrap itself in `MotionScope`. This cost an hour on /auth.
-- **Every screen is checked at phone widths.** `npm run mobile-audit` (against the local-only server
+- **Diets are built for an Indian gym-goer's budget.** Plans use only foods a kirana, sabzi market
+  or local meat shop sells (plus whey for someone who takes it), weigh cost when choosing, and hold
+  daily limits on soya, oil, ghee, milk powder and whey. The plan preview shows about how much a
+  day and a month cost, and says plainly when a vegetarian day cannot reach the protein target.
+  Supplies lines carry an approximate price. See ml/README.md for the numbers.
+- **Every screen is checked at phone widths.**- **Every screen is checked at phone widths.** `npm run mobile-audit` (against the local-only server
   on :3100) opens every route, onboarding step and sheet at 320, 360, 369, 375 and 390 px and
   reports sideways scroll, anything past the screen edge, anything cut off inside a box that hides
   overflow (the case a real 369px phone caught on the body scan step, which never crosses the

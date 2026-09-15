@@ -4,7 +4,7 @@ import modelJson from "./model.json";
 import type { PlanModel } from "./model";
 import { buildPlans, type BuildInput } from "./build";
 import { planTargets } from "./targets";
-import { FOOD_BY_ID, FOODS, kcalPer100 } from "./library/foods";
+import { allowed, FOOD_BY_ID, FOODS, kcalPer100 } from "./library/foods";
 import { MEAL_TEMPLATES } from "./library/meals";
 import { EXERCISE_BY_ID, EXERCISES, GEAR_FOR } from "./library/exercises";
 import type { Equipment, Experience } from "./rules";
@@ -58,6 +58,23 @@ describe("food library", () => {
     }
   });
 
+  it("prices every food and says where to buy it", () => {
+    for (const f of FOODS) {
+      expect(Number.isFinite(f.inr) && f.inr > 0, `${f.id} price`).toBe(true);
+      expect(["everyday", "city", "specialty"], f.id).toContain(f.availability);
+    }
+  });
+
+  it("every meal slot has dishes the strictest everyday diet can make", () => {
+    const strict = { vegetarian: true, noEggs: true, noWhey: true, lowSodium: true };
+    for (const slot of ["breakfast", "lunch", "dinner", "snack", "pre", "post"] as const) {
+      const usableTemplates = MEAL_TEMPLATES.filter(
+        (t) => t.slots.includes(slot) && t.components.every((c) => c.optional || c.foods.some((id) => allowed(FOOD_BY_ID[id], strict))),
+      );
+      expect(usableTemplates.length, slot).toBeGreaterThanOrEqual(2);
+    }
+  });
+
   it("every template references real foods", () => {
     for (const t of MEAL_TEMPLATES) for (const c of t.components) for (const id of c.foods) expect(FOOD_BY_ID[id], `${t.id}: ${id}`).toBeTruthy();
   });
@@ -81,7 +98,11 @@ describe("generated plans", () => {
     const { t, plans } = build();
     if (t.refused) throw new Error("refused");
     for (const [day, tot] of Object.entries(plans.totalsByDay)) {
-      expect(Math.abs(tot.kcal - t.kcal) / t.kcal, day).toBeLessThan(0.05);
+      // Six percent for this one profile, not five. A strict vegetarian (no eggs,
+      // no whey) on an everyday-foods budget has the fewest dishes to rotate, and
+      // keeping all seven days different costs one day here 5.7% over. The broad
+      // sweep below, with early and one-rest-day schedules, allows 8%.
+      expect(Math.abs(tot.kcal - t.kcal) / t.kcal, day).toBeLessThan(0.06);
       expect((tot.protein - t.proteinG) / t.proteinG, day).toBeGreaterThan(-0.05);
     }
   });
@@ -124,6 +145,37 @@ describe("generated plans", () => {
     let generated = 0;
     for (const d of DAY_KEYS) for (const id of plans.workout.days[d].exerciseIds) generated += plans.workout.exercises[id].targetSets;
     expect(Math.abs(generated - prescribed)).toBeLessThanOrEqual(3);
+  });
+
+  it("uses only foods from a local shop, plus whey only for someone who takes it", () => {
+    for (const noWhey of [true, false]) {
+      const { plans } = build({ vegetarian: false, noEggs: false, noWhey });
+      for (const f of foodsIn(weekMeals(plans))) {
+        if (f.whey && !noWhey) continue;
+        expect(f.availability, `${f.id} (whey ${noWhey ? "off" : "on"})`).toBe("everyday");
+      }
+    }
+  });
+
+  it("keeps a week within a gym-goer's budget", () => {
+    // Local market prices are approximate, so this guards the trend rather than a rupee.
+    for (const over of [{}, { vegetarian: true, noEggs: false }, { vegetarian: false, noEggs: false }]) {
+      const { plans } = build(over);
+      expect(plans.averageCost, JSON.stringify(over)).toBeLessThan(200);
+      for (const [day, rupees] of Object.entries(plans.costByDay)) expect(rupees, day).toBeLessThan(250);
+    }
+  });
+
+  it("says when the meals cannot reach the protein target, and not otherwise", () => {
+    const hard = { weightKg: 130, bodyFatPct: 22, restDays: ["tue", "thu", "sat", "sun"], days: 3, gymStart: "06:00", gymEnd: "07:00" };
+    const big = build(hard);
+    if (big.t.refused) throw new Error("refused");
+    expect(big.plans.proteinGap).not.toBeNull();
+    expect(big.plans.proteinGap!.reached).toBeLessThan(big.t.proteinG);
+    expect(big.plans.proteinGap!.reached).toBeGreaterThan(big.t.proteinG * 0.88);
+    // The same body with whey reaches it, so there is nothing to say.
+    expect(build({ ...hard, noWhey: false }).plans.proteinGap).toBeNull();
+    expect(build().plans.proteinGap).toBeNull();
   });
 
   it("a vegetarian never gets meat, and no eggs means no eggs", () => {
@@ -182,6 +234,7 @@ describe("generated plans", () => {
     let checked = 0;
     let worstKcal = 0;
     let worstProteinUnder = 0;
+    let worstProteinUnderVeg = 0;
     for (const sex of ["male", "female"] as const)
       for (const weightKg of [50, 72, 95, 130])
         for (const vegetarian of [true, false])
@@ -199,7 +252,9 @@ describe("generated plans", () => {
                 expect(DietPlanSchema.safeParse({ ...plans.diet, version: 1, createdAt: "x" }).success).toBe(true);
                 for (const tot of Object.values(plans.totalsByDay)) {
                   worstKcal = Math.max(worstKcal, Math.abs(tot.kcal - t.kcal) / t.kcal);
-                  worstProteinUnder = Math.min(worstProteinUnder, (tot.protein - t.proteinG) / t.proteinG);
+                  const short = (tot.protein - t.proteinG) / t.proteinG;
+                  if (vegetarian) worstProteinUnderVeg = Math.min(worstProteinUnderVeg, short);
+                  else worstProteinUnder = Math.min(worstProteinUnder, short);
                 }
                 for (const d of DAY_KEYS) {
                   const times = plans.diet.days![d]!.map((m) => m.time);
@@ -207,9 +262,16 @@ describe("generated plans", () => {
                 }
               }
     expect(checked).toBeGreaterThan(250);
-    expect(worstKcal, "worst kcal miss").toBeLessThan(0.08);
-    // Protein may run over (harmless), and never comes in more than 6% short.
-    expect(worstProteinUnder, "worst protein shortfall").toBeGreaterThan(-0.06);
+    // 8.5%, not 8. The worst day here is a 50 kg woman on 1,237 kcal across four
+    // meals: the everyday staples' smallest sensible portions add up to about
+    // 100 kcal over. Lowering those minimums was tried and cost protein instead.
+    expect(worstKcal, "worst kcal miss").toBeLessThan(0.085);
+    // Protein may run over (harmless). With meat or eggs it never comes in more
+    // than 6% short. A vegetarian with no eggs and no whey at a very high target
+    // (130 kg on a cut wants 223 g) can reach about 90% on everyday foods; the
+    // plan preview says so, and proteinGap is tested below.
+    expect(worstProteinUnder, "worst protein shortfall, non-vegetarian").toBeGreaterThan(-0.06);
+    expect(worstProteinUnderVeg, "worst protein shortfall, vegetarian without whey").toBeGreaterThan(-0.12);
     // ~290 full weeks at ~40 ms each: a slow test, not a slow feature.
   }, 90_000);
 });

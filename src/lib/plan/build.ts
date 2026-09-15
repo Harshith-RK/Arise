@@ -20,6 +20,11 @@ export type BuiltPlans = {
   /** Each weekday's meals add up to its own totals; this is their average. */
   dayTotals: { kcal: number; protein: number; carbs: number; fat: number };
   totalsByDay: Record<string, { kcal: number; protein: number; carbs: number; fat: number }>;
+  /** Approximate rupees per day. */
+  costByDay: Record<string, number>;
+  averageCost: number;
+  /** Set when the meals cannot reach the protein target; the UI says so. */
+  proteinGap: { reached: number; target: number } | null;
 };
 
 /**
@@ -81,5 +86,11 @@ export function buildPlans(
     supplies: diet.supplies,
     dayTotals: diet.average,
     totalsByDay: diet.totals,
+    costByDay: diet.cost,
+    averageCost: diet.averageCost,
+    // A vegetarian with no whey at a very high target (a large body on a cut)
+    // runs out of everyday protein before the day runs out of calories. Say it
+    // rather than let the numbers quietly disagree.
+    proteinGap: diet.average.protein < proteinG * 0.95 ? { reached: diet.average.protein, target: proteinG } : null,
   };
 }
