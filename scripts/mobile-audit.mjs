@@ -197,6 +197,7 @@ for (const width of WIDTHS) {
       ["/app/progress?tab=badges", "progress badges"],
       ["/app/progress/badges/first-gate", "badge detail"],
       ["/app/system", "system"],
+      ["/app/system/targets", "targets"],
       ["/app/system/plan/workout", "workout editor"],
       ["/app/system/plan/diet", "diet editor"],
     ]) {

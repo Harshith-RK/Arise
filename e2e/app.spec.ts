@@ -12,6 +12,7 @@ const APP_ROUTES = [
   "/app/progress",
   "/app/progress/badges/first-gate",
   "/app/system",
+  "/app/system/targets",
   "/app/system/plan/workout",
   "/app/system/plan/diet",
 ];

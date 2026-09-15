@@ -242,6 +242,7 @@ Routes:
   /app/progress              Tabs: Telemetry | Trophies
   /app/progress/trophies/[id]  Achievement detail
   /app/system                Hunter profile, preferences, data
+  /app/system/targets        Targets, plan builder, the details they are built from
   /app/system/plan/workout   Workout plan editor
   /app/system/plan/diet      Diet plan editor
   /legal/terms, /legal/privacy
@@ -683,6 +684,16 @@ Decisions taken while building that a future session should not undo:
   plaque so the wall reads as one system, but the mark inside is drawn for the specific thing
   earned: the three streak shields tier by chevron count, records-10 stacks bars, and so on.
   Rank badges delegate to RankPlaque and keep their letter.
+- **Targets live on their own page** (`/app/system/targets`, src/components/plan/TargetsScreen.tsx).
+  The System screen used to carry the whole calculation, the plan builder and the profile fields
+  it reads from in one panel, which turned the settings page into a wall of numbers. It now shows
+  a two-number card (intake, protein) and a link. The page itself is three steps in reading order:
+  your targets, the plans built from them, then the details behind both; if sex or age is missing
+  the details section comes first and is marked NEEDED, because nothing can be calculated without
+  them.
+- **PlanReadout leads with three numbers** (intake, protein, weekly change) and hides BMR, TDEE,
+  the deficit, the split and the per-muscle set grid behind a `<details>` "FULL BREAKDOWN". The
+  same component renders the onboarding plan screen, so the System's first message stays short.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

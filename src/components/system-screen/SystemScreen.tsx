@@ -6,7 +6,6 @@ import { Button, PageHeader, Panel, Placeholder } from "@/components/system/prim
 import { Field, Toggle } from "@/components/system/Field";
 import { AccountPanel } from "@/components/auth/AccountPanel";
 import { StorageNote } from "@/components/auth/StorageNote";
-import { TargetsPanel } from "@/components/plan/TargetsPanel";
 import { notify } from "@/components/system/notify";
 import { IconExport, IconForward, IconImport, IconReset } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
@@ -16,7 +15,6 @@ import { DAY_TITLES } from "@/lib/engine/dates";
 
 export function SystemScreen() {
   const snapshot = useGame((s) => s.snapshot);
-  const latestWeight = useGame((s) => s.progress?.latestWeighIn?.weightKg ?? null);
   const { actions, dispatch } = useGameActions();
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
@@ -94,18 +92,37 @@ export function SystemScreen() {
         </div>
       </Panel>
 
-      <TargetsPanel
-        profile={profile}
-        currentWeightKg={latestWeight ?? profile.startWeightKg}
-        save={saveProfile}
-        rebuild={async (plans) => {
-          dispatch(await actions.saveWorkoutPlan(plans.workout));
-          dispatch(await actions.saveDietPlan(plans.diet));
-          // Saving plans does not move the supplies week, so this snapshot's is current.
-          await actions.saveSupplies({ weekOf: snapshot.supplies.weekOf, items: plans.supplies });
-        }}
-        className="mb-4"
-      />
+      {/* Just the numbers here. The calculation, the details behind it and the
+          plans built from it live on their own page. */}
+      <Panel title="Targets" className="mb-4">
+        <div className="grid grid-cols-2 gap-px border-t border-line-1 bg-line-1">
+          {[
+            ["INTAKE", `${profile.kcalTarget}`, "KCAL"],
+            ["PROTEIN", `${profile.proteinTarget}`, "G"],
+          ].map(([label, value, unit]) => (
+            <div key={label} className="bg-ink-1 px-4 py-3">
+              <p className="t-micro text-frost-2">{label}</p>
+              <p className="mt-1 text-frost-0">
+                <span className="t-num" style={{ fontSize: 24, lineHeight: 1 }}>
+                  {value}
+                </span>
+                <span className="t-micro ml-1 text-frost-2">{unit}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+        <PlanLink
+          href="/app/system/targets"
+          title="Targets and plans"
+          meta={
+            !profile.sex || profile.age === undefined
+              ? "ADD YOUR DETAILS TO CALCULATE"
+              : profile.targetSource === "manual" || !profile.targetSource
+                ? "SET BY HAND / RECALCULATE OR BUILD PLANS"
+                : "SET BY THE SYSTEM / RECALCULATE OR BUILD PLANS"
+          }
+        />
+      </Panel>
 
       {/* Preferences */}
       <Panel title="Interface" className="mb-4">
