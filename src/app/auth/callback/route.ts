@@ -19,6 +19,7 @@ export async function GET(request: Request) {
   if (error) {
     return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(error.message)}`, url.origin));
   }
-  // next is our own path, never an absolute URL, so this cannot be an open redirect.
-  return NextResponse.redirect(new URL(next.startsWith("/") ? next : "/app/quest", url.origin));
+  // Only our own paths. "//host" also starts with "/" and would leave the site.
+  const safe = next.startsWith("/") && !next.startsWith("//") ? next : "/app/quest";
+  return NextResponse.redirect(new URL(safe, url.origin));
 }

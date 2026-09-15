@@ -7,7 +7,10 @@ export default defineConfig({
   reporter: [["list"]],
   timeout: 60_000,
   use: {
-    baseURL: "http://localhost:3000",
+    // Its own server, not the dev one: with accounts on, every page past the
+    // landing needs a real sign-in, and the suite should never create accounts
+    // in the live database. This one runs local-only, as its own build.
+    baseURL: "http://localhost:3100",
     trace: "retain-on-failure",
     colorScheme: "dark",
   },
@@ -16,9 +19,10 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
   ],
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
+    command: "next dev -p 3100",
+    url: "http://localhost:3100",
+    env: { NEXT_PUBLIC_ARISE_LOCAL_ONLY: "1", ARISE_DIST_DIR: ".next-e2e" },
     reuseExistingServer: true,
-    timeout: 120_000,
+    timeout: 180_000,
   },
 });

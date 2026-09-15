@@ -606,9 +606,13 @@ Decisions taken while building that a future session should not undo:
   at `initial`, and for SystemWindow that is opacity 0: the page is present, focusable and
   readable by a screen reader, and completely blank on screen. AppShell and LiveDemo each provide
   one; anything outside /app must wrap itself in `MotionScope`. This cost an hour on /auth.
-- **Accounts are optional and the app must work without one.** No Supabase env means local-only
-  Dexie exactly as before, the Account panel hides itself, and the copy on System and the privacy
-  page says which of the two is true rather than claiming one of them always is.
+- **With accounts on, nothing past the landing page opens signed out.** proxy.ts redirects /app
+  and /awaken to /auth?next=, and sends a signed-in visitor on /auth to their quest; GameProvider
+  catches a session that ends while a page is open. The landing page and legal pages stay public.
+  Local-only Dexie mode still exists for builds without Supabase env, and for the end-to-end suite,
+  which runs its own server on :3100 with NEXT_PUBLIC_ARISE_LOCAL_ONLY=1 and a separate build
+  folder so it never creates real accounts. e2e/auth-gate.spec.ts checks the gate against the dev
+  server on :3000 without signing in.
 - **The arc has no end date.** `arcLength` is nullable and null by default, so the header reads
   ARC DAY 412 rather than DAY 412 OF 90, and stored 90s migrate to null on load (the value was
   hardcoded in onboarding and never editable, so every stored 90 is the old default). The brief's

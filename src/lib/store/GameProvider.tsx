@@ -7,6 +7,8 @@ import { createMemoryRepo } from "@/lib/data/memory-repo";
 import { createSupabaseRepo } from "@/lib/data/supabase-repo";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/supabase/session";
+import { HAS_BACKEND } from "@/lib/supabase/env";
+import { usePathname, useRouter } from "next/navigation";
 import { subscribeToArc } from "@/lib/supabase/realtime";
 import { adoptLocalArc } from "@/lib/supabase/adopt";
 import { createCeremonyQueue, type CeremonyQueue } from "@/lib/ceremony";
@@ -51,10 +53,20 @@ type Identity = { kind: "local" } | { kind: "remote"; userId: string };
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // With accounts on, there is no signed-out app: a session that ends while a
+  // page is open (sign out in another tab, expiry) goes to sign in, not to a
+  // local store holding nobody's data.
+  const mustSignIn = HAS_BACKEND && auth.status === "signed-out";
+  useEffect(() => {
+    if (mustSignIn) router.replace(`/auth?next=${encodeURIComponent(pathname ?? "/app/quest")}`);
+  }, [mustSignIn, router, pathname]);
 
   // While auth resolves there is nothing to build yet: mounting a local store
   // first would open Dexie and then throw it away a tick later.
-  if (auth.status === "loading") return <PendingGame>{children}</PendingGame>;
+  if (auth.status === "loading" || mustSignIn) return <PendingGame>{children}</PendingGame>;
 
   const identity: Identity =
     auth.status === "signed-in" ? { kind: "remote", userId: auth.userId } : { kind: "local" };
