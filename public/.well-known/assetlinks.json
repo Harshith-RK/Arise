@@ -1,0 +1,18 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.arise.app",
+      "sha256_cert_fingerprints": ["26:7C:9D:16:A5:4A:CE:C2:4E:B7:FA:2C:63:55:F4:E0:5E:D4:89:CA:88:4F:F3:2B:0E:38:48:3D:C7:E8:C7:7D"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.arise_khaki.twa",
+      "sha256_cert_fingerprints": ["3A:E8:4E:D2:62:B9:8B:1B:6C:86:FD:FA:9F:8F:66:4A:D6:EC:3E:4D:BB:30:1E:80:4A:EA:EA:B3:EF:5B:32:30"]
+    }
+  }
+]
