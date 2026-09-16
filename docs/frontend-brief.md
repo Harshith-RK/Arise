@@ -705,6 +705,13 @@ Decisions taken while building that a future session should not undo:
   rotation on or off never rewrites history. With fewer than two versions there is nothing to
   rotate and the setting has no effect. Everything that shows "the plan" for a date goes through
   `activeWorkoutPlan`/`makePlanLookup(..., rotationOf(snap))` rather than taking the newest.
+- **A meal counts itself** (src/lib/plan/count-items.ts). The diet editor reads each item line
+  ("Paneer 100g", "Roti x2", "Milk 200ml", a bare "Banana" for one piece) against the food
+  library and writes the meal's protein, carbs, fat and calories itself, so nothing has to be
+  looked up and typed. Numbers typed by hand are never written over; the counted figure is
+  offered beside them instead. A food the library does not know is named rather than counted as
+  zero, which would quietly shrink the day. Generated plans round-trip to the calorie, since the
+  generator and the counter read the same library.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

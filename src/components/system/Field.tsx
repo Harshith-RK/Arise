@@ -21,6 +21,7 @@ export function Field({
   autoFocus,
   placeholder,
   autoComplete,
+  ariaLabel,
   name,
 }: {
   label: string;
@@ -38,6 +39,8 @@ export function Field({
   placeholder?: string;
   /** Let the password manager do its job. */
   autoComplete?: string;
+  /** Spoken name, when the visible label is a one-letter abbreviation. */
+  ariaLabel?: string;
   name?: string;
 }) {
   const id = useId();
@@ -62,6 +65,7 @@ export function Field({
           autoFocus={autoFocus}
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
+          aria-label={ariaLabel}
           aria-invalid={!!error}
           aria-describedby={error ? errorId : helper ? helperId : undefined}
           className="t-body h-12 w-full bg-ink-2 px-3 text-frost-0 outline-none placeholder:text-frost-2"

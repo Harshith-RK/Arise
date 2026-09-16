@@ -7,15 +7,84 @@ import { Field } from "@/components/system/Field";
 import { IconClose, IconPlus } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { DAY_TITLES, dayKeyOf } from "@/lib/engine/dates";
-import { DAY_KEYS, type DayKey, type DietPlan, type MealDef } from "@/lib/engine/types";
+import { DAY_KEYS, type DayKey, type DietPlan, type Macros, type MealDef } from "@/lib/engine/types";
+import { countItems } from "@/lib/plan/count-items";
 
 const DAY_OPTIONS = DAY_KEYS.map((d) => ({ value: d, label: DAY_TITLES[d].slice(0, 3).toUpperCase() }));
+
+/**
+ * A meal's numbers. Counted from the items where the food library knows them,
+ * which is the usual case, and typed by hand where it does not or where a
+ * Hunter would rather say it themselves.
+ */
+function MealMacros({
+  meal,
+  patch,
+  onTyped,
+}: {
+  meal: MealDef;
+  patch: (id: string, p: Partial<MealDef>) => void;
+  onTyped: (id: string) => void;
+}) {
+  const counted = countItems(meal.items);
+  const countable = counted.uncounted.length === 0;
+  const matches = countable && sameMacros(counted.macros, meal);
+
+  return (
+    <div>
+      <div className="grid grid-cols-4 gap-2">
+        {MACRO_FIELDS.map(([label, key, name]) => (
+          <Field
+            key={key}
+            label={label}
+            type="number"
+            inputMode="numeric"
+            value={meal[key]}
+            onChange={(v) => {
+              onTyped(meal.id);
+              patch(meal.id, { [key]: Number(v) || 0 });
+            }}
+            ariaLabel={`${meal.name} ${name}`}
+          />
+        ))}
+      </div>
+      <p className="t-micro mt-1.5 text-frost-2">
+        {matches ? (
+          "COUNTED FROM THE ITEMS ABOVE."
+        ) : countable ? (
+          <>
+            THE ITEMS COUNT AS {counted.macros.kcal} KCAL, {counted.macros.protein} G PROTEIN.{" "}
+            <button
+              type="button"
+              onClick={() => patch(meal.id, counted.macros)}
+              className="pressable text-ember underline underline-offset-2 transition-none"
+            >
+              USE THAT
+            </button>
+          </>
+        ) : (
+          `NOT IN THE FOOD LIST: ${counted.uncounted.join(", ").toUpperCase()}. TYPE THIS MEAL'S NUMBERS YOURSELF.`
+        )}
+      </p>
+    </div>
+  );
+}
 
 const totalsOf = (meals: MealDef[]) =>
   meals.reduce(
     (t, m) => ({ protein: t.protein + m.protein, carbs: t.carbs + m.carbs, fat: t.fat + m.fat, kcal: t.kcal + m.kcal }),
     { protein: 0, carbs: 0, fat: 0, kcal: 0 },
   );
+
+const MACRO_FIELDS = [
+  ["P", "protein", "protein"],
+  ["C", "carbs", "carbs"],
+  ["F", "fat", "fat"],
+  ["KCAL", "kcal", "calories"],
+] as const;
+
+const sameMacros = (a: Macros, b: Pick<MealDef, "protein" | "carbs" | "fat" | "kcal">) =>
+  a.protein === b.protein && a.carbs === b.carbs && a.fat === b.fat && a.kcal === b.kcal;
 
 /** Editing meals writes a new diet plan version; logged days keep theirs. */
 export function DietPlanEditor() {
@@ -24,6 +93,9 @@ export function DietPlanEditor() {
   // null means "untouched": the current plan version is shown as-is.
   const [edited, setEdited] = useState<DietPlan | null>(null);
   const [dirty, setDirty] = useState(false);
+  // Meals whose numbers were typed by hand here. Editing their items no longer
+  // writes over what was typed; every other meal follows its items.
+  const [typed, setTyped] = useState<Set<string>>(new Set());
   // Open on today: that is the day Quest and Log are showing, so an edit here
   // is the one the Hunter expects to see there.
   const today = useGame((s) => s.today);
@@ -50,6 +122,18 @@ export function DietPlanEditor() {
       ? update({ ...draft, days: { ...draft.days, [day]: list }, meals: day === "mon" ? list : draft.meals })
       : update({ ...draft, meals: list });
   const patch = (id: string, p: Partial<MealDef>) => setMeals(meals.map((m) => (m.id === id ? { ...m, ...p } : m)));
+
+  /**
+   * Items are the source of the numbers. Rewriting them recounts the meal, as
+   * long as the meal is still being counted: once a Hunter types a number by
+   * hand that meal is theirs, and the editor stops writing over it.
+   */
+  const setItems = (meal: MealDef, text: string) => {
+    const items = text.split(",").map((t) => t.trim()).filter(Boolean);
+    const after = countItems(items);
+    const follows = !typed.has(meal.id) && after.uncounted.length === 0;
+    patch(meal.id, follows ? { items, ...after.macros } : { items });
+  };
 
   const totals = totalsOf(meals);
 
@@ -95,14 +179,15 @@ export function DietPlanEditor() {
       <Panel title={perDay ? `${DAY_TITLES[day]} totals` : "Plan totals"} className="mb-4">
         <dl className="grid grid-cols-4 gap-px border-t border-line-1 bg-line-1">
           {[
-            ["PROTEIN", `${totals.protein} G`],
-            ["CARBS", `${totals.carbs} G`],
-            ["FAT", `${totals.fat} G`],
-            ["CALORIES", `${totals.kcal}`],
-          ].map(([k, v]) => (
+            ["PROTEIN", `${totals.protein} G`, `OF ${snapshot.profile?.proteinTarget ?? 0} G`],
+            ["CARBS", `${totals.carbs} G`, null],
+            ["FAT", `${totals.fat} G`, null],
+            ["CALORIES", `${totals.kcal}`, `OF ${snapshot.profile?.kcalTarget ?? 0}`],
+          ].map(([k, v, against]) => (
             <div key={k} className="surface-well px-3 py-3">
               <dt className="t-micro text-frost-2">{k}</dt>
               <dd className="t-readout mt-1 text-frost-0">{v}</dd>
+              {against ? <dd className="t-micro mt-1 text-frost-2">{against}</dd> : null}
             </div>
           ))}
         </dl>
@@ -123,15 +208,14 @@ export function DietPlanEditor() {
                   <Field
                     label="ITEMS"
                     value={meal.items.join(", ")}
-                    onChange={(v) => patch(meal.id, { items: v.split(",").map((s) => s.trim()).filter(Boolean) })}
-                    helper="Separate items with a comma."
+                    onChange={(v) => setItems(meal, v)}
+                    helper="Separate items with a comma, and give each an amount: Paneer 100g, Roti x2."
                   />
-                  <div className="grid grid-cols-4 gap-2">
-                    <Field label="P" type="number" value={meal.protein} onChange={(v) => patch(meal.id, { protein: Number(v) || 0 })} />
-                    <Field label="C" type="number" value={meal.carbs} onChange={(v) => patch(meal.id, { carbs: Number(v) || 0 })} />
-                    <Field label="F" type="number" value={meal.fat} onChange={(v) => patch(meal.id, { fat: Number(v) || 0 })} />
-                    <Field label="KCAL" type="number" value={meal.kcal} onChange={(v) => patch(meal.id, { kcal: Number(v) || 0 })} />
-                  </div>
+                  <MealMacros
+                    meal={meal}
+                    patch={patch}
+                    onTyped={(id) => setTyped((t) => (t.has(id) ? t : new Set(t).add(id)))}
+                  />
                 </div>
                 <button
                   type="button"
