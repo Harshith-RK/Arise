@@ -717,6 +717,13 @@ Decisions taken while building that a future session should not undo:
   boxes hold text, so a cleared box stays empty and blocks saving instead of snapping to 0. Typed
   text is keyed by day and meal, since "Give each day its own meals" copies the same meal ids to
   every day.
+- **The Arise emblem is the app's icon everywhere.** `npm run brand-icons` (scripts/brand-icons.mjs)
+  draws it from one set of geometry into the PWA icons in public/, `src/app/apple-icon.png`, and the
+  tab icon (`src/app/icon.svg` plus `favicon.ico`). The tab version drops the bezel and shadow
+  bands, which turn to grey noise at 16 to 32 px, and keeps the forged A, its ember bar and the heat.
+  ICO payloads must be RGBA or the build fails. The service worker serves `/icon*` cache first, so
+  changing an icon at the same URL needs its VERSION bumped. Posters and masters live in brand/
+  (`npm run brand-poster`).
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

@@ -12,7 +12,9 @@
     "mobile-audit": "node scripts/mobile-audit.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "brand-icons": "node scripts/brand-icons.mjs",
+    "brand-poster": "node scripts/brand-poster.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

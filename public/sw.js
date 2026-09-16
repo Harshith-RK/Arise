@@ -4,7 +4,8 @@
  * job here is to keep the shell itself available with no network. Built by
  * hand rather than with a build-time plugin so it works under Turbopack.
  */
-const VERSION = "wa-v1";
+// Bump when a cache-first asset changes at the same URL (the icons did in v2).
+const VERSION = "wa-v2";
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 const OFFLINE_URL = "/offline";
