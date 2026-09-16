@@ -253,7 +253,7 @@ test.describe("app", () => {
     await page.goto("/app/system/plan/diet");
     const name = page.getByLabel("NAME").first();
     await name.fill("Besan chilla and milk v2");
-    await page.getByRole("button", { name: "Save as new version" }).click();
+    await page.getByRole("button", { name: "Save as version 2" }).first().click();
     await expect(page.getByText("[Plan Updated]")).toBeVisible();
     await page.goto("/app/log");
     await page.getByRole("tab", { name: "Diet" }).click();

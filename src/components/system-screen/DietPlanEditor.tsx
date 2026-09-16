@@ -19,12 +19,19 @@ const DAY_OPTIONS = DAY_KEYS.map((d) => ({ value: d, label: DAY_TITLES[d].slice(
  */
 function MealMacros({
   meal,
+  slot,
   patch,
   onTyped,
+  texts,
+  setText,
 }: {
   meal: MealDef;
+  /** Where the meal sits: the same meal id can appear on several days. */
+  slot: string;
   patch: (id: string, p: Partial<MealDef>) => void;
-  onTyped: (id: string) => void;
+  onTyped: (slot: string) => void;
+  texts: Record<string, string>;
+  setText: (key: string, raw: string) => void;
 }) {
   const counted = countItems(meal.items);
   const countable = counted.uncounted.length === 0;
@@ -39,11 +46,13 @@ function MealMacros({
             label={label}
             type="number"
             inputMode="numeric"
-            value={meal[key]}
+            value={texts[`${slot}:${key}`] ?? String(meal[key])}
             onChange={(v) => {
-              onTyped(meal.id);
-              patch(meal.id, { [key]: Number(v) || 0 });
+              onTyped(slot);
+              setText(`${slot}:${key}`, v);
+              if (!macroError(key, v)) patch(meal.id, { [key]: Number(v) });
             }}
+            error={macroError(key, texts[`${slot}:${key}`] ?? String(meal[key]))}
             ariaLabel={`${meal.name} ${name}`}
           />
         ))}
@@ -56,7 +65,10 @@ function MealMacros({
             THE ITEMS COUNT AS {counted.macros.kcal} KCAL, {counted.macros.protein} G PROTEIN.{" "}
             <button
               type="button"
-              onClick={() => patch(meal.id, counted.macros)}
+              onClick={() => {
+                for (const [, key] of MACRO_FIELDS) setText(`${slot}:${key}`, String(counted.macros[key]));
+                patch(meal.id, counted.macros);
+              }}
               className="pressable text-ember underline underline-offset-2 transition-none"
             >
               USE THAT
@@ -83,10 +95,24 @@ const MACRO_FIELDS = [
   ["KCAL", "kcal", "calories"],
 ] as const;
 
+const MACRO_MAX: Record<keyof Macros, number> = { protein: 1000, carbs: 2000, fat: 1000, kcal: 10000 };
+
+/** The problem with what is typed in one macro box, or null. Empty is a problem, not a zero. */
+function macroError(key: keyof Macros, raw: string): string | null {
+  if (raw.trim() === "") return "Enter a number";
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n < 0 || n > MACRO_MAX[key]) return `0 to ${MACRO_MAX[key]}`;
+  return null;
+}
+
 const sameMacros = (a: Macros, b: Pick<MealDef, "protein" | "carbs" | "fat" | "kcal">) =>
   a.protein === b.protein && a.carbs === b.carbs && a.fat === b.fat && a.kcal === b.kcal;
 
-/** Editing meals writes a new diet plan version; logged days keep theirs. */
+/**
+ * The diet plan, open for editing. Saving either corrects the current version
+ * everywhere it is used or keeps it and starts a new one from today, the same
+ * two choices the workout editor offers.
+ */
 export function DietPlanEditor() {
   const snapshot = useGame((s) => s.snapshot);
   const { actions, dispatch } = useGameActions();
@@ -96,6 +122,10 @@ export function DietPlanEditor() {
   // Meals whose numbers were typed by hand here. Editing their items no longer
   // writes over what was typed; every other meal follows its items.
   const [typed, setTyped] = useState<Set<string>>(new Set());
+  // What is in each macro box, kept as text so a box can sit empty while a
+  // number is being replaced. Only a valid number reaches the plan.
+  const [texts, setTexts] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
   // Open on today: that is the day Quest and Log are showing, so an edit here
   // is the one the Hunter expects to see there.
   const today = useGame((s) => s.today);
@@ -122,6 +152,8 @@ export function DietPlanEditor() {
       ? update({ ...draft, days: { ...draft.days, [day]: list }, meals: day === "mon" ? list : draft.meals })
       : update({ ...draft, meals: list });
   const patch = (id: string, p: Partial<MealDef>) => setMeals(meals.map((m) => (m.id === id ? { ...m, ...p } : m)));
+  const scope = perDay ? day : "all";
+  const slotOf = (id: string) => `${scope}/${id}`;
 
   /**
    * Items are the source of the numbers. Rewriting them recounts the meal, as
@@ -131,32 +163,50 @@ export function DietPlanEditor() {
   const setItems = (meal: MealDef, text: string) => {
     const items = text.split(",").map((t) => t.trim()).filter(Boolean);
     const after = countItems(items);
-    const follows = !typed.has(meal.id) && after.uncounted.length === 0;
+    const follows = !typed.has(slotOf(meal.id)) && after.uncounted.length === 0;
     patch(meal.id, follows ? { items, ...after.macros } : { items });
   };
 
   const totals = totalsOf(meals);
 
+  // Only boxes someone has typed into can be wrong; untouched ones show the
+  // plan. A removed meal's boxes no longer count against saving.
+  const liveSlots = new Set(
+    draft.days
+      ? Object.entries(draft.days).flatMap(([d, list]) => (list ?? []).map((m) => `${d}/${m.id}`))
+      : draft.meals.map((m) => `all/${m.id}`),
+  );
+  const invalid = Object.entries(texts).some(([k, raw]) => {
+    const [slot, key] = k.split(":");
+    return liveSlots.has(slot) && !!macroError(key as keyof Macros, raw);
+  });
+
+  const setText = (key: string, raw: string) => {
+    setTexts((t) => ({ ...t, [key]: raw }));
+    setDirty(true);
+  };
+
+  const save = async (how: "update" | "new") => {
+    if (invalid || saving) return;
+    setSaving(true);
+    const body = draft.days ? { meals: draft.meals, days: draft.days } : { meals: draft.meals };
+    dispatch(await (how === "update" ? actions.updateDietPlan(body) : actions.saveDietPlan(body)));
+    setEdited(null);
+    setTexts({});
+    setTyped(new Set());
+    setDirty(false);
+    setSaving(false);
+  };
+
+  const bar = dirty ? (
+    <SaveBar version={current.version} invalid={invalid} saving={saving} onSave={save} />
+  ) : null;
+
   return (
     <>
-      <PageHeader
-        title="Diet plan"
-        meta={<span className="t-micro text-frost-2">EDITING V{current?.version}</span>}
-        action={
-          <Button
-            variant="primary"
-            size="sm"
-            disabled={!dirty}
-            onClick={async () => {
-              dispatch(await actions.saveDietPlan(draft.days ? { meals: draft.meals, days: draft.days } : { meals: draft.meals }));
-              setEdited(null);
-              setDirty(false);
-            }}
-          >
-            Save as new version
-          </Button>
-        }
-      />
+      <PageHeader title="Diet plan" meta={<span className="t-micro text-frost-2">EDITING V{current.version}</span>} />
+
+      {bar}
 
       <Panel title={perDay ? "Days" : "Every day"} className="mb-4">
         <div className="border-t border-line-1 px-4 py-4">
@@ -213,8 +263,11 @@ export function DietPlanEditor() {
                   />
                   <MealMacros
                     meal={meal}
+                    slot={slotOf(meal.id)}
                     patch={patch}
                     onTyped={(id) => setTyped((t) => (t.has(id) ? t : new Set(t).add(id)))}
+                    texts={texts}
+                    setText={setText}
                   />
                 </div>
                 <button
@@ -255,11 +308,50 @@ export function DietPlanEditor() {
         </div>
       </Panel>
 
-      {dirty ? (
-        <p className="t-micro mt-4 text-glacier">
-          UNSAVED CHANGES. SAVING CREATES VERSION {(current?.version ?? 1) + 1} AND KEEPS EVERY PAST LOG INTACT.
-        </p>
-      ) : null}
+      {bar ? <div className="mt-4">{bar}</div> : null}
     </>
+  );
+}
+
+/** Both ways to save, and what each one does to days already logged. */
+function SaveBar({
+  version,
+  invalid,
+  saving,
+  onSave,
+}: {
+  version: number;
+  invalid: boolean;
+  saving: boolean;
+  onSave: (how: "update" | "new") => void;
+}) {
+  return (
+    <Panel title="Unsaved changes" className="mb-4">
+      <div className="space-y-4 border-t border-line-1 px-4 py-4">
+        {invalid ? (
+          <p className="t-micro text-fault" role="alert">
+            FIX THE HIGHLIGHTED NUMBERS BEFORE SAVING.
+          </p>
+        ) : null}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Button className="w-full" disabled={invalid || saving} onClick={() => onSave("update")}>
+              Update version {version}
+            </Button>
+            <p className="t-micro mt-2 text-frost-2">
+              CORRECTS THIS PLAN EVERYWHERE, INCLUDING DAYS ALREADY LOGGED ON IT. UNDO IS OFFERED.
+            </p>
+          </div>
+          <div>
+            <Button variant="primary" className="w-full" disabled={invalid || saving} onClick={() => onSave("new")}>
+              Save as version {version + 1}
+            </Button>
+            <p className="t-micro mt-2 text-frost-2">
+              APPLIES FROM TODAY. DAYS ALREADY LOGGED KEEP VERSION {version}.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Panel>
   );
 }

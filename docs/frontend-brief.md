@@ -712,6 +712,11 @@ Decisions taken while building that a future session should not undo:
   offered beside them instead. A food the library does not know is named rather than counted as
   zero, which would quietly shrink the day. Generated plans round-trip to the calorie, since the
   generator and the counter read the same library.
+- **The diet editor saves the same two ways the workout editor does**: update the current version
+  in place (reaching days already logged on it, with undo) or save a new one from today. Its macro
+  boxes hold text, so a cleared box stays empty and blocks saving instead of snapping to 0. Typed
+  text is keyed by day and meal, since "Give each day its own meals" copies the same meal ids to
+  every day.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

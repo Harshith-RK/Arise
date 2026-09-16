@@ -95,6 +95,8 @@ export type GameState = {
    */
   updateWorkoutPlan(next: Omit<WorkoutPlan, "version" | "createdAt">, version?: number): Promise<Outcome>;
   saveDietPlan(next: Omit<DietPlan, "version" | "createdAt">): Promise<Outcome>;
+  /** Overwrite the newest diet version in place, as updateWorkoutPlan does for training. */
+  updateDietPlan(next: Omit<DietPlan, "version" | "createdAt">): Promise<Outcome>;
   reorderDay(day: DayKey, exerciseIds: string[]): Promise<void>;
 
   /* supplies */
@@ -659,6 +661,28 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
         );
         const { events } = commit({ ...snap, dietPlans: [...snap.dietPlans, plan], dayLogs: logs }, today);
         return { events, notice: { tag: "Plan Updated", text: `Diet plan saved as version ${version}. History kept.`, tone: "neutral" }, undo: null };
+      },
+
+      async updateDietPlan(next) {
+        const snap = get().snapshot;
+        if (!snap) return NONE;
+        const current = latest(snap.dietPlans);
+        // Built field by field, so a plan that has dropped its per-day lists
+        // does not keep the old ones by accident.
+        const plan: DietPlan = { meals: next.meals, days: next.days, version: current.version, createdAt: current.createdAt };
+        if (!plan.days) delete plan.days;
+        await persist(() => repo.saveDietPlan(plan));
+        const swap = (list: DietPlan[], p: DietPlan) => list.map((x) => (x.version === p.version ? p : x));
+        const { events } = commit({ ...snap, dietPlans: swap(snap.dietPlans, plan) }, get().today);
+        return {
+          events,
+          notice: { tag: "Plan Updated", text: `Diet plan version ${current.version} updated.`, tone: "neutral" },
+          undo: async () => {
+            await repo.saveDietPlan(current);
+            const cur = get().snapshot!;
+            commit({ ...cur, dietPlans: swap(cur.dietPlans, current) }, get().today);
+          },
+        };
       },
 
       async reorderDay(day, exerciseIds) {
