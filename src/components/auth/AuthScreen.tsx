@@ -106,6 +106,7 @@ export function AuthScreen() {
               name="password"
               type="password"
               autoComplete={mode === "in" ? "current-password" : "new-password"}
+              reveal
               value={password}
               onChange={setPassword}
               helper={mode === "up" ? "At least six characters." : undefined}

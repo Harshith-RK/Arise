@@ -97,6 +97,9 @@ export const IconPause = make("Pause", "M7 4.5v11M13 4.5v11");
 export const IconPlay = make("Play", "M6 4l9 6-9 6Z");
 export const IconReset = make("Reset", ["M4.5 7.5l3-3h5l3 3v5l-3 3h-5l-3-3v-1.5", "M4.5 3.5v4h4"]);
 export const IconOffline = make("Offline", ["M2.5 7.5 10 3l7.5 4.5", "M5.5 11 10 8.5l4.5 2.5", "M10 15v.5", "M3 3l14 14"]);
+// An aperture rather than an eyeball: the same angular geometry as the panels.
+export const IconReveal = make("Reveal", ["M2 10l4-4h8l4 4-4 4H6Z", "M8 10h4"]);
+export const IconConceal = make("Conceal", ["M2 10l4-4h8l4 4-4 4H6Z", "M8 10h4", "M4 16 16 4"]);
 
 /**
  * Quest completion glyph: filled square with one chamfered corner.

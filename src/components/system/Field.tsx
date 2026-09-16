@@ -1,6 +1,7 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
+import { IconConceal, IconReveal } from "@/components/icons";
 
 /**
  * Form field. Visible label above the control, error text directly beneath
@@ -13,6 +14,7 @@ export function Field({
   error,
   helper,
   suffix,
+  reveal,
   type = "text",
   inputMode,
   step,
@@ -27,6 +29,8 @@ export function Field({
   error?: string | null;
   helper?: string;
   suffix?: string;
+  /** Password only: offer a button that shows what was typed. */
+  reveal?: boolean;
   type?: "text" | "number" | "time" | "email" | "password";
   inputMode?: "text" | "decimal" | "numeric";
   step?: number;
@@ -39,6 +43,8 @@ export function Field({
   const id = useId();
   const errorId = `${id}-error`;
   const helperId = `${id}-helper`;
+  const [shown, setShown] = useState(false);
+  const revealable = reveal && type === "password";
   return (
     <div>
       <label htmlFor={id} className="t-micro block text-frost-2">
@@ -48,7 +54,7 @@ export function Field({
         <input
           id={id}
           name={name}
-          type={type}
+          type={revealable && shown ? "text" : type}
           autoComplete={autoComplete}
           inputMode={inputMode}
           step={step}
@@ -60,6 +66,20 @@ export function Field({
           aria-describedby={error ? errorId : helper ? helperId : undefined}
           className="t-body h-12 w-full bg-ink-2 px-3 text-frost-0 outline-none placeholder:text-frost-2"
         />
+        {revealable ? (
+          <button
+            type="button"
+            onClick={() => setShown((v) => !v)}
+            aria-pressed={shown}
+            // Said in full: the icon alone does not tell a screen reader which
+            // state pressing it leads to.
+            aria-label={shown ? "Hide password" : "Show password"}
+            aria-controls={id}
+            className="pressable flex w-12 shrink-0 items-center justify-center border-l border-line-2 bg-ink-2 text-frost-2 transition-none hov:text-frost-0"
+          >
+            {shown ? <IconConceal size={17} /> : <IconReveal size={17} />}
+          </button>
+        ) : null}
         {suffix ? <span className="t-micro flex items-center border-l border-line-2 bg-ink-2 px-3 text-frost-2">{suffix}</span> : null}
       </div>
       {error ? (
