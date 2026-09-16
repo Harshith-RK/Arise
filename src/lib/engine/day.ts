@@ -1,4 +1,5 @@
 import { dayKeyOf, timeToMinutes } from "./dates";
+import { rotatedVersion, type WorkoutRotation } from "./rotation";
 import type { DayLog, DietPlan, ExerciseDef, Macros, MealDef, Profile, TrainingDay, WorkoutPlan } from "./types";
 import { XP } from "./xp";
 
@@ -7,16 +8,25 @@ import { XP } from "./xp";
    ========================================================================== */
 
 export type PlanLookup = {
-  workout: (version?: number) => WorkoutPlan;
+  /** The version a day was logged under; failing that, what `date` trains on. */
+  workout: (version?: number, date?: string) => WorkoutPlan;
   diet: (version?: number) => DietPlan;
 };
 
-export function makePlanLookup(workoutPlans: WorkoutPlan[], dietPlans: DietPlan[]): PlanLookup {
+export function makePlanLookup(
+  workoutPlans: WorkoutPlan[],
+  dietPlans: DietPlan[],
+  rotation: WorkoutRotation | null = null,
+): PlanLookup {
   const w = [...workoutPlans].sort((a, b) => a.version - b.version);
   const d = [...dietPlans].sort((a, b) => a.version - b.version);
   if (!w.length || !d.length) throw new Error("Plans missing");
+  const byVersion = (v: number) => w.find((p) => p.version === v);
   return {
-    workout: (v) => (v ? w.find((p) => p.version === v) : undefined) ?? w[w.length - 1],
+    workout: (v, date) =>
+      (v ? byVersion(v) : undefined) ??
+      (date ? byVersion(rotatedVersion(w, rotation, date)) : undefined) ??
+      w[w.length - 1],
     diet: (v) => (v ? d.find((p) => p.version === v) : undefined) ?? d[d.length - 1],
   };
 }
@@ -74,7 +84,7 @@ export function evaluateDay(
   plans: PlanLookup,
   profile: Pick<Profile, "restDays">,
 ): DayResult {
-  const wPlan = plans.workout(log?.workoutPlanVersion);
+  const wPlan = plans.workout(log?.workoutPlanVersion, date);
   const dPlan = plans.diet(log?.dietPlanVersion);
   const tday = trainingDayFor(date, wPlan);
   const rest = isRestDay(date, profile);

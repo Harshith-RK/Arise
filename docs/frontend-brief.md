@@ -243,7 +243,8 @@ Routes:
   /app/progress/trophies/[id]  Achievement detail
   /app/system                Hunter profile, preferences, data
   /app/system/targets        Targets, plan builder, the details they are built from
-  /app/system/plan/workout   Workout plan editor
+  /app/system/plan/workout   Workout plan: every version, and the rotation
+  /app/system/plan/workout/[version]  One version open for editing ("new" copies the newest)
   /app/system/plan/diet      Diet plan editor
   /legal/terms, /legal/privacy
   not-found.tsx, error.tsx (per segment), offline fallback page
@@ -694,6 +695,16 @@ Decisions taken while building that a future session should not undo:
 - **PlanReadout leads with three numbers** (intake, protein, weekly change) and hides BMR, TDEE,
   the deficit, the split and the per-muscle set grid behind a `<details>` "FULL BREAKDOWN". The
   same component renders the onboarding plan screen, so the System's first message stays short.
+- **Workout versions are a list, not a single editor.** `/app/system/plan/workout` shows every
+  version saved, which one this week trains, and "Create another version"; editing one is its own
+  page. A version can be corrected in place (reaching days already logged on it) or saved as a new
+  one (leaving them alone), and the copy page only offers the second.
+- **A rotation cycles the versions** (src/lib/engine/rotation.ts): off, every week, or every two
+  weeks, switching on a Monday so a week is never cut in half. It is read off the calendar rather
+  than stored per day, and a day already logged keeps the version it was trained on, so turning
+  rotation on or off never rewrites history. With fewer than two versions there is nothing to
+  rotate and the setting has no effect. Everything that shows "the plan" for a date goes through
+  `activeWorkoutPlan`/`makePlanLookup(..., rotationOf(snap))` rather than taking the newest.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

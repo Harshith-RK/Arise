@@ -3,6 +3,7 @@ import { deriveProgress, type Progress } from "@/lib/engine/derive";
 import { diffProgress, type SystemEvent } from "@/lib/engine/events";
 import { todayKey, weekStart } from "@/lib/engine/dates";
 import { makePlanLookup, mealsFor, trainingDayFor } from "@/lib/engine/day";
+import { activeWorkoutPlan, rotatedVersion, rotationOf } from "@/lib/engine/rotation";
 import type {
   DayKey,
   DayLog,
@@ -89,8 +90,10 @@ export type GameState = {
    * Overwrite the current workout version in place. Unlike saveWorkoutPlan this
    * reaches every day already logged on that version, which is the point when a
    * Hunter is correcting a mistake, and the reason the editor says so.
+   * `version` defaults to the newest, which is the only one there is to edit
+   * until a rotation is running.
    */
-  updateWorkoutPlan(next: Omit<WorkoutPlan, "version" | "createdAt">): Promise<Outcome>;
+  updateWorkoutPlan(next: Omit<WorkoutPlan, "version" | "createdAt">, version?: number): Promise<Outcome>;
   saveDietPlan(next: Omit<DietPlan, "version" | "createdAt">): Promise<Outcome>;
   reorderDay(day: DayKey, exerciseIds: string[]): Promise<void>;
 
@@ -172,7 +175,9 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
     function newLog(date: string, snap: Snapshot): DayLog {
       return {
         date,
-        workoutPlanVersion: latest(snap.workoutPlans).version,
+        // A rotation decides this from the calendar. Once written it stays:
+        // the day is scored against what it was actually trained on.
+        workoutPlanVersion: rotatedVersion(snap.workoutPlans, rotationOf(snap), date),
         dietPlanVersion: latest(snap.dietPlans).version,
         exercises: {},
         meals: {},
@@ -599,23 +604,29 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
         const plan: WorkoutPlan = { ...next, version, createdAt: now().toISOString() };
         await persist(() => repo.saveWorkoutPlan(plan));
         // Today's in-progress log adopts the new version; history keeps its own.
+        // Under a rotation the calendar decides instead, so a new version waits
+        // for its turn rather than jumping the queue.
         const today = get().today;
+        const plans = [...snap.workoutPlans, plan];
+        const rotation = rotationOf({ ...snap, workoutPlans: plans });
         const logs = await Promise.all(
           snap.dayLogs.map(async (l) => {
             if (l.date < today) return l;
-            const moved = { ...l, workoutPlanVersion: version };
+            const to = rotatedVersion(plans, rotation, l.date);
+            if (to === l.workoutPlanVersion) return l;
+            const moved = { ...l, workoutPlanVersion: to };
             await repo.saveDayLog(moved);
             return moved;
           }),
         );
-        const { events } = commit({ ...snap, workoutPlans: [...snap.workoutPlans, plan], dayLogs: logs }, today);
+        const { events } = commit({ ...snap, workoutPlans: plans, dayLogs: logs }, today);
         return { events, notice: { tag: "Plan Updated", text: `Workout plan saved as version ${version}. History kept.`, tone: "neutral" }, undo: null };
       },
 
-      async updateWorkoutPlan(next) {
+      async updateWorkoutPlan(next, version) {
         const snap = get().snapshot;
         if (!snap) return NONE;
-        const current = latest(snap.workoutPlans);
+        const current = (version ? snap.workoutPlans.find((p) => p.version === version) : null) ?? latest(snap.workoutPlans);
         const plan: WorkoutPlan = { ...next, version: current.version, createdAt: current.createdAt };
         await persist(() => repo.saveWorkoutPlan(plan));
         const swap = (list: WorkoutPlan[], p: WorkoutPlan) => list.map((x) => (x.version === p.version ? p : x));
@@ -653,7 +664,9 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
       async reorderDay(day, exerciseIds) {
         const snap = get().snapshot;
         if (!snap) return;
-        const cur = latest(snap.workoutPlans);
+        // The plan on screen is the one this week trains, which under a
+        // rotation is not always the newest.
+        const cur = activeWorkoutPlan(snap, get().today);
         if (cur.days[day].exerciseIds.join() === exerciseIds.join()) return;
         // Reordering is cosmetic; it updates the current version in place.
         const plan: WorkoutPlan = { ...cur, days: { ...cur.days, [day]: { ...cur.days[day], exerciseIds } } };

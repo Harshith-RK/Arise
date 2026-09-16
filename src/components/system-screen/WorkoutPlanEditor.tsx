@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button, PageHeader, Panel, Placeholder } from "@/components/system/primitives";
+import { useRouter } from "next/navigation";
+import { Button, ButtonLink, PageHeader, Panel, Placeholder } from "@/components/system/primitives";
 import { Field } from "@/components/system/Field";
 import { IconClose, IconPlus } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
@@ -17,13 +18,16 @@ const LIMITS: Record<NumberKey, { min: number; max: number; label: string }> = {
 };
 
 /**
- * Two ways to save. Updating the current version corrects it everywhere it is
- * used, including days already logged on it. Saving a new version changes
- * today onward and leaves logged days scored against what they were logged on.
+ * One version of the workout, open for editing. Two ways to save: updating this
+ * version corrects it everywhere it is used, including days already logged on
+ * it; saving a new version leaves those days scored against what they were
+ * logged on. In "copy" mode only the second is offered, because the Hunter came
+ * here from "Create another version" and the version they started from stays.
  */
-export function WorkoutPlanEditor() {
+export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number; mode?: "edit" | "copy" }) {
   const snapshot = useGame((s) => s.snapshot);
   const { actions, dispatch } = useGameActions();
+  const router = useRouter();
   // null means "untouched": the current plan version is shown as-is.
   const [edited, setEdited] = useState<WorkoutPlan | null>(null);
   const [day, setDay] = useState<DayKey>("mon");
@@ -33,7 +37,8 @@ export function WorkoutPlanEditor() {
   // someone replaces the number. Only a valid number reaches the plan.
   const [texts, setTexts] = useState<Record<string, string>>({});
 
-  const current = snapshot?.workoutPlans.reduce((a, b) => (b.version > a.version ? b : a));
+  const newest = snapshot?.workoutPlans.reduce((a, b) => (b.version > a.version ? b : a));
+  const current = (version ? snapshot?.workoutPlans.find((p) => p.version === version) : null) ?? newest;
 
   if (!snapshot || !current) return <Placeholder height={320} />;
 
@@ -106,22 +111,46 @@ export function WorkoutPlanEditor() {
     (["targetSets", "repsMin", "repsMax"] as NumberKey[]).some((k) => numberError(def, k)),
   );
 
-  const save = async (mode: "update" | "new") => {
+  const save = async (how: "update" | "new") => {
     if (invalid || saving) return;
     setSaving(true);
     const body = { days: draft.days, exercises: draft.exercises };
-    dispatch(await (mode === "update" ? actions.updateWorkoutPlan(body) : actions.saveWorkoutPlan(body)));
+    dispatch(await (how === "update" ? actions.updateWorkoutPlan(body, current.version) : actions.saveWorkoutPlan(body)));
     setEdited(null);
     setTexts({});
     setDirty(false);
     setSaving(false);
+    if (how === "new") router.push("/app/system/plan/workout");
   };
+
+  const bar = (
+    <SaveBar
+      version={current.version}
+      nextVersion={newest!.version + 1}
+      copy={mode === "copy"}
+      invalid={invalid}
+      saving={saving}
+      onSave={save}
+    />
+  );
 
   return (
     <>
-      <PageHeader title="Workout plan" meta={<span className="t-micro text-frost-2">EDITING V{current.version}</span>} />
+      <PageHeader
+        title={mode === "copy" ? `New version ${newest!.version + 1}` : `Version ${current.version}`}
+        meta={
+          <span className="t-micro text-frost-2">
+            {mode === "copy" ? `COPIED FROM V${current.version}` : "WORKOUT PLAN"}
+          </span>
+        }
+        action={
+          <ButtonLink href="/app/system/plan/workout" size="sm">
+            All versions
+          </ButtonLink>
+        }
+      />
 
-      {dirty ? <SaveBar version={current.version} invalid={invalid} saving={saving} onSave={save} /> : null}
+      {dirty || mode === "copy" ? bar : null}
 
       <div className="mb-4 grid grid-cols-4 gap-1 min-[400px]:grid-cols-7">
         {(Object.keys(DAY_TITLES) as DayKey[]).map((d) => (
@@ -200,11 +229,7 @@ export function WorkoutPlanEditor() {
         </div>
       </Panel>
 
-      {dirty ? (
-        <div className="mt-4">
-          <SaveBar version={current.version} invalid={invalid} saving={saving} onSave={save} />
-        </div>
-      ) : null}
+      {dirty || mode === "copy" ? <div className="mt-4">{bar}</div> : null}
     </>
   );
 }
@@ -212,38 +237,44 @@ export function WorkoutPlanEditor() {
 /** Both ways to save, and what each one does to days already logged. */
 function SaveBar({
   version,
+  nextVersion,
+  copy,
   invalid,
   saving,
   onSave,
 }: {
   version: number;
+  nextVersion: number;
+  copy: boolean;
   invalid: boolean;
   saving: boolean;
-  onSave: (mode: "update" | "new") => void;
+  onSave: (how: "update" | "new") => void;
 }) {
   return (
-    <Panel title="Unsaved changes" className="mb-4">
+    <Panel title={copy ? "Save as a new version" : "Unsaved changes"} className="mb-4">
       <div className="space-y-4 border-t border-line-1 px-4 py-4">
         {invalid ? (
           <p className="t-micro text-fault" role="alert">
             FIX THE HIGHLIGHTED NUMBERS BEFORE SAVING.
           </p>
         ) : null}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <Button className="w-full" disabled={invalid || saving} onClick={() => onSave("update")}>
-              Update version {version}
-            </Button>
-            <p className="t-micro mt-2 text-frost-2">
-              CORRECTS THIS PLAN EVERYWHERE, INCLUDING DAYS ALREADY LOGGED ON IT. THEIR XP IS RECALCULATED. UNDO IS OFFERED.
-            </p>
-          </div>
+        <div className={`grid gap-3 ${copy ? "" : "sm:grid-cols-2"}`}>
+          {copy ? null : (
+            <div>
+              <Button className="w-full" disabled={invalid || saving} onClick={() => onSave("update")}>
+                Update version {version}
+              </Button>
+              <p className="t-micro mt-2 text-frost-2">
+                CORRECTS THIS PLAN EVERYWHERE, INCLUDING DAYS ALREADY LOGGED ON IT. THEIR XP IS RECALCULATED. UNDO IS OFFERED.
+              </p>
+            </div>
+          )}
           <div>
             <Button variant="primary" className="w-full" disabled={invalid || saving} onClick={() => onSave("new")}>
-              Save as version {version + 1}
+              Save as version {nextVersion}
             </Button>
             <p className="t-micro mt-2 text-frost-2">
-              APPLIES FROM TODAY. DAYS ALREADY LOGGED KEEP VERSION {version} AND THEIR XP.
+              KEPT ALONGSIDE THE OTHERS. DAYS ALREADY LOGGED KEEP THEIR OWN VERSION AND THEIR XP.
             </p>
           </div>
         </div>

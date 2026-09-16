@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/system/primitives";
 import { IconForward, IconGrip } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { DAY_TITLES, dayKeyOf } from "@/lib/engine/dates";
+import { activeWorkoutPlan } from "@/lib/engine/rotation";
 import type { DayKey, ExerciseDef } from "@/lib/engine/types";
 
 /** One training day: its exercises, last weights, and drag to reorder. */
@@ -18,7 +19,7 @@ export function WorkoutDayScreen({ day }: { day: DayKey }) {
   // null means "not reordering": the plan's own order is the source of truth.
   const [dragOrder, setDragOrder] = useState<string[] | null>(null);
 
-  const plan = snapshot?.workoutPlans.reduce((a, b) => (b.version > a.version ? b : a));
+  const plan = snapshot && progress ? activeWorkoutPlan(snapshot, progress.today) : undefined;
   const planDay = plan?.days[day];
 
   if (!snapshot || !progress || !plan) return <Placeholder height={320} />;

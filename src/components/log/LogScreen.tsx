@@ -10,6 +10,7 @@ import { IconForward, IconSupplies } from "@/components/icons";
 import { useGame } from "@/lib/store/GameProvider";
 import { DAY_TITLES, dayKeyOf, formatTime, weekStart, addDays } from "@/lib/engine/dates";
 import { makePlanLookup, mealsFor, planTotals } from "@/lib/engine/day";
+import { activeWorkoutPlan } from "@/lib/engine/rotation";
 import type { DayKey } from "@/lib/engine/types";
 
 export function LogScreen() {
@@ -40,7 +41,7 @@ function WorkoutTab() {
   const progress = useGame((s) => s.progress);
   if (!snapshot || !progress) return <Placeholder height={320} />;
 
-  const plan = snapshot.workoutPlans.reduce((a, b) => (b.version > a.version ? b : a));
+  const plan = activeWorkoutPlan(snapshot, progress.today);
   const todayKeyName = dayKeyOf(progress.today);
   const restDays = snapshot.profile?.restDays ?? [];
   const monday = weekStart(progress.today);

@@ -260,9 +260,10 @@ test.describe("app", () => {
     await expect(page.getByText("Besan chilla and milk v2")).toBeVisible();
   });
 
-  test("workout sets can be cleared and retyped, and a version updated in place or saved as new", async ({ page }) => {
+  test("workout sets can be cleared and retyped, and a version updated in place", async ({ page }) => {
     await page.goto("/app/system/plan/workout");
-    await expect(page.getByText(/EDITING V1/)).toBeVisible();
+    await page.getByRole("link", { name: /Version 1/ }).click();
+    await expect(page.getByRole("heading", { name: "Version 1" })).toBeVisible();
     const sets = page.getByLabel("SETS").first();
 
     // Clearing the box leaves it empty, not snapped back to 1.
@@ -275,14 +276,26 @@ test.describe("app", () => {
     await expect(sets).toHaveValue("6");
     await page.getByRole("button", { name: "Update version 1" }).first().click();
     await expect(page.getByText("[Plan Updated]")).toBeVisible();
-    await expect(page.getByText(/EDITING V1/)).toBeVisible();
     await page.reload();
     await expect(page.getByLabel("SETS").first()).toHaveValue("6");
+  });
 
+  test("a second version can be created and rotated week by week", async ({ page }) => {
+    await page.goto("/app/system/plan/workout");
+    await page.getByRole("link", { name: "Create another version" }).click();
+    await expect(page.getByRole("heading", { name: "New version 2" })).toBeVisible();
     await page.getByLabel("SETS").first().fill("3");
     await page.getByRole("button", { name: "Save as version 2" }).first().click();
-    await expect(page.getByText(/EDITING V2/)).toBeVisible();
-    await expect(page.getByLabel("SETS").first()).toHaveValue("3");
+
+    // Saving comes back to the list, which now holds both.
+    await expect(page.getByRole("link", { name: /Version 1/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Version 2/ })).toBeVisible();
+    await expect(page.getByText(/EVERY DAY TRAINS VERSION 2, THE NEWEST/)).toBeVisible();
+
+    await page.getByRole("button", { name: "Every week" }).click();
+    await expect(page.getByText(/THIS WEEK TRAINS VERSION/)).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Every week" })).toHaveAttribute("aria-pressed", "true");
   });
 
   test("the command palette opens centered and dismisses", async ({ page }) => {

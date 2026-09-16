@@ -1,6 +1,7 @@
 import { dayKeyOf, diffDays, eachDay, weekStart } from "./dates";
 import { evaluateDay, makePlanLookup, type DayResult } from "./day";
 import { round1, setScore } from "./pr";
+import { rotationOf } from "./rotation";
 import { BADGES, type BadgeState } from "./badges";
 import type { DayLog, Rank, Snapshot, WeighIn } from "./types";
 import { isCutting, levelForXp, levelProgress, rankForLevel, shieldXp, weighInDrift, XP } from "./xp";
@@ -83,7 +84,7 @@ function emptyStreak(category: StreakCategory): Streak {
 
 export function deriveProgress(snap: Snapshot, today: string): Progress {
   const profile = snap.profile;
-  const plans = makePlanLookup(snap.workoutPlans, snap.dietPlans);
+  const plans = makePlanLookup(snap.workoutPlans, snap.dietPlans, rotationOf(snap));
   const logsByDate = new Map<string, DayLog>(snap.dayLogs.map((l) => [l.date, l]));
   const arcStart = profile?.arcStart ?? today;
   const start = arcStart <= today ? arcStart : today;

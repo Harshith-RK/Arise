@@ -10,8 +10,9 @@ import { notify } from "@/components/system/notify";
 import { IconExport, IconForward, IconImport, IconReset } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { parseImport, type ImportPreview } from "@/lib/data/repo";
-import { ProfileSchema, type DayKey, type Settings } from "@/lib/engine/types";
+import { ProfileSchema, type DayKey, type Settings, type Snapshot } from "@/lib/engine/types";
 import { DAY_TITLES } from "@/lib/engine/dates";
+import { rotationLabel } from "@/lib/engine/rotation";
 
 export function SystemScreen() {
   const snapshot = useGame((s) => s.snapshot);
@@ -168,7 +169,7 @@ export function SystemScreen() {
       {/* Plans */}
       <Panel title="Plans" className="mb-4">
         <div className="border-t border-line-1">
-          <PlanLink href="/app/system/plan/workout" title="Workout plan" meta={`VERSION ${snapshot.workoutPlans.length}`} />
+          <PlanLink href="/app/system/plan/workout" title="Workout plan" meta={workoutPlanMeta(snapshot)} />
           <PlanLink href="/app/system/plan/diet" title="Diet plan" meta={`VERSION ${snapshot.dietPlans.length}`} />
         </div>
       </Panel>
@@ -300,6 +301,14 @@ function Row({ k, v }: { k: string; v: string }) {
       <dd className="t-micro text-frost-0">{v}</dd>
     </div>
   );
+}
+
+/** One version reads as a version; several read as a rotation, if one is on. */
+function workoutPlanMeta(snapshot: Snapshot): string {
+  const count = snapshot.workoutPlans.length;
+  if (count < 2) return "VERSION 1";
+  const weeks = snapshot.settings.workoutRotationWeeks ?? 0;
+  return `${count} VERSIONS / ${weeks ? rotationLabel(weeks).toUpperCase() : "NO ROTATION"}`;
 }
 
 function PlanLink({ href, title, meta }: { href: string; title: string; meta: string }) {

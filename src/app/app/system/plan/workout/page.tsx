@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { WorkoutPlanEditor } from "@/components/system-screen/WorkoutPlanEditor";
+import { WorkoutPlanVersions } from "@/components/system-screen/WorkoutPlanVersions";
 import { AppTransition } from "@/components/shell/AppTransition";
 
-export const metadata: Metadata = { title: "Workout plan", description: "Edit your split." };
+export const metadata: Metadata = { title: "Workout plan", description: "Your versions, and how they rotate." };
 
 export default function WorkoutPlanPage() {
   return (
     <AppTransition>
-      <WorkoutPlanEditor />
+      <WorkoutPlanVersions />
     </AppTransition>
   );
 }

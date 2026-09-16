@@ -15,6 +15,7 @@ import { IconBack, IconBonus, IconCalendar, IconDumbbell, IconForward, IconMeal,
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { addDays, diffDays, formatReadout } from "@/lib/engine/dates";
 import { evaluateDay, isRestDay, makePlanLookup, mealLocked, mealsFor, trainingDayFor } from "@/lib/engine/day";
+import { activeWorkoutPlan, rotationOf } from "@/lib/engine/rotation";
 import { lastSessionFor, VITALITY_UNLOCK_LEVEL } from "@/lib/engine/derive";
 import { sendHeat } from "@/lib/heat-transfer";
 import { xpGained } from "@/lib/store/apply-outcome";
@@ -48,9 +49,9 @@ export function QuestScreen({ date }: { date: string }) {
 
   const view = useMemo(() => {
     if (!snapshot || !progress) return null;
-    const plans = makePlanLookup(snapshot.workoutPlans, snapshot.dietPlans);
+    const plans = makePlanLookup(snapshot.workoutPlans, snapshot.dietPlans, rotationOf(snapshot));
     const log = snapshot.dayLogs.find((l) => l.date === date);
-    const wPlan = plans.workout(log?.workoutPlanVersion);
+    const wPlan = plans.workout(log?.workoutPlanVersion, date);
     const dPlan = plans.diet(log?.dietPlanVersion);
     const profile = snapshot.profile ?? { restDays: ["sat", "sun"] as const };
     const result = evaluateDay(date, log, plans, profile);
@@ -88,8 +89,7 @@ export function QuestScreen({ date }: { date: string }) {
       const exerciseName = (id: string) => {
         const snap = snapshot;
         if (!snap) return "Exercise";
-        const plan = snap.workoutPlans.reduce((a, b) => (b.version > a.version ? b : a));
-        return plan.exercises[id]?.variants[0].name ?? "Exercise";
+        return activeWorkoutPlan(snap, date).exercises[id]?.variants[0].name ?? "Exercise";
       };
       dispatch(outcome, { exerciseName });
       const gained = xpGained(outcome);
@@ -104,7 +104,7 @@ export function QuestScreen({ date }: { date: string }) {
       }
       return outcome;
     },
-    [dispatch, snapshot],
+    [dispatch, snapshot, date],
   );
 
   /* Keyboard: J/K move between quests, Space clears (native button), E opens

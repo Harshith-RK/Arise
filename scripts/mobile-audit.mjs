@@ -198,7 +198,8 @@ for (const width of WIDTHS) {
       ["/app/progress/badges/first-gate", "badge detail"],
       ["/app/system", "system"],
       ["/app/system/targets", "targets"],
-      ["/app/system/plan/workout", "workout editor"],
+      ["/app/system/plan/workout", "workout versions"],
+      ["/app/system/plan/workout/1", "workout editor"],
       ["/app/system/plan/diet", "diet editor"],
     ]) {
       await page.goto(`${BASE}${path}`);

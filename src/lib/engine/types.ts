@@ -193,6 +193,12 @@ export const SettingsSchema = z.object({
   sound: z.boolean(),
   haptics: z.boolean(),
   restSeconds: z.number().int().min(15).max(600),
+  /**
+   * Weeks each workout version holds for before the next one takes over. 0 is
+   * off, which is what a missing value means: every arc made before rotating
+   * existed trains the newest version and nothing else.
+   */
+  workoutRotationWeeks: z.number().int().min(0).max(2).optional(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
