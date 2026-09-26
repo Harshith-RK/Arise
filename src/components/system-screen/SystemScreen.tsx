@@ -53,8 +53,6 @@ export function SystemScreen() {
     <>
       <PageHeader title="System" meta={<span className="t-micro text-frost-2">V1.0</span>} />
 
-      <AccountPanel className="mb-4" />
-
       {/* Hunter profile */}
       <Panel title="Hunter" className="mb-4">
         <div className="grid gap-3 border-t border-line-1 px-4 py-4 sm:grid-cols-2">
@@ -277,7 +275,7 @@ export function SystemScreen() {
         </div>
       </Panel>
 
-      <Panel title="About">
+      <Panel title="About" className="mb-4">
         <div className="border-t border-line-1 px-4 py-4">
           <StorageNote />
           <div className="mt-3 flex gap-4">
@@ -290,6 +288,10 @@ export function SystemScreen() {
           </div>
         </div>
       </Panel>
+
+      {/* The account sits last: it is the least used part of this screen, and
+          signing out should not be the first thing a thumb reaches. */}
+      <AccountPanel />
     </>
   );
 }
