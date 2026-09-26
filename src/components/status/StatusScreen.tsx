@@ -12,6 +12,7 @@ import { StreakCalendar } from "./StreakCalendar";
 import { IconLock, IconScale } from "@/components/icons";
 import { useGame } from "@/lib/store/GameProvider";
 import { RANK_TITLES, rankForLevel, xpForLevel } from "@/lib/engine/xp";
+import { formatDaysIn } from "@/lib/engine/dates";
 import { tdeeFor } from "@/lib/plan/rules";
 import { trainingDays } from "@/lib/plan/from-profile";
 import type { StatKey, StreakCategory } from "@/lib/engine/derive";
@@ -66,10 +67,7 @@ export function StatusScreen() {
             <p className="t-micro mt-1 text-frost-2">
               RANK {progress.rank} / {RANK_TITLES[progress.rank].toUpperCase()}
             </p>
-            <p className="t-micro mt-0.5 text-frost-2">
-              ARC DAY {progress.arcDay}
-              {profile.arcLength ? ` OF ${profile.arcLength}` : null}
-            </p>
+            <p className="t-micro mt-0.5 text-frost-2">{formatDaysIn(progress.arcDay)}</p>
           </div>
           <div className="shrink-0 text-right">
             <p className="t-num text-ember" style={{ fontSize: 40, lineHeight: 1 }}>

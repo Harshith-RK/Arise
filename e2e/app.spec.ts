@@ -219,7 +219,7 @@ test.describe("app", () => {
     // That backup carried forty days and a level well past 5. Setting up again
     // starts the arc today, so none of it carries over.
     await awaken(page);
-    await expect(page.getByText(/ARC DAY 1\b/).first()).toBeVisible();
+    await expect(page.getByText(/\b1 DAY IN\b/).first()).toBeVisible();
     await expect(page.getByText(/^LVL 1$/).first()).toBeVisible();
   });
 

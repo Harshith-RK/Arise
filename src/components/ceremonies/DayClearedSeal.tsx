@@ -38,7 +38,7 @@ export function DayClearedSeal({ arcDay, dayXp, onDone }: { arcDay: number; dayX
       >
         <IconSeal size={22} className="text-brass" />
         <div>
-          <p className="t-readout text-brass">ARC DAY {arcDay} CLEARED</p>
+          <p className="t-readout text-brass">DAY {arcDay} CLEARED</p>
           <p className="t-micro mt-0.5 text-frost-2">+{dayXp} XP</p>
         </div>
       </m.div>

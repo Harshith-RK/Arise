@@ -67,6 +67,14 @@ export function formatReadout(key: string): string {
   return `${DAYS_SHORT[d.getDay()]} ${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]}`;
 }
 
+/**
+ * How far into the arc a day is, as words: "12 DAYS IN". The arc has no fixed
+ * length, so the count never reads against a total.
+ */
+export function formatDaysIn(day: number): string {
+  return `${day} DAY${day === 1 ? "" : "S"} IN`;
+}
+
 export function formatShort(key: string): string {
   const d = fromKey(key);
   return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]}`;

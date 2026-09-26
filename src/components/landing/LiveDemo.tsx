@@ -13,6 +13,7 @@ import { SystemToaster } from "@/components/system/SystemToaster";
 import { demoSnapshot } from "./demo-seed";
 import { useGame as useGameState } from "@/lib/store/GameProvider";
 import { makePlanLookup, mealsFor, trainingDayFor } from "@/lib/engine/day";
+import { formatDaysIn } from "@/lib/engine/dates";
 import { lastSessionFor } from "@/lib/engine/derive";
 import { sendHeat } from "@/lib/heat-transfer";
 import { xpGained } from "@/lib/store/apply-outcome";
@@ -73,7 +74,7 @@ function DemoBody() {
         <div>
           <p className="t-readout text-frost-0">{tday.exerciseIds.length ? `${tday.title} day` : "Rest day"}</p>
           <p className="t-micro mt-0.5 text-frost-2">
-            ARC DAY {progress.arcDay} / {result?.xp ?? 0} XP TODAY
+            {formatDaysIn(progress.arcDay)} / {result?.xp ?? 0} XP TODAY
           </p>
         </div>
         <div className="flex border border-line-2" role="group" aria-label="Demo section">

@@ -13,7 +13,7 @@ import { RestTimer } from "./RestTimer";
 import { RecoveryRow } from "./RecoveryRow";
 import { IconBack, IconBonus, IconCalendar, IconDumbbell, IconForward, IconMeal, IconSleep } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
-import { addDays, diffDays, formatReadout } from "@/lib/engine/dates";
+import { addDays, diffDays, formatDaysIn, formatReadout } from "@/lib/engine/dates";
 import { evaluateDay, isRestDay, makePlanLookup, mealLocked, mealsFor, trainingDayFor } from "@/lib/engine/day";
 import { activeWorkoutPlan, rotationOf } from "@/lib/engine/rotation";
 import { lastSessionFor, VITALITY_UNLOCK_LEVEL } from "@/lib/engine/derive";
@@ -148,7 +148,6 @@ export function QuestScreen({ date }: { date: string }) {
 
   const { result, meals, exercises, rest, trainingDay, log } = view;
   const arcDay = snapshot.profile ? Math.max(1, 1 + daysBetween(snapshot.profile.arcStart, date)) : 1;
-  const arcLength = snapshot.profile?.arcLength ?? null;
 
   return (
     <>
@@ -159,8 +158,7 @@ export function QuestScreen({ date }: { date: string }) {
           <div className="min-w-0">
             <h1 className="t-display-2 text-frost-0">{rest ? "Rest day" : `${trainingDay.title} day`}</h1>
             <p className="t-micro mt-1.5 text-frost-2">
-              {formatReadout(date).toUpperCase()} / ARC DAY {arcDay}
-              {arcLength ? ` OF ${arcLength}` : null}
+              {formatReadout(date).toUpperCase()} / {formatDaysIn(arcDay)}
             </p>
           </div>
           <div className="shrink-0 text-right">

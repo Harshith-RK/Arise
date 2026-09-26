@@ -89,7 +89,7 @@ export function rankForLevel(level: number): Rank {
 }
 
 export const RANK_TITLES: Record<Rank, string> = {
-  E: "Frozen",
+  E: "Awakened",
   D: "Kindled",
   C: "Burning",
   B: "Forged",
