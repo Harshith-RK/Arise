@@ -17,7 +17,13 @@ import type { Progress } from "@/lib/engine/derive";
 // Rare surfaces: kept out of the first load so the quest screen paints fast.
 const CeremonyHost = dynamic(() => import("@/components/ceremonies/CeremonyHost").then((m) => m.CeremonyHost), { ssr: false });
 const CommandPalette = dynamic(() => import("./CommandPalette").then((m) => m.CommandPalette), { ssr: false });
-const BootSequence = dynamic(() => import("@/components/awaken/BootSequence").then((m) => m.BootSequence), { ssr: false });
+// The sequence is a rare surface, so it is fetched on demand. Its ground is
+// painted the moment it is asked for, or the app would show through for as
+// long as the chunk takes to arrive, which is the flash this replaced.
+const BootSequence = dynamic(() => import("@/components/awaken/BootSequence").then((m) => m.BootSequence), {
+  ssr: false,
+  loading: () => <div className="fixed inset-0 z-[70] bg-ink-0" aria-hidden />,
+});
 
 /**
  * The /app shell. data-scope="app" is what makes rank temperature apply:
@@ -54,9 +60,20 @@ function Gate({ children }: { children: ReactNode }) {
     () => false,
   );
   const [welcomed, setWelcomed] = useState(false);
-  // Only a Hunter who has set up is welcomed back. A new one is already on
-  // their way to onboarding, which has its own sequence.
-  const showWelcome = welcomeRequested && !welcomed && status === "ready" && !!progress;
+  const [bootPlayed, setBootPlayed] = useState(false);
+  // The sequence covers the wait rather than following it: it starts on the
+  // first paint after sign-in and the arc loads behind it, so there is no
+  // flash of a half-built screen before the System speaks. A Hunter on their
+  // way to onboarding is not welcomed back; that flow has its own sequence.
+  const showWelcome = welcomeRequested && !welcomed && status !== "onboarding";
+
+  // The marker only comes off once the arc is really here, so the sequence
+  // never hands over to a skeleton.
+  useEffect(() => {
+    if (!bootPlayed || welcomed || status !== "ready") return;
+    setWelcomed(true);
+    router.replace(withoutWelcome(pathname ?? "/app/quest", window.location.search), { scroll: false });
+  }, [bootPlayed, welcomed, status, router, pathname]);
 
   useEffect(() => {
     if (status === "onboarding") router.replace("/awaken");
@@ -88,15 +105,7 @@ function Gate({ children }: { children: ReactNode }) {
       <SystemToaster />
       <RolloverWatcher />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
-      {showWelcome ? (
-        <BootSequence
-          lines={welcomeLines(name, progress)}
-          onDone={() => {
-            setWelcomed(true);
-            router.replace(withoutWelcome(pathname ?? "/app/quest", window.location.search), { scroll: false });
-          }}
-        />
-      ) : null}
+      {showWelcome ? <BootSequence lines={welcomeLines(name, progress)} onDone={() => setBootPlayed(true)} /> : null}
     </>
   );
 }
@@ -104,7 +113,10 @@ function Gate({ children }: { children: ReactNode }) {
 const noSubscription = () => () => {};
 
 /** What the System says to a returning Hunter: who they are and where they stand. */
-function welcomeLines(name: string | null, progress: Progress): string[] {
+function welcomeLines(name: string | null, progress: Progress | null): string[] {
+  // Three lines from the first frame, whether or not the arc has loaded yet:
+  // the panel reserves a slot per line, and each is written as it plays.
+  if (!progress) return ["SYSTEM RECONNECTED", name ? `WELCOME BACK, ${name.toUpperCase()}` : "WELCOME BACK, HUNTER", "READING YOUR ARC"];
   const streak = Math.max(0, ...Object.values(progress.streaks).map((s) => (s.state === "broken" ? 0 : s.count)));
   const standing =
     streak > 0

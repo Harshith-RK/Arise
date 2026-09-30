@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap, registerGsap } from "@/lib/gsap";
 import { motionReduced } from "@/lib/motion";
@@ -26,6 +26,12 @@ export function BootSequence({
   const shown = (lines?.length ? lines : ["SYSTEM INITIALIZING", selected]).slice(0, 3);
   const root = useRef<HTMLDivElement>(null);
   const finished = useRef(false);
+  // Each line is written at the moment it plays, not when the sequence starts,
+  // so a line that is still loading when the panel opens can arrive during it.
+  const latest = useRef(shown);
+  useEffect(() => {
+    latest.current = shown;
+  });
 
   const finish = () => {
     if (finished.current) return;
@@ -41,7 +47,7 @@ export function BootSequence({
         // No scramble and no split, but the words still have to be read.
         q("[data-boot-panel]").forEach((el) => ((el as HTMLElement).style.opacity = "1"));
         q("[data-line]").forEach((el, i) => {
-          (el as HTMLElement).textContent = shown[i] ?? "";
+          (el as HTMLElement).textContent = latest.current[i] ?? "";
           (el as HTMLElement).style.opacity = "1";
         });
         const t = window.setTimeout(finish, 900 + shown.length * 500);
@@ -57,7 +63,13 @@ export function BootSequence({
         .fromTo(q("[data-tick]"), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.18, stagger: 0.04 }, 0.95);
       q("[data-line]").forEach((el, i) => {
         const at = 1.1 + i * 0.75;
-        tl.set(el, { opacity: 1 }, at).to(el, { duration: 0.55, scrambleText: { text: shown[i] ?? "", chars: "01_/\\", speed: 0.8 } }, at);
+        tl.set(el, { opacity: 1 }, at).call(
+          () => {
+            gsap.to(el, { duration: 0.55, scrambleText: { text: latest.current[i] ?? "", chars: "01_/\\", speed: 0.8 } });
+          },
+          [],
+          at,
+        );
       });
       tl.to({}, { duration: 0.6 });
 

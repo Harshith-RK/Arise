@@ -226,10 +226,14 @@ test.describe("app", () => {
   test("a returning Hunter is welcomed back once per sign-in, not on reload", async ({ page }) => {
     // Sign-in adds the marker; the local-only suite cannot sign in, so it arrives the same way.
     await page.goto("/app/quest?welcome=1");
-    const welcome = page.getByRole("status", { name: /SYSTEM RECONNECTED\. WELCOME BACK, TEST HUNTER\. /i });
+    // The sequence starts before the arc has loaded and names the Hunter once
+    // it has, so the spoken label is awaited rather than assumed.
+    // What the panel says is asserted through its label rather than the letters
+    // on screen: those are mid-scramble, and the sequence can finish first.
+    const welcome = page.getByRole("status", { name: /WELCOME BACK/i });
     await expect(welcome).toBeAttached();
-    await expect(page.getByText("SYSTEM RECONNECTED")).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText(/LEVEL \d+ \/ RANK [A-Z]/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("status", { name: /WELCOME BACK, TEST HUNTER/i })).toBeAttached({ timeout: 8000 });
+    await expect(page.getByRole("status", { name: /LEVEL \d+ \/ RANK [A-Z]/i })).toBeAttached({ timeout: 8000 });
 
     await page.mouse.click(180, 200);
     await expect(welcome).toHaveCount(0);

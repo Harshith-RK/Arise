@@ -744,6 +744,14 @@ Decisions taken while building that a future session should not undo:
   and a line naming two foods is never read as one, because that would count one and drop the
   other. A phrase is matched as written before preparation words are stripped, so "roasted chana"
   stays its own food. Generated plans still round-trip to the calorie.
+- **The welcome back covers the wait, it does not follow it.** The sequence mounts on the first
+  paint after sign-in and the arc loads behind it; each line is written by GSAP at the moment it
+  plays, reading the latest text, so the Hunter's name and standing arrive mid-animation. Three
+  line slots are reserved from the start, since the panel cannot grow one later. The component is
+  loaded on demand, so its `loading` state paints the ground immediately: without that the app
+  shows through for as long as the chunk takes, which is the flash this replaced. The welcome
+  marker only comes off the address once the arc is ready, so the sequence never hands over to a
+  skeleton.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 
