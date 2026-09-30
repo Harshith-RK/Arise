@@ -14,11 +14,17 @@ import { motionReduced } from "@/lib/motion";
 export function BootSequence({
   name,
   lines,
+  ready = true,
   onDone,
 }: {
   name?: string;
   /** Replaces the awakening lines, e.g. for a returning Hunter. Up to three. */
   lines?: string[];
+  /**
+   * Whether what comes after this is ready to be shown. False holds the panel
+   * up after the animation ends, so it never hands over to a half-built screen.
+   */
+  ready?: boolean;
   onDone: () => void;
 }) {
   // It can only say who was chosen because it now runs after they said so.
@@ -33,11 +39,22 @@ export function BootSequence({
     latest.current = shown;
   });
 
+  const played = useRef(false);
+  const readyRef = useRef(ready);
+
   const finish = () => {
     if (finished.current) return;
+    played.current = true;
+    if (!readyRef.current) return;
     finished.current = true;
     onDone();
   };
+
+  // Held over: the animation is done but the screen behind it is not.
+  useEffect(() => {
+    readyRef.current = ready;
+    if (ready && played.current) finish();
+  });
 
   useGSAP(
     () => {

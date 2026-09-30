@@ -60,20 +60,11 @@ function Gate({ children }: { children: ReactNode }) {
     () => false,
   );
   const [welcomed, setWelcomed] = useState(false);
-  const [bootPlayed, setBootPlayed] = useState(false);
   // The sequence covers the wait rather than following it: it starts on the
   // first paint after sign-in and the arc loads behind it, so there is no
   // flash of a half-built screen before the System speaks. A Hunter on their
   // way to onboarding is not welcomed back; that flow has its own sequence.
   const showWelcome = welcomeRequested && !welcomed && status !== "onboarding";
-
-  // The marker only comes off once the arc is really here, so the sequence
-  // never hands over to a skeleton.
-  useEffect(() => {
-    if (!bootPlayed || welcomed || status !== "ready") return;
-    setWelcomed(true);
-    router.replace(withoutWelcome(pathname ?? "/app/quest", window.location.search), { scroll: false });
-  }, [bootPlayed, welcomed, status, router, pathname]);
 
   useEffect(() => {
     if (status === "onboarding") router.replace("/awaken");
@@ -105,7 +96,18 @@ function Gate({ children }: { children: ReactNode }) {
       <SystemToaster />
       <RolloverWatcher />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
-      {showWelcome ? <BootSequence lines={welcomeLines(name, progress)} onDone={() => setBootPlayed(true)} /> : null}
+      {showWelcome ? (
+        <BootSequence
+          lines={welcomeLines(name, progress)}
+          // The panel holds until the arc is here, so the marker only comes off
+          // the address when there is a real screen to hand over to.
+          ready={status === "ready"}
+          onDone={() => {
+            setWelcomed(true);
+            router.replace(withoutWelcome(pathname ?? "/app/quest", window.location.search), { scroll: false });
+          }}
+        />
+      ) : null}
     </>
   );
 }
