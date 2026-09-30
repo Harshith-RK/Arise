@@ -53,3 +53,24 @@ test("a cleared macro box stays empty, and the diet plan can be updated in place
   await page.reload();
   await expect(page.locator("li").filter({ has: page.getByLabel("ITEMS") }).first().getByLabel(`${name} calories`)).toHaveValue("612");
 });
+
+test("a meal written the way people talk counts itself", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await awaken(page);
+  await page.goto("/app/system/plan/diet");
+
+  const meal = page.locator("li").filter({ has: page.getByLabel("ITEMS") }).first();
+  const name = await meal.getByLabel("NAME").inputValue();
+  const kcal = meal.getByLabel(`${name} calories`);
+
+  await meal.getByLabel("ITEMS").fill("2 chapati, 1 katori dal, 1 cup curd");
+  await expect(meal.getByText("COUNTED FROM THE ITEMS ABOVE.")).toBeVisible();
+  await expect(kcal).not.toHaveValue("0");
+  const counted = Number(await kcal.inputValue());
+  expect(counted).toBeGreaterThan(400);
+  await page.screenshot({ path: "screenshots/mobile/diet-counted-words.png" });
+
+  // A known food with no amount asks for one instead of counting it as nothing.
+  await meal.getByLabel("ITEMS").fill("paneer");
+  await expect(meal.getByText(/HOW MUCH PANEER\?/)).toBeVisible();
+});

@@ -67,6 +67,53 @@ describe("counting a meal from its items", () => {
     expect(meal.macros.kcal).toBe(Math.round(paneer.kcal + roti.kcal));
   });
 
+  it("reads the measures a kitchen actually uses", () => {
+    // A katori of dal is not one gram of dal. Each of these used to count as
+    // the number alone, which quietly shrank the day.
+    expect(countItem("1 katori dal").amount).toBe(150);
+    expect(countItem("1 bowl dal").amount).toBe(200);
+    expect(countItem("1 glass milk").amount).toBe(250);
+    expect(countItem("2 spoon peanut butter").amount).toBe(30);
+    expect(countItem("whey scoop").amount).toBe(30);
+    expect(countItem("handful almonds").amount).toBe(25);
+    expect(countItem("2 slices bread").amount).toBe(2); // a piece food counts in pieces
+    expect(countItem("half katori dal").amount).toBe(75);
+    expect(countItem("1/2 cup curd").amount).toBe(100);
+  });
+
+  it("knows the names people type, not only the library's", () => {
+    expect(countItem("2 chapati").food?.id).toBe("roti");
+    expect(countItem("1 katori chawal").food?.id).toBe("rice");
+    expect(countItem("dahi 100g").food?.id).toBe("curd");
+    expect(countItem("3 anda").food?.id).toBe("egg");
+    expect(countItem("aloo sabzi 1 katori").food?.id).toBe("potato");
+    expect(countItem("paneer bhurji 150g").food?.id).toBe("paneer");
+    // A preparation word that belongs to the food's own name is not stripped.
+    expect(countItem("roasted chana 30g").food?.id).toBe("roasted-chana");
+    expect(countItem("chana 30g").food?.id).toBe("chana");
+  });
+
+  it("adds up two foods written on one line", () => {
+    const line = countItem("oats 50g with milk 200ml");
+    expect(line.problem).toBeNull();
+    expect(line.macros.kcal).toBe(countItem("oats 50g").macros.kcal + countItem("milk 200ml").macros.kcal);
+  });
+
+  it("does not let a dish's own name be split at its joining word", () => {
+    // The generator writes lines like this, and they name one food.
+    const line = countItem("Cucumber, tomato and onion salad 80g");
+    expect(line.food?.id).toBe("salad");
+    expect(line.problem).toBeNull();
+  });
+
+  it("asks for an amount rather than counting one of two foods", () => {
+    // Counting the idli and dropping the sambar would understate the meal, so
+    // the line says what it needs instead.
+    const meal = countItems(["2 idli with sambar"]);
+    expect(meal.macros.kcal).toBe(0);
+    expect(meal.needAmount).toEqual(["2 idli with sambar"]);
+  });
+
   it("counts every item the plan generator writes, to the calorie", () => {
     // A generated plan has to read back, or it would look uncountable the
     // moment it is opened in the editor, and the numbers have to agree: the

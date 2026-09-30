@@ -735,6 +735,15 @@ Decisions taken while building that a future session should not undo:
   bar (mark alone, linking to today) and the desktop rail. The name is set in Boldonse
   (`--font-brand`, utility `t-brand`), which nothing else uses. Brand links still need a 44px hit
   area: a 22px mark inside a bare link fails the tap-target audit.
+- **A meal counts itself from ordinary words** (src/lib/plan/count-items.ts with
+  src/lib/plan/servings.ts). "2 chapati, 1 katori dal, 1 cup curd" resolves through household
+  measures (katori, bowl, cup, glass, spoon, tsp, scoop, slice, handful, plate, half and 1/2),
+  the names people actually type (chapati, dahi, anda, chawal, aloo sabzi, paneer bhurji), and
+  two foods joined on one line. Three rules keep it honest: an unknown food is named, never
+  counted as zero; a known food with no amount asks for one rather than being taken as a gram;
+  and a line naming two foods is never read as one, because that would count one and drop the
+  other. A phrase is matched as written before preparation words are stripped, so "roasted chana"
+  stays its own food. Generated plans still round-trip to the calorie.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

@@ -74,8 +74,11 @@ function MealMacros({
               USE THAT
             </button>
           </>
+        ) : counted.needAmount.length === counted.uncounted.length ? (
+          // Known food, unsaid quantity. Saying how to write it is the fix.
+          `HOW MUCH ${counted.needAmount.join(", ").toUpperCase()}? TRY 100G, 1 KATORI, 1 CUP OR X2.`
         ) : (
-          `NOT IN THE FOOD LIST: ${counted.uncounted.join(", ").toUpperCase()}. TYPE THIS MEAL'S NUMBERS YOURSELF.`
+          `NOT IN THE FOOD LIST: ${counted.uncounted.filter((t) => !counted.needAmount.includes(t)).join(", ").toUpperCase()}. TYPE THIS MEAL'S NUMBERS YOURSELF.`
         )}
       </p>
     </div>
@@ -259,7 +262,7 @@ export function DietPlanEditor() {
                     label="ITEMS"
                     value={meal.items.join(", ")}
                     onChange={(v) => setItems(meal, v)}
-                    helper="Separate items with a comma, and give each an amount: Paneer 100g, Roti x2."
+                    helper="Separate items with a comma, and give each an amount: Paneer 100g, 2 chapati, 1 katori dal."
                   />
                   <MealMacros
                     meal={meal}
