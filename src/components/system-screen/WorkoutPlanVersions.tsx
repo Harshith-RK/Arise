@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { ButtonLink, PageHeader, Panel, Placeholder } from "@/components/system/primitives";
-import { IconForward, IconPlus } from "@/components/icons";
+import { IconForward, IconPlus, IconTrash } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
+import { canDeleteVersion } from "@/lib/engine/plan-versions";
 import { DAY_TITLES, formatShort } from "@/lib/engine/dates";
 import { nextRotationChange, ROTATION_CHOICES, rotatedVersion, rotationLabel, rotationOf } from "@/lib/engine/rotation";
 import type { DayKey, WorkoutPlan } from "@/lib/engine/types";
@@ -16,7 +18,9 @@ import type { DayKey, WorkoutPlan } from "@/lib/engine/types";
 export function WorkoutPlanVersions() {
   const snapshot = useGame((s) => s.snapshot);
   const today = useGame((s) => s.today);
-  const { actions } = useGameActions();
+  const { actions, dispatch } = useGameActions();
+  // A delete asks twice: the first tap arms the row, the second carries it out.
+  const [armed, setArmed] = useState<number | null>(null);
 
   if (!snapshot) return <Placeholder height={320} />;
 
@@ -37,7 +41,19 @@ export function WorkoutPlanVersions() {
       <Panel title="Versions" className="mb-4">
         <div className="border-t border-line-1">
           {plans.map((p) => (
-            <VersionRow key={p.version} plan={p} active={p.version === activeVersion} rotating={!!rotation} />
+            <VersionRow
+              key={p.version}
+              plan={p}
+              active={p.version === activeVersion}
+              rotating={!!rotation}
+              blocked={canDeleteVersion(snapshot, "workout", p.version, today)}
+              armed={armed === p.version}
+              onArm={() => setArmed(armed === p.version ? null : p.version)}
+              onDelete={async () => {
+                setArmed(null);
+                dispatch(await actions.deleteWorkoutPlan(p.version));
+              }}
+            />
           ))}
         </div>
         <div className="border-t border-line-1 p-3">
@@ -92,26 +108,63 @@ export function WorkoutPlanVersions() {
   );
 }
 
-function VersionRow({ plan, active, rotating }: { plan: WorkoutPlan; active: boolean; rotating: boolean }) {
+function VersionRow({
+  plan,
+  active,
+  rotating,
+  blocked,
+  armed,
+  onArm,
+  onDelete,
+}: {
+  plan: WorkoutPlan;
+  active: boolean;
+  rotating: boolean;
+  blocked: ReturnType<typeof canDeleteVersion>;
+  armed: boolean;
+  onArm: () => void;
+  onDelete: () => void;
+}) {
   const trainingDays = (Object.keys(DAY_TITLES) as DayKey[]).filter((d) => (plan.days[d]?.exerciseIds.length ?? 0) > 0);
   const titles = trainingDays.map((d) => plan.days[d]!.title);
 
   return (
-    <Link
-      href={`/app/system/plan/workout/${plan.version}`}
-      className="pressable row-rule flex items-center gap-3 px-4 py-4 transition-none hov:bg-ink-2"
-    >
-      <span className="min-w-0 flex-1">
-        <span className="t-body block text-frost-0">
-          Version {plan.version}
-          {active ? <span className="t-micro ml-2 text-ember">{rotating ? "THIS WEEK" : "IN USE"}</span> : null}
-        </span>
-        <span className="t-micro mt-0.5 block text-frost-2">
-          {trainingDays.length} TRAINING DAY{trainingDays.length === 1 ? "" : "S"}
-          {titles.length ? ` / ${titles.join(", ").toUpperCase()}` : ""}
-        </span>
-      </span>
-      <IconForward size={16} className="text-frost-2" />
-    </Link>
+    <div className="row-rule">
+      <div className="flex items-center">
+        <Link
+          href={`/app/system/plan/workout/${plan.version}`}
+          className="pressable flex min-w-0 flex-1 items-center gap-3 px-4 py-4 transition-none hov:bg-ink-2"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="t-body block text-frost-0">
+              Version {plan.version}
+              {active ? <span className="t-micro ml-2 text-ember">{rotating ? "THIS WEEK" : "IN USE"}</span> : null}
+            </span>
+            <span className="t-micro mt-0.5 block text-frost-2">
+              {trainingDays.length} TRAINING DAY{trainingDays.length === 1 ? "" : "S"}
+              {titles.length ? ` / ${titles.join(", ").toUpperCase()}` : ""}
+            </span>
+          </span>
+          <IconForward size={16} className="text-frost-2" />
+        </Link>
+        <button
+          type="button"
+          onClick={armed ? onDelete : onArm}
+          disabled={!blocked.ok}
+          className="pressable flex h-14 w-12 shrink-0 items-center justify-center text-frost-2 transition-none disabled:opacity-35 hov:text-fault aria-pressed:text-fault"
+          aria-pressed={armed}
+          aria-label={armed ? `Delete version ${plan.version}, tap again to confirm` : `Delete version ${plan.version}`}
+        >
+          <IconTrash size={16} />
+        </button>
+      </div>
+      {armed ? (
+        <p className="t-micro px-4 pb-3 text-fault" role="alert">
+          TAP THE BIN AGAIN TO DELETE VERSION {plan.version}. UNDO IS OFFERED.
+        </p>
+      ) : !blocked.ok && blocked.why === "logged" ? (
+        <p className="t-micro px-4 pb-3 text-frost-2">{blocked.reason.toUpperCase()}</p>
+      ) : null}
+    </div>
   );
 }

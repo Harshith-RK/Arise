@@ -103,7 +103,9 @@ export function createSupabaseRepo(db: SupabaseClient, userId: string): Reposito
     deleteWeighIn: (date: string) => remove("weigh_ins", { date }),
 
     saveWorkoutPlan: (p: WorkoutPlan) => upsert("workout_plans", { version: p.version, payload: p }),
+    deleteWorkoutPlan: (version: number) => remove("workout_plans", { version }),
     saveDietPlan: (p: DietPlan) => upsert("diet_plans", { version: p.version, payload: p }),
+    deleteDietPlan: (version: number) => remove("diet_plans", { version }),
 
     async replaceAll(s: Snapshot) {
       await this.clear();

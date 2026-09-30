@@ -83,8 +83,14 @@ export function createDexieRepo(name = "winter-arc"): Repository {
     saveWorkoutPlan: async (p) => {
       await db.workoutPlans.put(p);
     },
+    deleteWorkoutPlan: async (version) => {
+      await db.workoutPlans.delete(version);
+    },
     saveDietPlan: async (p) => {
       await db.dietPlans.put(p);
+    },
+    deleteDietPlan: async (version) => {
+      await db.dietPlans.delete(version);
     },
 
     async replaceAll(s: Snapshot) {

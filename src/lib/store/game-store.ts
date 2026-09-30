@@ -4,6 +4,7 @@ import { diffProgress, type SystemEvent } from "@/lib/engine/events";
 import { todayKey, weekStart } from "@/lib/engine/dates";
 import { makePlanLookup, mealsFor, trainingDayFor } from "@/lib/engine/day";
 import { activeWorkoutPlan, rotatedVersion, rotationOf } from "@/lib/engine/rotation";
+import { canDeleteVersion } from "@/lib/engine/plan-versions";
 import type {
   DayKey,
   DayLog,
@@ -95,6 +96,12 @@ export type GameState = {
    */
   updateWorkoutPlan(next: Omit<WorkoutPlan, "version" | "createdAt">, version?: number): Promise<Outcome>;
   saveDietPlan(next: Omit<DietPlan, "version" | "createdAt">): Promise<Outcome>;
+  /**
+   * Remove a version. Refused when the past depends on it, since deleting it
+   * would rescore days already logged. Today and later move to what remains.
+   */
+  deleteWorkoutPlan(version: number): Promise<Outcome>;
+  deleteDietPlan(version: number): Promise<Outcome>;
   /** Overwrite the newest diet version in place, as updateWorkoutPlan does for training. */
   updateDietPlan(next: Omit<DietPlan, "version" | "createdAt">): Promise<Outcome>;
   reorderDay(day: DayKey, exerciseIds: string[]): Promise<void>;
@@ -681,6 +688,72 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
             await repo.saveDietPlan(current);
             const cur = get().snapshot!;
             commit({ ...cur, dietPlans: swap(cur.dietPlans, current) }, get().today);
+          },
+        };
+      },
+
+      async deleteWorkoutPlan(version) {
+        const snap = get().snapshot;
+        if (!snap) return NONE;
+        const check = canDeleteVersion(snap, "workout", version, get().today);
+        if (!check.ok) return { events: [], notice: { tag: "Refused", text: check.reason, tone: "fault" }, undo: null };
+
+        const gone = snap.workoutPlans.find((p) => p.version === version)!;
+        const plans = snap.workoutPlans.filter((p) => p.version !== version);
+        const rotation = rotationOf({ ...snap, workoutPlans: plans });
+        const today = get().today;
+        const before = snap.dayLogs;
+        const logs = await Promise.all(
+          snap.dayLogs.map(async (l) => {
+            if (l.workoutPlanVersion !== version) return l;
+            const moved = { ...l, workoutPlanVersion: rotatedVersion(plans, rotation, l.date) };
+            await repo.saveDayLog(moved);
+            return moved;
+          }),
+        );
+        await persist(() => repo.deleteWorkoutPlan(version));
+        const { events } = commit({ ...snap, workoutPlans: plans, dayLogs: logs }, today);
+        return {
+          events,
+          notice: { tag: "Plan Updated", text: `Workout version ${version} deleted.`, tone: "neutral" },
+          undo: async () => {
+            await repo.saveWorkoutPlan(gone);
+            for (const l of before) if (l.workoutPlanVersion === version) await repo.saveDayLog(l);
+            const cur = get().snapshot!;
+            commit({ ...cur, workoutPlans: [...cur.workoutPlans, gone], dayLogs: before }, get().today);
+          },
+        };
+      },
+
+      async deleteDietPlan(version) {
+        const snap = get().snapshot;
+        if (!snap) return NONE;
+        const check = canDeleteVersion(snap, "diet", version, get().today);
+        if (!check.ok) return { events: [], notice: { tag: "Refused", text: check.reason, tone: "fault" }, undo: null };
+
+        const gone = snap.dietPlans.find((p) => p.version === version)!;
+        const plans = snap.dietPlans.filter((p) => p.version !== version);
+        const fallback = latest(plans).version;
+        const today = get().today;
+        const before = snap.dayLogs;
+        const logs = await Promise.all(
+          snap.dayLogs.map(async (l) => {
+            if (l.dietPlanVersion !== version) return l;
+            const moved = { ...l, dietPlanVersion: fallback };
+            await repo.saveDayLog(moved);
+            return moved;
+          }),
+        );
+        await persist(() => repo.deleteDietPlan(version));
+        const { events } = commit({ ...snap, dietPlans: plans, dayLogs: logs }, today);
+        return {
+          events,
+          notice: { tag: "Plan Updated", text: `Diet version ${version} deleted.`, tone: "neutral" },
+          undo: async () => {
+            await repo.saveDietPlan(gone);
+            for (const l of before) if (l.dietPlanVersion === version) await repo.saveDayLog(l);
+            const cur = get().snapshot!;
+            commit({ ...cur, dietPlans: [...cur.dietPlans, gone], dayLogs: before }, get().today);
           },
         };
       },

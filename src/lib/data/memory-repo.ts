@@ -28,7 +28,9 @@ export function createMemoryRepo(initial: Snapshot | null = null): Repository {
     saveWeighIn: async (w) => upsert(need().weighIns, w, "date"),
     deleteWeighIn: async (date) => void (need().weighIns = need().weighIns.filter((w) => w.date !== date)),
     saveWorkoutPlan: async (p) => upsert(need().workoutPlans, p, "version"),
+    deleteWorkoutPlan: async (v) => void (need().workoutPlans = need().workoutPlans.filter((p) => p.version !== v)),
     saveDietPlan: async (p) => upsert(need().dietPlans, p, "version"),
+    deleteDietPlan: async (v) => void (need().dietPlans = need().dietPlans.filter((p) => p.version !== v)),
     replaceAll: async (x) => void (s = structuredClone(x)),
     clear: async () => void (s = null),
   };

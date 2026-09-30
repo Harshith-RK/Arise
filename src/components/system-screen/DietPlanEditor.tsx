@@ -4,11 +4,12 @@ import { useState } from "react";
 import { Choice } from "@/components/system/Choice";
 import { Button, PageHeader, Panel, Placeholder } from "@/components/system/primitives";
 import { Field } from "@/components/system/Field";
-import { IconClose, IconPlus } from "@/components/icons";
+import { IconClose, IconPlus, IconTrash } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { DAY_TITLES, dayKeyOf } from "@/lib/engine/dates";
 import { DAY_KEYS, type DayKey, type DietPlan, type Macros, type MealDef } from "@/lib/engine/types";
 import { countItems } from "@/lib/plan/count-items";
+import { canDeleteVersion } from "@/lib/engine/plan-versions";
 
 const DAY_OPTIONS = DAY_KEYS.map((d) => ({ value: d, label: DAY_TITLES[d].slice(0, 3).toUpperCase() }));
 
@@ -129,6 +130,8 @@ export function DietPlanEditor() {
   // number is being replaced. Only a valid number reaches the plan.
   const [texts, setTexts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  // A delete asks twice: the first tap arms it, the second carries it out.
+  const [armed, setArmed] = useState(false);
   // Open on today: that is the day Quest and Log are showing, so an edit here
   // is the one the Hunter expects to see there.
   const today = useGame((s) => s.today);
@@ -171,6 +174,7 @@ export function DietPlanEditor() {
   };
 
   const totals = totalsOf(meals);
+  const removable = canDeleteVersion(snapshot, "diet", current.version, today);
 
   // Only boxes someone has typed into can be wrong; untouched ones show the
   // plan. A removed meal's boxes no longer count against saving.
@@ -312,6 +316,37 @@ export function DietPlanEditor() {
       </Panel>
 
       {bar ? <div className="mt-4">{bar}</div> : null}
+
+      {snapshot.dietPlans.length > 1 ? (
+        <Panel title="Versions" className="mt-4">
+          <div className="space-y-3 border-t border-line-1 px-4 py-4">
+            <p className="t-small text-frost-1">
+              {snapshot.dietPlans.length} versions saved. Deleting this one leaves version{" "}
+              {snapshot.dietPlans.filter((p) => p.version !== current.version).reduce((a, b) => (b.version > a.version ? b : a)).version} in
+              use from today.
+            </p>
+            <Button
+              variant="danger"
+              disabled={!removable.ok}
+              onClick={async () => {
+                if (!armed) return setArmed(true);
+                setArmed(false);
+                setEdited(null);
+                setDirty(false);
+                dispatch(await actions.deleteDietPlan(current.version));
+              }}
+            >
+              <IconTrash size={15} />
+              {armed ? `Tap again to delete version ${current.version}` : `Delete version ${current.version}`}
+            </Button>
+            {!removable.ok && removable.why === "logged" ? (
+              <p className="t-micro text-frost-2">{removable.reason.toUpperCase()}</p>
+            ) : (
+              <p className="t-micro text-frost-2">UNDO IS OFFERED. DAYS ALREADY LOGGED KEEP THEIR OWN VERSION.</p>
+            )}
+          </div>
+        </Panel>
+      ) : null}
     </>
   );
 }

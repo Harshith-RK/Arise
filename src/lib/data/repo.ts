@@ -32,7 +32,9 @@ export interface Repository {
   saveWeighIn(w: WeighIn): Promise<void>;
   deleteWeighIn(date: string): Promise<void>;
   saveWorkoutPlan(p: WorkoutPlan): Promise<void>;
+  deleteWorkoutPlan(version: number): Promise<void>;
   saveDietPlan(p: DietPlan): Promise<void>;
+  deleteDietPlan(version: number): Promise<void>;
   saveSupplies(s: Supplies): Promise<void>;
   replaceAll(s: Snapshot): Promise<void>;
   clear(): Promise<void>;

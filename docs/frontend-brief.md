@@ -752,6 +752,13 @@ Decisions taken while building that a future session should not undo:
   shows through for as long as the chunk takes, which is the flash this replaced. The welcome
   marker only comes off the address once the arc is ready, so the sequence never hands over to a
   skeleton.
+- **A plan version can be deleted, unless the past needs it** (src/lib/engine/plan-versions.ts).
+  A day log records the version it was logged under and progress is derived from that, so removing
+  a version a past day used would rescore days already earned. The check refuses that and says how
+  many days hold it; it also refuses the last version. Today and any day ahead have not happened,
+  so they move to what remains (through the rotation for workouts, the newest for diets). Deleting
+  is two taps and offers undo, which restores the plan and the moved logs. Workout versions are
+  deleted from their list, the diet version from its editor.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 
