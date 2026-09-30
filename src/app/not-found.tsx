@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Brand } from "@/components/system/Brand";
 
 export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-[100dvh] max-w-[520px] flex-col items-center justify-center gap-5 px-4 text-center">
+      <Brand size={26} />
       <h1 className="t-display-2 text-frost-0">GATE NOT FOUND</h1>
       <p className="t-small text-frost-1">This route does not exist.</p>
       <Link

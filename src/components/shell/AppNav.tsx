@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, navIndexFor } from "./nav-items";
 import { RankPlaque } from "@/components/system/RankPlaque";
+import { Brand } from "@/components/system/Brand";
 import { useGame } from "@/lib/store/GameProvider";
 import { RANK_TITLES } from "@/lib/engine/xp";
 
@@ -50,6 +51,9 @@ export function AppNav() {
         className="fixed inset-y-0 left-0 z-40 hidden w-(--rail) flex-col border-r border-line-1 bg-ink-1 lg:flex"
         aria-label="Primary"
       >
+        <Link href="/app/quest" className="pressable flex h-(--appbar) items-center border-b border-line-1 px-5 transition-none">
+          <Brand size={24} />
+        </Link>
         <HunterMiniCard />
         <ul className="mt-2 flex flex-col">
           {NAV_ITEMS.map((item, i) => {

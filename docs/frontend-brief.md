@@ -724,6 +724,17 @@ Decisions taken while building that a future session should not undo:
   ICO payloads must be RGBA or the build fails. The service worker serves `/icon*` cache first, so
   changing an icon at the same URL needs its VERSION bumped. Posters and masters live in brand/
   (`npm run brand-poster`).
+- **The app is called Arise, and says so.** The name appears in the metadata, the manifest and the
+  visible copy; only the storage identities keep the old spelling (`winter-arc` for the local
+  database and `winter-arc-export` for backup files), because changing those would orphan every
+  arc already saved and every backup already exported.
+- **One brand component** (src/components/system/Brand.tsx) draws the mark from the same geometry
+  as the icons and posters, as facets rather than an outline, so it needs no separate small
+  version. `Brand` is mark plus name, `BrandMark` the mark alone. It appears on the landing header
+  and footer, the legal header, the sign-in card, onboarding, the offline and 404 pages, the app
+  bar (mark alone, linking to today) and the desktop rail. The name is set in Boldonse
+  (`--font-brand`, utility `t-brand`), which nothing else uses. Brand links still need a 44px hit
+  area: a 22px mark inside a bare link fails the tap-target audit.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

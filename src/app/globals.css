@@ -114,6 +114,7 @@
 
   --font-sans: var(--font-archivo), "Archivo", system-ui, sans-serif;
   --font-mono: var(--font-martian), "Martian Mono", ui-monospace, monospace;
+  --font-brand: var(--font-brand-face), "Archivo", system-ui, sans-serif;
 
   --radius-*: initial;
   --shadow-*: initial;
@@ -254,6 +255,15 @@
 @utility t-small {
   font-size: 14px;
   line-height: 1.45;
+}
+/* The name. Tracked open so it sits as a plinth under or beside the mark. */
+@utility t-brand {
+  font-family: var(--font-brand), system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
+  text-transform: uppercase;
 }
 @utility t-readout {
   font-family: var(--font-mono);

@@ -8,7 +8,7 @@ import { useEffect } from "react";
  */
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
-    console.error("Winter Arc fault:", error);
+    console.error("Arise fault:", error);
   }, [error]);
 
   const exportData = async () => {
@@ -21,7 +21,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "winter-arc-recovery.json";
+      a.download = "arise-recovery.json";
       a.click();
       URL.revokeObjectURL(url);
     } catch {

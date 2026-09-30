@@ -14,7 +14,7 @@ export function StorageNote() {
   if (!HAS_BACKEND) {
     return (
       <p className="t-small text-frost-1">
-        Winter Arc runs entirely on this device. No account, no tracking, no data leaves your browser.
+        Arise runs entirely on this device. No account, no tracking, no data leaves your browser.
       </p>
     );
   }

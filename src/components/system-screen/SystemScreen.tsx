@@ -43,7 +43,7 @@ export function SystemScreen() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `winter-arc-${file.exportedAt.slice(0, 10)}.json`;
+    a.download = `arise-${file.exportedAt.slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     notify({ tag: "Notice", text: "Backup exported to your downloads.", tone: "neutral" });
@@ -191,7 +191,7 @@ export function SystemScreen() {
               ref={fileRef}
               type="file"
               accept="application/json"
-              aria-label="Choose a Winter Arc backup file to import"
+              aria-label="Choose an Arise backup file to import"
               className="sr-only"
               onChange={async (e) => {
                 const file = e.target.files?.[0];

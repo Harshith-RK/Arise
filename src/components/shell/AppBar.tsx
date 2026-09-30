@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CoreGauge } from "@/components/system/CoreGauge";
+import { BrandMark } from "@/components/system/Brand";
 import { IconOffline, IconSearch } from "@/components/icons";
 import { useGame } from "@/lib/store/GameProvider";
 
@@ -19,7 +21,17 @@ export function AppBar({ onOpenPalette }: { onOpenPalette: () => void }) {
       className="fixed inset-x-0 top-0 z-40 h-(--appbar) border-b border-line-1 bg-ink-1 lg:left-(--rail)"
       style={{ viewTransitionName: "wa-appbar" }}
     >
-      <div className="mx-auto flex h-full max-w-[1200px] items-center gap-4 px-4">
+      <div className="mx-auto flex h-full max-w-[1200px] items-center gap-3 px-4 sm:gap-4">
+        {/* The rail carries the name on a wide screen, so here the mark alone
+            is enough, and it doubles as the way back to today. */}
+        <Link
+          href="/app/quest"
+          className="pressable -ml-1.5 inline-flex h-11 w-11 shrink-0 items-center justify-center transition-none lg:hidden"
+          aria-label="Arise: today's quest"
+        >
+          <BrandMark size={22} />
+        </Link>
+
         {progress ? (
           <CoreGauge into={progress.levelInto} span={progress.levelSpan} level={progress.level} />
         ) : (

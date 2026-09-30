@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms",
-  description: "The terms for using Winter Arc.",
+  description: "The terms for using Arise.",
 };
 
 const UPDATED = "11 September 2026";
@@ -34,7 +34,7 @@ export default function TermsPage() {
       <section id="what-this-is" className="mt-10">
         <h2 className="t-title text-frost-0">What this is</h2>
         <p className="t-body mt-3 text-frost-1">
-          Winter Arc is a personal training and diet tracker that runs in your browser. It is provided as-is, at no
+          Arise is a personal training and diet tracker that runs in your browser. It is provided as-is, at no
           cost, with no account and no subscription. Using it means you accept these terms.
         </p>
       </section>
@@ -42,7 +42,7 @@ export default function TermsPage() {
       <section id="not-medical-advice" className="mt-10">
         <h2 className="t-title text-frost-0">Not medical or dietary advice</h2>
         <p className="t-body mt-3 text-frost-1">
-          Winter Arc records what you tell it and does arithmetic on it. Calorie targets, BMR, estimated energy
+          Arise records what you tell it and does arithmetic on it. Calorie targets, BMR, estimated energy
           expenditure and estimated one-rep max are rough calculations from standard formulas, not measurements, and not
           advice. Talk to a doctor or a qualified dietitian before changing how you train or eat, especially if you have
           a health condition, are pregnant, or are recovering from injury. Stop and seek help if something hurts.
@@ -69,7 +69,7 @@ export default function TermsPage() {
       <section id="liability" className="mt-10">
         <h2 className="t-title text-frost-0">Liability</h2>
         <p className="t-body mt-3 text-frost-1">
-          To the extent the law allows, Winter Arc is provided without warranties, and its authors are not liable for
+          To the extent the law allows, Arise is provided without warranties, and its authors are not liable for
           injury, lost data, or any other loss arising from using it.
         </p>
       </section>

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Brand } from "@/components/system/Brand";
 
 export const metadata: Metadata = {
   title: "Offline",
-  description: "Winter Arc works without a connection.",
+  description: "Arise works without a connection.",
 };
 
 /**
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 export default function OfflinePage() {
   return (
     <main className="mx-auto flex min-h-[100dvh] max-w-[520px] flex-col items-center justify-center gap-5 px-4 text-center">
+      <Brand size={26} />
       <h1 className="t-display-2 text-glacier">OFFLINE</h1>
       <p className="t-small text-frost-1">
         This screen has not been opened on this device yet, so there is no copy of it here. Everything you have already

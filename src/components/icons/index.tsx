@@ -1,7 +1,7 @@
 import type { SVGProps } from "react";
 
 /**
- * Winter Arc icon set. Authored on a 20px grid: 1.5px stroke, square caps,
+ * Arise icon set. Authored on a 20px grid: 1.5px stroke, square caps,
  * miter joins, no fills except state glyphs. Angular geometry that echoes the
  * chamfer language of the panels. Decorative by default (aria-hidden); pass
  * `title` to make an icon meaningful to assistive tech.

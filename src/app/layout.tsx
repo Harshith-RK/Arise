@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Martian_Mono } from "next/font/google";
+import { Archivo, Boldonse, Martian_Mono } from "next/font/google";
 import { prefsScript } from "@/lib/prefs-script";
 import { ServiceWorker } from "@/components/shell/ServiceWorker";
 import "./globals.css";
@@ -22,6 +22,15 @@ const archivo = Archivo({
   display: "swap",
 });
 
+// The name is set in one face and nothing else uses it, so the mark and the
+// wordmark always look struck from the same die.
+const boldonse = Boldonse({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-brand-face",
+  display: "swap",
+});
+
 const martian = Martian_Mono({
   subsets: ["latin"],
   axes: ["wdth"],
@@ -32,13 +41,13 @@ const martian = Martian_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
-    default: "Winter Arc. The System for a ninety day arc.",
-    template: "%s | Winter Arc",
+    default: "Arise. The System for every rep you log.",
+    template: "%s | Arise",
   },
   description:
     "A local-first training and diet tracker styled as the System. Every set, meal and cardio session feeds your level, rank and streaks.",
-  applicationName: "Winter Arc",
-  appleWebApp: { capable: true, title: "Winter Arc", statusBarStyle: "black-translucent" },
+  applicationName: "Arise",
+  appleWebApp: { capable: true, title: "Arise", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false },
 };
 
@@ -59,7 +68,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       data-skin="permafrost"
       data-motion="full"
       data-rank="E"
-      className={`${archivo.variable} ${martian.variable}`}
+      className={`${archivo.variable} ${boldonse.variable} ${martian.variable}`}
       suppressHydrationWarning
     >
       <head>

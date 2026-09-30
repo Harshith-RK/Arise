@@ -6,6 +6,7 @@ import { Field } from "@/components/system/Field";
 import { Button } from "@/components/system/primitives";
 import { MotionScope } from "@/components/system/MotionScope";
 import { SystemWindow } from "@/components/system/SystemWindow";
+import { Brand } from "@/components/system/Brand";
 import { withWelcome } from "@/lib/welcome";
 import {
   signInWithGoogle,
@@ -76,6 +77,7 @@ export function AuthScreen() {
     <main className="mx-auto flex min-h-[100dvh] max-w-[440px] flex-col justify-center px-4 py-10">
       <MotionScope>
         <SystemWindow bodyClassName="px-5 py-6 sm:px-7 sm:py-8">
+          <Brand size={24} className="mb-5" />
           <h1 className="t-title text-frost-0">
             {mode === "in" ? "Sign in" : "Create your Hunter"}
           </h1>

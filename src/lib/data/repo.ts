@@ -80,7 +80,7 @@ export function parseImport(text: string): ImportPreview | { ok: false; error: s
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     const where = issue?.path.join(".") || "file";
-    return { ok: false, error: `Not a Winter Arc export. Problem at ${where}: ${issue?.message ?? "invalid"}.` };
+    return { ok: false, error: `Not an Arise export. Problem at ${where}: ${issue?.message ?? "invalid"}.` };
   }
   const data = parsed.data.data;
   const dates = data.dayLogs.map((d) => d.date).sort();

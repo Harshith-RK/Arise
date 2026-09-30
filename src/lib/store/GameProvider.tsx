@@ -103,7 +103,7 @@ function GameRuntime({ identity, children }: { identity: Identity; children: Rea
       queue: createCeremonyQueue(),
       store: createGameStore(repo, {
         onSettings: applySettings,
-        onPersistError: (e) => console.error("Winter Arc: persistence failed", e),
+        onPersistError: (e) => console.error("Arise: persistence failed", e),
       }),
     };
   });
@@ -118,7 +118,7 @@ function GameRuntime({ identity, children }: { identity: Identity; children: Rea
         try {
           await adoptLocalArc(db, identity.userId);
         } catch (e) {
-          console.error("Winter Arc: could not adopt the local arc", e);
+          console.error("Arise: could not adopt the local arc", e);
         }
       }
       if (!cancelled) await store.getState().init();

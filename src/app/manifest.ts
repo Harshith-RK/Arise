@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Winter Arc",
-    short_name: "Winter Arc",
+    name: "Arise",
+    short_name: "Arise",
     description: "A local-first training and diet tracker styled as the System.",
     start_url: "/app/quest",
     scope: "/",

@@ -12,6 +12,7 @@ import { PlanReadout } from "@/components/plan/PlanReadout";
 import { PlanPreview } from "@/components/plan/PlanPreview";
 import { SignedInAs } from "@/components/auth/SignedInAs";
 import { SystemWindow } from "@/components/system/SystemWindow";
+import { Brand } from "@/components/system/Brand";
 import { Button } from "@/components/system/primitives";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { DAY_TITLES, timeToMinutes, todayKey } from "@/lib/engine/dates";
@@ -467,6 +468,7 @@ export function AwakenFlow() {
       </AnimatePresence>
 
       <SystemWindow bodyClassName="px-5 py-6 sm:px-7 sm:py-8">
+        <Brand size={22} className="mb-5" />
         <div className="flex items-center justify-between gap-4">
           <h1 className="t-title text-frost-0">{STEPS[step]}</h1>
           <span className="t-micro text-frost-2">

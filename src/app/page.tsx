@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Brand } from "@/components/system/Brand";
 import { LiveDemo } from "@/components/landing/LiveDemo";
 import dynamic from "next/dynamic";
 
@@ -12,7 +13,7 @@ export default function LandingPage() {
   return (
     <>
       <header className="mx-auto flex h-16 max-w-[1100px] items-center justify-between px-4">
-        <span className="t-readout text-frost-0">WINTER ARC</span>
+        <Brand size={26} />
         <BeginButton variant="ghost" size="sm" />
       </header>
 
@@ -65,7 +66,10 @@ export default function LandingPage() {
 
       <footer className="border-t border-line-1">
         <div className="mx-auto flex max-w-[1100px] flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
-          <p className="t-micro text-frost-2">LOCAL-FIRST. YOUR DATA STAYS ON THIS DEVICE.</p>
+          <div className="flex items-center gap-4">
+            <Brand size={20} />
+            <p className="t-micro text-frost-2">YOUR ARC, ON YOUR ACCOUNT.</p>
+          </div>
           <nav className="flex items-center gap-6" aria-label="Legal">
             <Link href="/legal/terms" className="inline-flex min-h-11 items-center t-micro text-frost-2 transition-none hov:text-frost-0">
               TERMS

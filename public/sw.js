@@ -1,5 +1,5 @@
 /**
- * Winter Arc service worker.
+ * Arise service worker.
  * The app is local-first: all training data lives in IndexedDB, so the only
  * job here is to keep the shell itself available with no network. Built by
  * hand rather than with a build-time plugin so it works under Turbopack.

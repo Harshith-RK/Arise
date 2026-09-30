@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy",
-  description: "What Winter Arc stores, where it lives, and how to delete it.",
+  description: "What Arise stores, where it lives, and how to delete it.",
 };
 
 const UPDATED = "15 September 2026";
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <p className="t-micro mt-2 text-frost-2">LAST UPDATED {UPDATED.toUpperCase()}</p>
 
       <p className="t-body mt-8 text-frost-1">
-        Winter Arc needs an account. Your arc is stored in our database under that account, so it follows you between
+        Arise needs an account. Your arc is stored in our database under that account, so it follows you between
         devices, and access rules make it readable by you and nobody else. There is no analytics, no tracking and no
         advertising.
       </p>
