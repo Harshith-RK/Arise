@@ -54,10 +54,26 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
   const patchExercise = (id: string, patch: Partial<ExerciseDef>) =>
     update({ ...draft, exercises: { ...draft.exercises, [id]: { ...draft.exercises[id], ...patch } } });
 
-  const patchVariantName = (id: string, name: string) => {
-    const def = draft.exercises[id];
-    patchExercise(id, { variants: [{ ...def.variants[0], name }, ...def.variants.slice(1)] });
+  /** Write one variant back in place: the movement itself, or one of its alternates. */
+  const patchVariant = (def: ExerciseDef, index: number, patch: Partial<ExerciseDef["variants"][number]>) =>
+    patchExercise(def.id, { variants: def.variants.map((v, i) => (i === index ? { ...v, ...patch } : v)) });
+
+  const LETTERS = "abcdefgh";
+  const addVariant = (def: ExerciseDef) => {
+    const taken = new Set(def.variants.map((v) => v.id));
+    const letter = LETTERS.split("").find((l) => !taken.has(`${def.id}.${l}`)) ?? String(def.variants.length);
+    const from = def.variants[0];
+    patchExercise(def.id, {
+      variants: [...def.variants, { id: `${def.id}.${letter}`, name: "New alternate", repsMin: from.repsMin, repsMax: from.repsMax }],
+    });
   };
+
+  const removeVariant = (def: ExerciseDef, index: number) =>
+    patchExercise(def.id, { variants: def.variants.filter((_, i) => i !== index) });
+
+  /** Swap an alternate into first place: that is the one a quest opens on. */
+  const makeDefault = (def: ExerciseDef, index: number) =>
+    patchExercise(def.id, { variants: [def.variants[index], ...def.variants.filter((_, i) => i !== index)] });
 
   const addExercise = () => {
     const newId = `custom-${Date.now()}`;
@@ -80,35 +96,42 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
   const removeExercise = (id: string) =>
     update({ ...draft, days: { ...draft.days, [day]: { ...draft.days[day], exerciseIds: ids.filter((x) => x !== id) } } });
 
-  const numberValue = (def: ExerciseDef, key: NumberKey) => (key === "targetSets" ? def.targetSets : def.variants[0][key]);
+  // Sets belong to the exercise; reps belong to a variant, so its box is keyed
+  // by which one.
+  const boxKey = (def: ExerciseDef, key: NumberKey, vi: number) => (key === "targetSets" ? `${def.id}:sets` : `${def.id}:${vi}:${key}`);
+  const numberValue = (def: ExerciseDef, key: NumberKey, vi: number) =>
+    key === "targetSets" ? def.targetSets : def.variants[vi][key];
 
   /** The problem with one number box, or null. Checks what is typed, not what was last valid. */
-  const numberError = (def: ExerciseDef, key: NumberKey): string | null => {
-    const raw = texts[`${def.id}:${key}`] ?? String(numberValue(def, key));
+  const numberError = (def: ExerciseDef, key: NumberKey, vi: number): string | null => {
+    const raw = texts[boxKey(def, key, vi)] ?? String(numberValue(def, key, vi));
     const { min, max, label } = LIMITS[key];
     if (raw.trim() === "") return `Enter ${label.toLowerCase()}`;
     const n = Number(raw);
     if (!Number.isInteger(n) || n < min || n > max) return `${min} to ${max}`;
     if (key === "repsMax") {
-      const lo = Number(texts[`${def.id}:repsMin`] ?? def.variants[0].repsMin);
+      const lo = Number(texts[boxKey(def, "repsMin", vi)] ?? def.variants[vi].repsMin);
       if (Number.isInteger(lo) && n < lo) return "Below min";
     }
     return null;
   };
 
-  const setNumber = (def: ExerciseDef, key: NumberKey, raw: string) => {
-    setTexts((t) => ({ ...t, [`${def.id}:${key}`]: raw }));
+  const setNumber = (def: ExerciseDef, key: NumberKey, vi: number, raw: string) => {
+    setTexts((t) => ({ ...t, [boxKey(def, key, vi)]: raw }));
     setDirty(true);
     const n = Number(raw);
     const { min, max } = LIMITS[key];
     if (raw.trim() === "" || !Number.isInteger(n) || n < min || n > max) return;
     if (key === "targetSets") patchExercise(def.id, { targetSets: n });
-    else patchExercise(def.id, { variants: [{ ...def.variants[0], [key]: n }, ...def.variants.slice(1)] });
+    else patchVariant(def, vi, { [key]: n });
   };
 
-  // Every exercise in the plan, not only today's, since a save writes all of them.
-  const invalid = Object.values(draft.exercises).some((def) =>
-    (["targetSets", "repsMin", "repsMax"] as NumberKey[]).some((k) => numberError(def, k)),
+  // Every exercise in the plan, not only today's, since a save writes all of
+  // them, and every alternate, since each carries its own reps.
+  const invalid = Object.values(draft.exercises).some(
+    (def) =>
+      !!numberError(def, "targetSets", 0) ||
+      def.variants.some((_, vi) => numberError(def, "repsMin", vi) || numberError(def, "repsMax", vi)),
   );
 
   const save = async (how: "update" | "new") => {
@@ -184,7 +207,7 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
               <li key={id} className="row-rule px-4 py-4">
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1 space-y-3">
-                    <Field label="NAME" value={def.variants[0].name} onChange={(v) => patchVariantName(id, v)} />
+                    <Field label="NAME" value={def.variants[0].name} onChange={(v) => patchVariant(def, 0, { name: v })} />
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                       <Field label="REGION" value={def.muscleRegion} onChange={(v) => patchExercise(id, { muscleRegion: v })} />
                       {([
@@ -197,15 +220,74 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
                           label={label}
                           type="number"
                           inputMode="numeric"
-                          value={texts[`${id}:${key}`] ?? String(numberValue(def, key))}
-                          onChange={(v) => setNumber(def, key, v)}
-                          error={numberError(def, key)}
+                          value={texts[boxKey(def, key, 0)] ?? String(numberValue(def, key, 0))}
+                          onChange={(v) => setNumber(def, key, 0, v)}
+                          error={numberError(def, key, 0)}
                         />
                       ))}
                     </div>
-                    {def.variants.length > 1 ? (
-                      <p className="t-micro text-frost-2">ALTERNATE: {def.variants[1].name.toUpperCase()}</p>
-                    ) : null}
+
+                    {/* Alternates: the swaps offered on the quest when a machine
+                        is taken. Each carries its own reps, since a dumbbell
+                        version is rarely done for the same range. */}
+                    <div className="border-l border-line-1 pl-3">
+                      <p className="t-micro text-frost-2">ALTERNATES</p>
+                      {def.variants.length < 2 ? (
+                        <p className="t-micro mt-1 text-frost-2">NONE. ADD ONE TO SWAP TO IT ON A QUEST.</p>
+                      ) : null}
+                      <ul className="mt-2 space-y-3">
+                        {def.variants.slice(1).map((v, i) => {
+                          const vi = i + 1;
+                          return (
+                            <li key={v.id} className="space-y-2">
+                              <div className="flex items-end gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <Field label={`ALTERNATE ${vi}`} value={v.name} onChange={(t) => patchVariant(def, vi, { name: t })} />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeVariant(def, vi)}
+                                  className="pressable mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center text-frost-2 transition-none hov:text-fault"
+                                  aria-label={`Remove ${v.name} as an alternate for ${def.variants[0].name}`}
+                                >
+                                  <IconClose size={15} />
+                                </button>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                {([
+                                  ["repsMin", "REPS MIN"],
+                                  ["repsMax", "REPS MAX"],
+                                ] as [NumberKey, string][]).map(([key, label]) => (
+                                  <Field
+                                    key={key}
+                                    label={label}
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={texts[boxKey(def, key, vi)] ?? String(numberValue(def, key, vi))}
+                                    onChange={(t) => setNumber(def, key, vi, t)}
+                                    error={numberError(def, key, vi)}
+                                    ariaLabel={`${v.name} ${label.toLowerCase()}`}
+                                  />
+                                ))}
+                                <div className="col-span-2 flex items-end">
+                                  <Button size="sm" className="w-full" onClick={() => makeDefault(def, vi)}>
+                                    Make the main lift
+                                  </Button>
+                                </div>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      {def.variants.length < 4 ? (
+                        <Button size="sm" className="mt-3" onClick={() => addVariant(def)}>
+                          <IconPlus size={14} />
+                          Add alternate
+                        </Button>
+                      ) : (
+                        <p className="t-micro mt-2 text-frost-2">FOUR IS THE LIMIT.</p>
+                      )}
+                    </div>
                   </div>
                   <button
                     type="button"

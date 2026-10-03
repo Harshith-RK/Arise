@@ -764,6 +764,12 @@ Decisions taken while building that a future session should not undo:
   gym language rather than anime costume. Code and tests follow the product, with one exception
   spelled out where it lives: the browser marker stays keyed `wa:has-hunter`, since renaming the
   key would forget every browser that already carries one.
+- **Alternates are edited, not just listed.** An exercise's variants are the swaps the quest sheet
+  offers when a machine is taken, and each carries its own rep range, since a dumbbell version is
+  rarely done for the same numbers. The workout editor gives every alternate a name field, its own
+  reps, a remove, and "Make the main lift", which moves it to variants[0] (what a quest opens on).
+  Up to four, the schema's limit. Variant ids are stable, so promoting or renaming never disturbs
+  a logged set or a record.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 
