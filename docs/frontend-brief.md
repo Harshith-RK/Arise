@@ -775,6 +775,10 @@ Decisions taken while building that a future session should not undo:
   cell in every group, because a row where one word is smaller than its neighbours reads as a
   mistake. "DUMBBELLS" wrapped to two lines at around 400px before this. Both controls use the
   same clamp so a panel holding them does not stack two type sizes. 11px holds from about 430px up.
+- **The Log's week lists days, not exercises.** Each card carries the day's title, its weekday and
+  how many exercises it holds; the names live one tap away on the day itself, since printing them
+  on every card turned the week into a wall of text. The titles are set in the System's mono
+  readout rather than the sans display face, which read as another app's heading among mono rows.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

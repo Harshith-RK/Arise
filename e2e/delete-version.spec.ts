@@ -55,6 +55,10 @@ test("a diet version can be deleted from its editor", async ({ page }) => {
 
   await page.getByRole("button", { name: "Delete version 2" }).click();
   await page.getByRole("button", { name: /Tap again to delete version 2/ }).click();
-  await expect(page.getByText("[Plan Updated]")).toBeVisible();
+  // The editor falls back to the version that remains. Asserted on the screen
+  // rather than on the notice, which is gone a few seconds later.
   await expect(page.getByText(/EDITING V1/)).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole("button", { name: /Delete version/ })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText(/EDITING V1/)).toBeVisible();
 });

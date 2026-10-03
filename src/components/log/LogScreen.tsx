@@ -60,7 +60,9 @@ function WorkoutTab() {
           <div className="px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <h2 className={`t-title truncate ${isToday ? "text-ember" : "text-frost-0"}`}>
+                {/* The System's own face, like every other line on the card.
+                    The sans display face read as a different app's heading. */}
+                <h2 className={`t-readout truncate text-[15px] ${isToday ? "text-ember" : "text-frost-0"}`}>
                   {rest ? "Rest" : (d?.title ?? "Rest")}
                 </h2>
                 <p className="t-micro mt-1 text-frost-2">
@@ -78,15 +80,9 @@ function WorkoutTab() {
                 <IconForward size={16} className="text-frost-2" />
               </div>
             </div>
-            {exercises.length ? (
-              <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1">
-                {exercises.map((e) => (
-                  <li key={e.id} className="t-micro text-frost-2">
-                    {e.variants[0].name}
-                  </li>
-                ))}
-              </ul>
-            ) : (
+            {/* The exercises themselves live one tap away, on the day. Listing
+                them here made every card a wall of names to scroll past. */}
+            {exercises.length ? null : (
               <p className="t-micro mt-3 text-glacier">STREAK BANKED. OPTIONAL BONUS QUEST.</p>
             )}
           </div>
