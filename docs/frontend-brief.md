@@ -783,6 +783,13 @@ Decisions taken while building that a future session should not undo:
   hardcoded em guess is wrong for `t-num`, which sets Archivo to a 62% width axis: the glyph came
   out narrower than its column and every number showed gaps between its digits. `1ch` is the real
   advance of a digit in whatever face and axis the number sits in.
+- **A day that is never cleared costs 50 XP**, charged once the day is over, with the first miss
+  of each ISO week free (`XP.missedDay`, `XP.missesForgivenPerWeek`). The charge is derived in
+  deriveProgress, not stored, so it recomputes exactly like everything else and undo stays exact;
+  it needs the week around the day, which is why `DayResult.penalty` and `.forgiven` are filled in
+  there rather than in evaluateDay. Today is never charged: it is still winnable, and the penalty
+  zone banner says what missing it will cost. Total XP keeps its floor of zero, so an arc can be
+  emptied but never put in debt.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

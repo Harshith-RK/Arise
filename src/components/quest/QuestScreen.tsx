@@ -13,7 +13,8 @@ import { RestTimer } from "./RestTimer";
 import { RecoveryRow } from "./RecoveryRow";
 import { IconBack, IconBonus, IconCalendar, IconDumbbell, IconForward, IconMeal, IconSleep } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
-import { addDays, diffDays, formatDaysIn, formatReadout } from "@/lib/engine/dates";
+import { addDays, diffDays, formatDaysIn, formatReadout, weekStart } from "@/lib/engine/dates";
+import { XP } from "@/lib/engine/xp";
 import { evaluateDay, isRestDay, makePlanLookup, mealLocked, mealsFor, trainingDayFor } from "@/lib/engine/day";
 import { activeWorkoutPlan, rotationOf } from "@/lib/engine/rotation";
 import { lastSessionFor, VITALITY_UNLOCK_LEVEL } from "@/lib/engine/derive";
@@ -147,6 +148,13 @@ export function QuestScreen({ date }: { date: string }) {
   }
 
   const { result, meals, exercises, rest, trainingDay, log } = view;
+  // What the arc actually charged for this day: evaluateDay cannot know, since
+  // the cost depends on the week around it and on the day being over.
+  const charged = progress.days[date]?.penalty ?? 0;
+  const forgiven = progress.days[date]?.forgiven ?? false;
+  // The week's one free miss is gone once a day in it has used it.
+  const thisWeek = weekStart(today);
+  const freeMissLeft = !Object.values(progress.days).some((d) => d.forgiven && weekStart(d.date) === thisWeek);
   const arcDay = snapshot.profile ? Math.max(1, 1 + daysBetween(snapshot.profile.arcStart, date)) : 1;
 
   return (
@@ -165,7 +173,12 @@ export function QuestScreen({ date }: { date: string }) {
             <p className="t-num text-ember" style={{ fontSize: 34, lineHeight: 1 }}>
               <Odometer value={result.xp} />
             </p>
-            <p className="t-micro mt-1 text-frost-2">XP TODAY</p>
+            <p className="t-micro mt-1 text-frost-2">{date === today ? "XP TODAY" : "XP"}</p>
+            {charged > 0 ? (
+              <p className="t-micro mt-1.5 text-fault">-{charged} XP MISSED GATE</p>
+            ) : forgiven ? (
+              <p className="t-micro mt-1.5 text-glacier">MISSED. FREE MISS USED.</p>
+            ) : null}
           </div>
         </div>
 
@@ -182,7 +195,7 @@ export function QuestScreen({ date }: { date: string }) {
         </div>
       </SystemWindow>
 
-      <PenaltyBanner date={date} today={today} cleared={result.cleared} />
+      <PenaltyBanner date={date} today={today} cleared={result.cleared} freeMissLeft={freeMissLeft} />
 
       <div className="space-y-4">
         <CategoryPanel
@@ -415,8 +428,18 @@ function DayNav({ date, today }: { date: string; today: string }) {
   );
 }
 
-/** Penalty zone: after 22:00 with the day still open. */
-function PenaltyBanner({ date, today, cleared }: { date: string; today: string; cleared: boolean }) {
+/** Penalty zone: after 22:00 with the day still open, and what it will cost. */
+function PenaltyBanner({
+  date,
+  today,
+  cleared,
+  freeMissLeft,
+}: {
+  date: string;
+  today: string;
+  cleared: boolean;
+  freeMissLeft: boolean;
+}) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000);
@@ -438,6 +461,9 @@ function PenaltyBanner({ date, today, cleared }: { date: string; today: string; 
       <p className="t-micro text-fault">PENALTY ZONE</p>
       <p className="t-small mt-1 text-frost-1">
         {h}H {String(mins).padStart(2, "0")}M to clear today&apos;s gate.
+      </p>
+      <p className="t-micro mt-1.5 text-frost-2">
+        {freeMissLeft ? "THIS WEEK'S ONE FREE MISS WOULD COVER IT." : `MISSING IT COSTS ${XP.missedDay} XP.`}
       </p>
     </m.div>
   );

@@ -75,6 +75,14 @@ export type DayResult = {
   eaten: Macros;
   xp: number;
   xpBreakdown: { label: string; xp: number }[];
+  /**
+   * XP taken for letting the day go by uncleared, as a positive number. Only
+   * deriveProgress knows this: it depends on the week around the day and on
+   * the day being over. Zero on a cleared day, and on today.
+   */
+  penalty: number;
+  /** The day was missed, but the week's one free miss covered it. */
+  forgiven: boolean;
   goodSleep: boolean;
 };
 
@@ -148,6 +156,8 @@ export function evaluateDay(
     eaten,
     xp,
     xpBreakdown,
+    penalty: 0,
+    forgiven: false,
     goodSleep: (log?.sleep?.hours ?? 0) >= 7,
   };
 }

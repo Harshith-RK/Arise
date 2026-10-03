@@ -122,6 +122,8 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     if (!badgeAt[id]) badgeAt[id] = date;
   };
 
+  // Weeks that have already spent their one free miss.
+  const forgivenWeeks = new Set<string>();
   const weighInWeeks = new Set<string>();
   let weighIdx = 0;
   // The scale is scored on direction, so each reading needs the one before it.
@@ -141,6 +143,23 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
 
     // ---- XP from the day itself
     xp += r.xp;
+
+    // ---- The cost of letting a day go by
+    // Charged only once the day is over: today is still winnable, which is what
+    // the penalty zone banner is for. The week's first miss is free, so one bad
+    // day cannot be what ends an arc, but a habit of them is expensive.
+    if (!isToday && !r.cleared) {
+      const wk = weekStart(date);
+      if (forgivenWeeks.has(wk)) {
+        r.penalty = XP.missedDay;
+        xp -= r.penalty;
+        // XP is a record of work done, never a debt.
+        if (xp < 0) xp = 0;
+      } else {
+        forgivenWeeks.add(wk);
+        r.forgiven = true;
+      }
+    }
 
     // ---- Weigh-ins: first per ISO week earns XP
     while (weighIdx < weighIns.length && weighIns[weighIdx].date <= date) {

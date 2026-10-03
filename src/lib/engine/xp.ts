@@ -16,6 +16,17 @@ export const XP = {
   weighInDeadbandKg: 0.2,
   /** Ceiling on one weigh-in's drift, so a mistyped number cannot wipe an arc. */
   weighInDriftCap: 90,
+  /**
+   * What a day that was never cleared costs, charged once the day is over.
+   * Flat, so the cost of missing is the same whatever was on the plan and can
+   * be known in advance.
+   */
+  missedDay: 50,
+  /**
+   * The first miss in an ISO week is free. Illness, travel and a genuinely
+   * impossible day should not wreck an arc; a habit of missing still does.
+   */
+  missesForgivenPerWeek: 1,
   shield: 200,
   shieldEvery: 7,
   /**

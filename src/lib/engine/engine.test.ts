@@ -285,6 +285,70 @@ describe("meal time gate", () => {
   });
 });
 
+describe("missing a day", () => {
+  // MONDAY is a Monday, so a week of days here sits inside one ISO week.
+
+  it("costs nothing until the day is over", () => {
+    // Today is still winnable: the quest screen warns, the arc does not charge.
+    const p = deriveProgress(snap(clearDays(MONDAY, 1)), addDays(MONDAY, 1));
+    expect(p.days[addDays(MONDAY, 1)].cleared).toBe(false);
+    expect(p.days[addDays(MONDAY, 1)].penalty).toBe(0);
+  });
+
+  it("forgives the first miss of the week, then charges a flat rate", () => {
+    const week = clearDays(MONDAY, 7);
+    const end = addDays(MONDAY, 6);
+    const ledger = (logs: DayLog[]) => {
+      const p = deriveProgress(snap(logs), end);
+      const earned = Object.values(p.days).reduce((t, d) => t + d.xp, 0);
+      const charged = Object.values(p.days).reduce((t, d) => t + d.penalty, 0);
+      return { p, earned, charged };
+    };
+
+    // Drop Tuesday: the week's one free miss covers it, so only its own work
+    // is gone. (The shield at seven straight days goes with it either way.)
+    const oneMiss = week.filter((l) => l.date !== addDays(MONDAY, 1));
+    const a = ledger(oneMiss);
+    expect(a.charged).toBe(0);
+    expect(a.p.days[addDays(MONDAY, 1)].forgiven).toBe(true);
+    expect(a.p.xp).toBe(a.earned);
+
+    // Drop Wednesday as well: the second miss is charged the flat rate.
+    const twoMisses = oneMiss.filter((l) => l.date !== addDays(MONDAY, 2));
+    const b = ledger(twoMisses);
+    expect(b.charged).toBe(XP.missedDay);
+    expect(b.p.days[addDays(MONDAY, 2)].penalty).toBe(XP.missedDay);
+    expect(b.p.xp).toBe(b.earned - XP.missedDay);
+  });
+
+  it("gives every week its own free miss", () => {
+    const end = addDays(MONDAY, 13);
+    const dropped = [addDays(MONDAY, 1), addDays(MONDAY, 8)];
+    const missed = clearDays(MONDAY, 14).filter((l) => !dropped.includes(l.date));
+    const p = deriveProgress(snap(missed), end);
+
+    expect(dropped.every((d) => p.days[d].forgiven && p.days[d].penalty === 0)).toBe(true);
+    expect(Object.values(p.days).reduce((t, d) => t + d.penalty, 0)).toBe(0);
+  });
+
+  it("charges a day that was never opened, like one left half done", () => {
+    // Two misses in a week: one forgiven, one charged, whatever the reason.
+    const half = clearDays(MONDAY, 7).map((l) => (l.date === addDays(MONDAY, 3) ? dayLog(l.date, { cardio: false }) : l));
+    const none = half.filter((l) => l.date !== addDays(MONDAY, 4));
+    const p = deriveProgress(snap(none), addDays(MONDAY, 6));
+    const charged = [addDays(MONDAY, 3), addDays(MONDAY, 4)].filter((d) => p.days[d].penalty > 0);
+    expect(charged).toHaveLength(1);
+    expect(p.days[charged[0]].penalty).toBe(XP.missedDay);
+  });
+
+  it("never drives the total below zero", () => {
+    // A fortnight of nothing: far more charged than ever earned.
+    const p = deriveProgress(snap([]), addDays(MONDAY, 13));
+    expect(p.xp).toBe(0);
+    expect(p.level).toBe(1);
+  });
+});
+
 /* ---------- Weigh-ins ---------- */
 
 describe("the long arc", () => {
@@ -375,9 +439,13 @@ describe("weigh-ins", () => {
   const START = 95.5;
 
   it("awards the logging bonus once per ISO week", () => {
-    const p = deriveProgress(snap([], [w(MONDAY, START), w(addDays(MONDAY, 2), START), w(addDays(MONDAY, 7), START)]), addDays(MONDAY, 7));
+    // Cleared days throughout, so missed-day charges are not part of the sum.
+    const days = clearDays(MONDAY, 8);
+    const end = addDays(MONDAY, 7);
+    const base = deriveProgress(snap(days, []), end).xp;
+    const p = deriveProgress(snap(days, [w(MONDAY, START), w(addDays(MONDAY, 2), START), w(end, START)]), end);
     expect(p.totals.weighInWeeks).toBe(2);
-    expect(p.xp).toBe(2 * XP.weighIn);
+    expect(p.xp - base).toBe(2 * XP.weighIn);
     expect(p.weighInDue).toBe(false);
   });
 
@@ -406,8 +474,11 @@ describe("weigh-ins", () => {
   });
 
   it("scores every reading, so logging twice cannot bank the same move twice", () => {
-    const twice = deriveProgress(snap([], [w(MONDAY, START - 0.5), w(addDays(MONDAY, 2), START - 1)]), addDays(MONDAY, 2));
-    const once = deriveProgress(snap([], [w(addDays(MONDAY, 2), START - 1)]), addDays(MONDAY, 2));
+    // With XP banked, so the zero floor does not absorb the difference.
+    const days = clearDays(MONDAY, 3);
+    const end = addDays(MONDAY, 2);
+    const twice = deriveProgress(snap(days, [w(MONDAY, START - 0.5), w(end, START - 1)]), end);
+    const once = deriveProgress(snap(days, [w(end, START - 1)]), end);
     expect(twice.xp).toBe(once.xp);
   });
 
