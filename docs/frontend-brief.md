@@ -779,6 +779,10 @@ Decisions taken while building that a future session should not undo:
   how many exercises it holds; the names live one tap away on the day itself, since printing them
   on every card turned the week into a wall of text. The titles are set in the System's mono
   readout rather than the sans display face, which read as another app's heading among mono rows.
+- **The odometer's digit column is one `ch` wide.** Each rolling digit needs a fixed box, and a
+  hardcoded em guess is wrong for `t-num`, which sets Archivo to a 62% width axis: the glyph came
+  out narrower than its column and every number showed gaps between its digits. `1ch` is the real
+  advance of a digit in whatever face and axis the number sits in.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

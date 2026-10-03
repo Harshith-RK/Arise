@@ -176,7 +176,10 @@ export function Odometer({ value, className }: { value: number; className?: stri
 
 function DigitColumn({ digit }: { digit: number }) {
   return (
-    <span className="relative inline-block overflow-hidden" style={{ height: "1em", width: "0.62em" }} aria-hidden>
+    // One ch is the advance of a digit in whatever face and width axis this
+    // sits in, so the column is exactly as wide as the number it shows. A fixed
+    // em guess left a gap between every digit in the condensed face.
+    <span className="relative inline-block overflow-hidden" style={{ height: "1em", width: "1ch" }} aria-hidden>
       <m.span
         className="absolute left-0 top-0 flex flex-col items-center"
         initial={false}
