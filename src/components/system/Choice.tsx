@@ -23,15 +23,19 @@ export function Choice<T extends string>({
     <div role="group" aria-label={label}>
       <p className="t-micro mb-1.5 text-frost-2">{label}</p>
       {/* Past four options a single row squeezes each one under a thumb's width
-          on a small phone, so it wraps to rows of four until there is room. */}
+          on a small phone, so it wraps to rows of four until there is room.
+
+          The longest label decides the type size for the whole group, never for
+          one cell: a row where one word is smaller than its neighbours reads as
+          a mistake. The size holds at the usual 11px once there is room for it. */}
       <div
-        className={
+        className={`[&_button]:text-[clamp(8.5px,2.6vw,11px)] ${
           options.length > 4
             ? "grid grid-cols-4 gap-1 min-[400px]:grid-cols-7"
             : options.length === 4
               ? "grid grid-cols-2 gap-1 min-[400px]:grid-cols-4"
               : "grid gap-1"
-        }
+        }`}
         style={options.length > 4 || options.length === 4 ? undefined : { gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
       >
         {options.map((o) => (
@@ -42,7 +46,7 @@ export function Choice<T extends string>({
             onClick={() => onChange(o.value)}
             // Filled when selected: ember text on a dark well fails contrast at the
             // coldest rank, so this uses the pair the contrast script checks.
-            className="pressable t-micro min-h-11 break-words border border-line-2 px-1 py-1 text-center leading-tight text-frost-1 transition-none aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-on-ember"
+            className="pressable t-micro min-h-11 whitespace-nowrap border border-line-2 px-1 py-1 text-center leading-tight text-frost-1 transition-none aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-on-ember"
           >
             {o.label}
           </button>
@@ -74,7 +78,9 @@ export function MultiChoice<T extends string>({
   return (
     <div role="group" aria-label={label}>
       <p className="t-micro mb-1.5 text-frost-2">{label}</p>
-      <div className="flex flex-wrap gap-1">
+      {/* The same scale as Choice, so a panel holding both does not read as two
+          different type sizes stacked on each other. */}
+      <div className="flex flex-wrap gap-1 [&_button]:text-[clamp(8.5px,2.6vw,11px)]">
         {options.map((o) => {
           const on = value.includes(o.value);
           return (

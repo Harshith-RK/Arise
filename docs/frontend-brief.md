@@ -770,6 +770,11 @@ Decisions taken while building that a future session should not undo:
   reps, a remove, and "Make the main lift", which moves it to variants[0] (what a quest opens on).
   Up to four, the schema's limit. Variant ids are stable, so promoting or renaming never disturbs
   a logged set or a record.
+- **Choice and MultiChoice labels scale together, never one cell alone.** The buttons hold one
+  line (`whitespace-nowrap`) and take their size from `clamp(8.5px, 2.6vw, 11px)`, shared by every
+  cell in every group, because a row where one word is smaller than its neighbours reads as a
+  mistake. "DUMBBELLS" wrapped to two lines at around 400px before this. Both controls use the
+  same clamp so a panel holding them does not stack two type sizes. 11px holds from about 430px up.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 
