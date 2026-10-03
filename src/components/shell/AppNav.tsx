@@ -54,7 +54,7 @@ export function AppNav() {
         <Link href="/app/quest" className="pressable flex h-(--appbar) items-center border-b border-line-1 px-5 transition-none">
           <Brand size={24} />
         </Link>
-        <HunterMiniCard />
+        <ChallengerMiniCard />
         <ul className="mt-2 flex flex-col">
           {NAV_ITEMS.map((item, i) => {
             const isActive = i === active;
@@ -79,7 +79,7 @@ export function AppNav() {
   );
 }
 
-function HunterMiniCard() {
+function ChallengerMiniCard() {
   const progress = useGame((s) => s.progress);
   const name = useGame((s) => s.snapshot?.profile?.name ?? null);
   if (!progress) return <div className="h-[104px] border-b border-line-1" />;
@@ -87,7 +87,7 @@ function HunterMiniCard() {
     <div className="flex items-center gap-3 border-b border-line-1 px-5 py-5">
       <RankPlaque rank={progress.rank} size={44} />
       <div className="min-w-0">
-        <p className="t-readout truncate text-frost-0">{name ?? "Hunter"}</p>
+        <p className="t-readout truncate text-frost-0">{name ?? "Challenger"}</p>
         <p className="t-micro text-frost-2">
           RANK {progress.rank} <span className="text-frost-2">/</span> {RANK_TITLES[progress.rank].toUpperCase()}
         </p>

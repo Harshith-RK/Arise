@@ -3,7 +3,7 @@
 
    A template is a dish shape, not a fixed recipe: each component lists the
    foods that can fill it, in order of preference, and the generator takes the
-   first one a Hunter's diet allows. So "a protein with rice and dal" becomes
+   first one a Challenger's diet allows. So "a protein with rice and dal" becomes
    chicken for one person and paneer for another, from the same template.
 
    `scale: true` components are solved for grams to hit the meal's macros.

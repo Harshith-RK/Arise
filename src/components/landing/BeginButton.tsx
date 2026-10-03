@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { ButtonLink } from "@/components/system/primitives";
-import { hasHunterMarker } from "@/lib/prefs";
+import { hasChallengerMarker } from "@/lib/prefs";
 import { HAS_BACKEND } from "@/lib/supabase/env";
 import { useAuth } from "@/lib/supabase/session";
 
@@ -17,8 +17,8 @@ export function BeginButton({ variant = "primary", size = "lg" }: { variant?: "p
   const auth = useAuth();
   const existingLocal = useSyncExternalStore(
     subscribeToStorage,
-    hasHunterMarker,
-    () => false, // the server cannot know; assume a new Hunter
+    hasChallengerMarker,
+    () => false, // the server cannot know; assume a new Challenger
   );
 
   if (HAS_BACKEND) {

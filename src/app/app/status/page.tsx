@@ -3,7 +3,7 @@ import { StatusScreen } from "@/components/status/StatusScreen";
 import { AppTransition } from "@/components/shell/AppTransition";
 
 export const metadata: Metadata = {
-  title: "Hunter Status",
+  title: "Challenger Status",
   description: "Level, rank, attributes, streaks and body readout.",
 };
 

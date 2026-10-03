@@ -76,7 +76,7 @@ export function createSupabaseRepo(db: SupabaseClient, userId: string): Reposito
       const plans = parseAll<WorkoutPlan>(workoutPlans.data, WorkoutPlanSchema);
       const diets = parseAll<DietPlan>(dietPlans.data, DietPlanSchema);
 
-      // An account with no seed yet is not an error, it is a new Hunter.
+      // An account with no seed yet is not an error, it is a new Challenger.
       if (!parsedSettings?.success || !parsedSupplies?.success || !plans.length || !diets.length) return null;
 
       const parsedProfile = profile.data ? ProfileSchema.safeParse(profile.data.payload) : null;

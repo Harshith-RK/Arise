@@ -58,7 +58,7 @@ export function StatusScreen() {
 
   return (
     <>
-      {/* Focal: the Hunter card */}
+      {/* Focal: the Challenger card */}
       <SystemWindow className="mb-4" bodyClassName="px-5 py-6 sm:px-7">
         <div className="flex items-center gap-4 sm:gap-6">
           <RankPlaque rank={progress.rank} size={56} title={`Rank ${progress.rank}`} className="shrink-0 sm:h-[72px] sm:w-[72px]" />

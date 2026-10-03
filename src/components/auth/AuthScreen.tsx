@@ -17,7 +17,7 @@ import {
 type Mode = "in" | "up";
 
 /**
- * The door. Email and password, or Google. Nothing to confirm: a new Hunter is
+ * The door. Email and password, or Google. Nothing to confirm: a new Challenger is
  * signed in the moment the account exists, because a verification email between
  * someone and their first workout is a place to lose them.
  */
@@ -55,7 +55,7 @@ export function AuthScreen() {
       if ("needsConfirmation" in result) setMode("in");
       return;
     }
-    // Signing in to an existing Hunter earns a welcome back. A new account goes
+    // Signing in to an existing Challenger earns a welcome back. A new account goes
     // through onboarding, which has its own sequence.
     router.replace(mode === "in" ? withWelcome(next) : next);
   };
@@ -64,7 +64,7 @@ export function AuthScreen() {
     setError(null);
     setBusy(true);
     // Google does not say here whether the account is new. The shell only plays
-    // the welcome for a Hunter who has already set up, so marking it is safe.
+    // the welcome for a Challenger who has already set up, so marking it is safe.
     const result = await signInWithGoogle(withWelcome(next));
     if (!result.ok) {
       setBusy(false);
@@ -79,7 +79,7 @@ export function AuthScreen() {
         <SystemWindow bodyClassName="px-5 py-6 sm:px-7 sm:py-8">
           <Brand size={24} className="mb-5" />
           <h1 className="t-title text-frost-0">
-            {mode === "in" ? "Sign in" : "Create your Hunter"}
+            {mode === "in" ? "Sign in" : "Create your Challenger"}
           </h1>
           <p className="t-micro mt-1.5 text-frost-2">
             {mode === "in"
@@ -129,7 +129,7 @@ export function AuthScreen() {
               className="w-full"
               disabled={busy}
             >
-              {busy ? "Working" : mode === "in" ? "Sign in" : "Create Hunter"}
+              {busy ? "Working" : mode === "in" ? "Sign in" : "Create Challenger"}
             </Button>
           </form>
 
@@ -149,7 +149,7 @@ export function AuthScreen() {
           </Button>
 
           <p className="t-small mt-6 text-frost-2">
-            {mode === "in" ? "No Hunter yet? " : "Already have one? "}
+            {mode === "in" ? "Not a Challenger yet? " : "Already have one? "}
             <button
               type="button"
               onClick={() => {

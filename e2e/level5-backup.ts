@@ -4,7 +4,7 @@ import { deriveProgress } from "../src/lib/engine/derive";
 import type { DayLog, Snapshot } from "../src/lib/engine/types";
 
 /**
- * A backup whose logs put the Hunter well past level 5, so a test can reach the
+ * A backup whose logs put the Challenger well past level 5, so a test can reach the
  * state where VITALITY, and with it Recovery logging, unlocks. Built at run time
  * rather than committed, because every date in it is relative to today.
  */

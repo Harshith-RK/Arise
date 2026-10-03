@@ -8,7 +8,7 @@ import type { Macros } from "@/lib/engine/types";
    A meal written by hand is a line of items: "Paneer 100g", "2 chapati",
    "1 katori dal", "whey scoop". The food library knows what 100 g of each food
    is and servings.ts knows what a katori weighs, so the macros are arithmetic
-   rather than something a Hunter should have to look up and type.
+   rather than something a Challenger should have to look up and type.
 
    Two rules hold the whole thing honest. Anything the library does not know is
    reported, never guessed at, because a silent zero would quietly shrink the

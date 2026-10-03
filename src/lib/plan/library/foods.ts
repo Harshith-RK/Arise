@@ -17,7 +17,7 @@ export type FoodDiet = "vegan" | "vegetarian" | "egg" | "meat";
 export type FoodRole = "protein" | "carb" | "fat" | "veg" | "fruit";
 
 /**
- * Where a Hunter can buy it.
+ * Where a Challenger can buy it.
  *   everyday   any kirana, sabzi market or local meat shop, in any town
  *   city       mostly supermarkets and larger cities
  *   specialty  imported or health-store items
@@ -43,7 +43,7 @@ export type Food = {
   /** Suffix on the portion line, e.g. "cooked" or "dry". */
   state?: string;
   whey?: boolean;
-  /** Excluded when a Hunter has high blood pressure. */
+  /** Excluded when a Challenger has high blood pressure. */
   highSodium?: boolean;
   /** Approximate Indian retail price, rupees per 100 g or ml as eaten. */
   inr: number;
@@ -308,11 +308,11 @@ export type DietPrefs = {
 };
 
 /**
- * Whether a food fits a Hunter's diet and can be bought anywhere.
+ * Whether a food fits a Challenger's diet and can be bought anywhere.
  *
  * Plans use only what a kirana, sabzi market or local meat shop sells, so they
  * work in any town and on a gym-goer's budget. Whey is the one exception, and
- * only for a Hunter who said they take it: they already buy it.
+ * only for a Challenger who said they take it: they already buy it.
  */
 export function allowed(food: Food, prefs: DietPrefs): boolean {
   if (food.availability !== "everyday" && !(food.whey && !prefs.noWhey)) return false;

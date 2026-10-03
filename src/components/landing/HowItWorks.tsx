@@ -9,7 +9,7 @@ const STEPS = [
   { title: "The System sets the quest", body: "Each day auto-generates from your own split and your own meals. Nothing to plan at 7 PM." },
   { title: "You clear it", body: "One tap per exercise or meal. Swipe on a phone. The weight you used is remembered for next time." },
   { title: "Heat transfers to CORE", body: "Every cleared quest sends XP to the core meter. Records are checked against your estimated one-rep max, not raw weight." },
-  { title: "The Hunter levels", body: "Levels raise your rank. Rank warms the whole interface, from frozen ash at E to white heat at S." },
+  { title: "The Challenger levels", body: "Levels raise your rank. Rank warms the whole interface, from frozen ash at E to white heat at S." },
 ];
 
 /**

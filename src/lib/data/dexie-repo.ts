@@ -30,7 +30,7 @@ class WinterArcDB extends Dexie {
 /**
  * The arc used to end at day 90, hardcoded in onboarding and never editable, so
  * every stored 90 is that old default rather than a choice anyone made. Clearing
- * it opens the arc without asking existing Hunters to do anything.
+ * it opens the arc without asking existing Challengers to do anything.
  */
 function migrateProfile<T extends Profile | null | undefined>(p: T): T {
   if (p && p.arcLength === 90) return { ...p, arcLength: null } as T;

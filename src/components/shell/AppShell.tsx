@@ -27,7 +27,7 @@ const BootSequence = dynamic(() => import("@/components/awaken/BootSequence").th
 
 /**
  * The /app shell. data-scope="app" is what makes rank temperature apply:
- * the ember tokens warm here as the Hunter ranks up, while marketing
+ * the ember tokens warm here as the Challenger ranks up, while marketing
  * surfaces outside keep the full brand ember.
  */
 export function AppShell({ children }: { children: ReactNode }) {
@@ -62,7 +62,7 @@ function Gate({ children }: { children: ReactNode }) {
   const [welcomed, setWelcomed] = useState(false);
   // The sequence covers the wait rather than following it: it starts on the
   // first paint after sign-in and the arc loads behind it, so there is no
-  // flash of a half-built screen before the System speaks. A Hunter on their
+  // flash of a half-built screen before the System speaks. A Challenger on their
   // way to onboarding is not welcomed back; that flow has its own sequence.
   const showWelcome = welcomeRequested && !welcomed && status !== "onboarding";
 
@@ -114,17 +114,17 @@ function Gate({ children }: { children: ReactNode }) {
 
 const noSubscription = () => () => {};
 
-/** What the System says to a returning Hunter: who they are and where they stand. */
+/** What the System says to a returning Challenger: who they are and where they stand. */
 function welcomeLines(name: string | null, progress: Progress | null): string[] {
   // Three lines from the first frame, whether or not the arc has loaded yet:
   // the panel reserves a slot per line, and each is written as it plays.
-  if (!progress) return ["SYSTEM RECONNECTED", name ? `WELCOME BACK, ${name.toUpperCase()}` : "WELCOME BACK, HUNTER", "READING YOUR ARC"];
+  if (!progress) return ["SYSTEM RECONNECTED", name ? `WELCOME BACK, ${name.toUpperCase()}` : "WELCOME BACK, CHALLENGER", "READING YOUR ARC"];
   const streak = Math.max(0, ...Object.values(progress.streaks).map((s) => (s.state === "broken" ? 0 : s.count)));
   const standing =
     streak > 0
       ? `STREAK ${streak} / LEVEL ${progress.level} / RANK ${progress.rank}`
       : `LEVEL ${progress.level} / RANK ${progress.rank} / DAY ${progress.arcDay}`;
-  return ["SYSTEM RECONNECTED", name ? `WELCOME BACK, ${name.toUpperCase()}` : "WELCOME BACK, HUNTER", standing];
+  return ["SYSTEM RECONNECTED", name ? `WELCOME BACK, ${name.toUpperCase()}` : "WELCOME BACK, CHALLENGER", standing];
 }
 
 /** Structural placeholder matching the quest layout, not a spinner. */

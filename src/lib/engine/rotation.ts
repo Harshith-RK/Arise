@@ -4,7 +4,7 @@ import type { Snapshot, WorkoutPlan } from "./types";
 /* ==========================================================================
    Rotating workout versions.
 
-   A Hunter can keep more than one workout plan and train them in turn: week A,
+   A Challenger can keep more than one workout plan and train them in turn: week A,
    week B, week A again. Rotation switches on a Monday rather than on the day it
    was turned on, so a week is never cut in half, and it reads off the calendar
    rather than being stored per day: a day already logged keeps the version it

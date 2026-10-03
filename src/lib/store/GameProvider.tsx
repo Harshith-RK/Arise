@@ -12,7 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { subscribeToArc } from "@/lib/supabase/realtime";
 import { adoptLocalArc } from "@/lib/supabase/adopt";
 import { createCeremonyQueue, type CeremonyQueue } from "@/lib/ceremony";
-import { applySettings, applyRank, markHunter } from "@/lib/prefs";
+import { applySettings, applyRank, markChallenger } from "@/lib/prefs";
 import { createGameStore, type GameState, type GameStore, type Outcome } from "./game-store";
 import { applyOutcome } from "./apply-outcome";
 import { notify } from "@/components/system/notify";
@@ -46,7 +46,7 @@ function makeDispatch(queue: CeremonyQueue): Ctx["dispatch"] {
  *
  *   local  : Dexie on this device, no account. The original product, and what
  *            runs when no backend is configured or nobody is signed in.
- *   remote : Supabase, keyed to a Hunter. Follows them between devices and
+ *   remote : Supabase, keyed to a Challenger. Follows them between devices and
  *            updates live.
  */
 type Identity = { kind: "local" } | { kind: "remote"; userId: string };
@@ -151,12 +151,12 @@ function GameRuntime({ identity, children }: { identity: Identity; children: Rea
     if (rank) applyRank(rank);
   }, [rank]);
 
-  // Mirror "a Hunter exists" so the landing page can route without opening
+  // Mirror "a Challenger exists" so the landing page can route without opening
   // the database.
   const status = useStore(store, (s) => s.status);
   useEffect(() => {
-    if (status === "ready") markHunter(true);
-    else if (status === "onboarding") markHunter(false);
+    if (status === "ready") markChallenger(true);
+    else if (status === "onboarding") markChallenger(false);
   }, [status]);
 
   const value = useMemo<Ctx>(() => ({ store, queue, dispatch: makeDispatch(queue) }), [store, queue]);

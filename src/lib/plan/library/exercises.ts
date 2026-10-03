@@ -6,7 +6,7 @@ import type { Equipment, Experience, Injury } from "../rules";
    Each movement carries what selection needs and a name alone does not: the
    muscle it trains, the equipment it needs, how much skill it takes, which
    injuries it aggravates, and what to swap it for. The swaps become the
-   variants a Hunter can switch to on the Quest screen.
+   variants a Challenger can switch to on the Quest screen.
    ========================================================================== */
 
 /** Muscle groups the volume model prescribes, with arms split in two. */
@@ -177,7 +177,7 @@ export const EXERCISE_BY_ID: Record<string, Exercise> = Object.fromEntries(EXERC
 
 export type TrainingPrefs = { equipment: Equipment; experience: Experience; injuries: readonly string[] };
 
-/** Whether a Hunter can do this movement with what they have and what hurts. */
+/** Whether a Challenger can do this movement with what they have and what hurts. */
 export function usable(ex: Exercise, prefs: TrainingPrefs): boolean {
   const gear = GEAR_FOR[prefs.equipment];
   if (!ex.gear.every((g) => gear.has(g))) return false;

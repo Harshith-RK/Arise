@@ -73,7 +73,7 @@ type Draft = {
 };
 
 /**
- * Nothing is pre-filled. Every answer that shapes the plan is one the Hunter
+ * Nothing is pre-filled. Every answer that shapes the plan is one the Challenger
  * gives on purpose: a default is a guess about a stranger's body and diet, and
  * pressing Next through defaults is how someone ends up with another person's plan.
  */
@@ -177,7 +177,7 @@ export function AwakenFlow() {
   const [restored, setRestored] = useState<{ key: string; draft: Partial<Draft> } | null>(null);
   const [edits, setEdits] = useState<Partial<Draft>>({});
 
-  // Google supplies a name, the one thing worth pre-filling: it is the Hunter's
+  // Google supplies a name, the one thing worth pre-filling: it is the Challenger's
   // own, and they can change it.
   const accountName = auth.status === "signed-in" ? (auth.name ?? "") : "";
   const draft: Draft = useMemo(() => {
@@ -324,7 +324,7 @@ export function AwakenFlow() {
     });
     const problems: Record<string, string> = {};
     if (!parsedOverride.success) for (const i of parsedOverride.error.issues) problems[String(i.path[0])] ??= i.message;
-    // With no calculated targets (a refusal), the Hunter's own numbers are the
+    // With no calculated targets (a refusal), the Challenger's own numbers are the
     // only ones there are, so they stop being optional.
     if (plan.refused) {
       if (override.kcal === null) problems.kcalOverride = "Enter the target your clinician gave you";
@@ -361,7 +361,7 @@ export function AwakenFlow() {
       ...dietPrefs(draft.diet, draft.whey),
       kcalTarget: override.kcal ?? calculated?.kcal ?? 2000,
       proteinTarget: override.proteinG ?? calculated?.proteinG ?? 100,
-      // Setting up starts the arc, including for a Hunter setting up again: day 1
+      // Setting up starts the arc, including for a Challenger setting up again: day 1
       // is today, and nothing logged before it counts toward their progress.
       arcStart: todayKey(),
       arcLength: existing?.arcLength ?? null,
@@ -509,7 +509,7 @@ export function AwakenFlow() {
               {step === 0 ? (
                 <>
                   <Field
-                    label="HUNTER NAME"
+                    label="CHALLENGER NAME"
                     name="name"
                     autoComplete="name"
                     placeholder="Your name"

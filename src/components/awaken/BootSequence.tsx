@@ -6,7 +6,7 @@ import { gsap, registerGsap } from "@/lib/gsap";
 import { motionReduced } from "@/lib/motion";
 
 /**
- * AWAKENING BOOT (brief motion graphic A). Plays once, after the Hunter has
+ * AWAKENING BOOT (brief motion graphic A). Plays once, after the Challenger has
  * been registered: a single line ignites and splits, the System window opens
  * between the halves, its frame draws, and the System names who it selected.
  * Tap to skip.
@@ -18,7 +18,7 @@ export function BootSequence({
   onDone,
 }: {
   name?: string;
-  /** Replaces the awakening lines, e.g. for a returning Hunter. Up to three. */
+  /** Replaces the awakening lines, e.g. for a returning Challenger. Up to three. */
   lines?: string[];
   /**
    * Whether what comes after this is ready to be shown. False holds the panel

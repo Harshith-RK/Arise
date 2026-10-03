@@ -41,7 +41,7 @@ export default function PrivacyPage() {
         <h2 className="t-title text-frost-0">What is stored</h2>
         <ul className="mt-3 space-y-2">
           {[
-            "Your Hunter profile: name, height, weights, body composition readings and targets.",
+            "Your Challenger profile: name, height, weights, body composition readings and targets.",
             "Your workout and diet plans, including every earlier version of them.",
             "Daily logs: which quests you cleared, weights and reps used, meals eaten, cardio and sleep entries.",
             "Weigh-ins, levels, streaks and badges derived from those logs.",

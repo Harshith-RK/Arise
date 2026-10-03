@@ -213,7 +213,7 @@ test.describe("app", () => {
     await page.waitForURL("**/awaken", { timeout: 15000 });
     await expect(page.getByText(/NEEDS YOUR DETAILS FROM THE START/)).toBeVisible();
     await expect(page.getByText(/BEGINS AGAIN AT DAY 1/)).toBeVisible();
-    await expect(page.getByLabel("HUNTER NAME")).toHaveValue("");
+    await expect(page.getByLabel("CHALLENGER NAME")).toHaveValue("");
     await expect(page.getByLabel("HEIGHT")).toHaveValue("");
 
     // That backup carried forty days and a level well past 5. Setting up again
@@ -223,16 +223,16 @@ test.describe("app", () => {
     await expect(page.getByText(/^LVL 1$/).first()).toBeVisible();
   });
 
-  test("a returning Hunter is welcomed back once per sign-in, not on reload", async ({ page }) => {
+  test("a returning Challenger is welcomed back once per sign-in, not on reload", async ({ page }) => {
     // Sign-in adds the marker; the local-only suite cannot sign in, so it arrives the same way.
     await page.goto("/app/quest?welcome=1");
-    // The sequence starts before the arc has loaded and names the Hunter once
+    // The sequence starts before the arc has loaded and names the Challenger once
     // it has, so the spoken label is awaited rather than assumed.
     // What the panel says is asserted through its label rather than the letters
     // on screen: those are mid-scramble, and the sequence can finish first.
     const welcome = page.getByRole("status", { name: /WELCOME BACK/i });
     await expect(welcome).toBeAttached();
-    await expect(page.getByRole("status", { name: /WELCOME BACK, TEST HUNTER/i })).toBeAttached({ timeout: 8000 });
+    await expect(page.getByRole("status", { name: /WELCOME BACK, TEST CHALLENGER/i })).toBeAttached({ timeout: 8000 });
     await expect(page.getByRole("status", { name: /LEVEL \d+ \/ RANK [A-Z]/i })).toBeAttached({ timeout: 8000 });
 
     await page.mouse.click(180, 200);
@@ -437,7 +437,7 @@ test.describe("landing demo", () => {
     await expect(page.getByText("[Quest Complete]").first()).toBeVisible();
     await page.waitForTimeout(500);
 
-    // The sandbox must not have created a Hunter in IndexedDB.
+    // The sandbox must not have created a Challenger in IndexedDB.
     const hasProfile = await page.evaluate(async () => {
       const dbs = await indexedDB.databases();
       return dbs.some((d) => d.name === "winter-arc");
@@ -450,7 +450,7 @@ test.describe("landing demo", () => {
 test.describe("onboarding", () => {
   test("starts empty and will not move on without answers", async ({ page }) => {
     await page.goto("/awaken");
-    await expect(page.getByLabel("HUNTER NAME")).toHaveValue("");
+    await expect(page.getByLabel("CHALLENGER NAME")).toHaveValue("");
     await expect(page.getByLabel("HEIGHT")).toHaveValue("");
     await expect(page.getByLabel("CURRENT WEIGHT")).toHaveValue("");
 
@@ -462,7 +462,7 @@ test.describe("onboarding", () => {
 
   test("shows the System's message before the plan, and the plan before the first quest", async ({ page }) => {
     await page.goto("/awaken");
-    await page.getByLabel("HUNTER NAME").fill("Asha");
+    await page.getByLabel("CHALLENGER NAME").fill("Asha");
     await page.getByRole("button", { name: "FEMALE", exact: true }).click();
     await page.getByLabel("AGE").fill("29");
     await page.getByLabel("HEIGHT").fill("162");

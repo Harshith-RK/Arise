@@ -21,7 +21,7 @@ const LIMITS: Record<NumberKey, { min: number; max: number; label: string }> = {
  * One version of the workout, open for editing. Two ways to save: updating this
  * version corrects it everywhere it is used, including days already logged on
  * it; saving a new version leaves those days scored against what they were
- * logged on. In "copy" mode only the second is offered, because the Hunter came
+ * logged on. In "copy" mode only the second is offered, because the Challenger came
  * here from "Create another version" and the version they started from stays.
  */
 export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number; mode?: "edit" | "copy" }) {

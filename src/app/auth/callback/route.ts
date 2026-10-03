@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 
 /**
- * Where Google sends the Hunter back. Exchanges the code for a session cookie
+ * Where Google sends the Challenger back. Exchanges the code for a session cookie
  * and forwards to wherever they were heading.
  */
 export async function GET(request: Request) {

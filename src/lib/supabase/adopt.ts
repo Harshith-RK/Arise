@@ -11,7 +11,7 @@ import { isSetUp } from "@/lib/engine/types";
  * If the account is empty and this device is not, the local arc is adopted:
  * pushed up as-is so nothing is lost. If the account already holds an arc, the
  * account wins and the local copy is left alone, because the account is the one
- * thing that follows the Hunter between devices.
+ * thing that follows the Challenger between devices.
  *
  * Returns what happened, so the caller can say so.
  */

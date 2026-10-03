@@ -16,7 +16,7 @@ const DAY_OPTIONS = DAY_KEYS.map((d) => ({ value: d, label: DAY_TITLES[d].slice(
 /**
  * A meal's numbers. Counted from the items where the food library knows them,
  * which is the usual case, and typed by hand where it does not or where a
- * Hunter would rather say it themselves.
+ * Challenger would rather say it themselves.
  */
 function MealMacros({
   meal,
@@ -133,7 +133,7 @@ export function DietPlanEditor() {
   // A delete asks twice: the first tap arms it, the second carries it out.
   const [armed, setArmed] = useState(false);
   // Open on today: that is the day Quest and Log are showing, so an edit here
-  // is the one the Hunter expects to see there.
+  // is the one the Challenger expects to see there.
   const today = useGame((s) => s.today);
   const [day, setDay] = useState<DayKey>(() => dayKeyOf(today));
 
@@ -163,7 +163,7 @@ export function DietPlanEditor() {
 
   /**
    * Items are the source of the numbers. Rewriting them recounts the meal, as
-   * long as the meal is still being counted: once a Hunter types a number by
+   * long as the meal is still being counted: once a Challenger types a number by
    * hand that meal is theirs, and the editor stops writing over it.
    */
   const setItems = (meal: MealDef, text: string) => {

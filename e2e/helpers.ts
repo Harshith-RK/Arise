@@ -15,7 +15,7 @@ export function watchErrors(page: Page): string[] {
   return errors;
 }
 
-/** Completes onboarding so the app has a Hunter. Idempotent. */
+/** Completes onboarding so the app has a Challenger. Idempotent. */
 export async function awaken(page: Page) {
   await page.goto("/awaken");
   await page.waitForTimeout(200);
@@ -27,7 +27,7 @@ export async function awaken(page: Page) {
 
   // Onboarding starts empty, so every answer that shapes the plan is filled in.
   // These match the profile the suite was written against.
-  await page.getByLabel("HUNTER NAME").fill("Test Hunter");
+  await page.getByLabel("CHALLENGER NAME").fill("Test Challenger");
   await page.getByRole("button", { name: "MALE", exact: true }).click();
   await page.getByLabel("AGE").fill("25");
   await page.getByLabel("HEIGHT").fill("175.5");

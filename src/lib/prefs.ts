@@ -30,25 +30,27 @@ export function applySettings(settings: Pick<Settings, "skin" | "motion">) {
   }
 }
 
-export const HUNTER_MARKER_KEY = "wa:has-hunter";
+// The key keeps its original spelling: renaming it would forget every browser
+// that already carries the marker.
+export const CHALLENGER_MARKER_KEY = "wa:has-hunter";
 
 /**
  * A hint for surfaces that must not open the database (the landing page).
  * The app shell stays the source of truth: if this is stale, the shell just
  * redirects to onboarding.
  */
-export function markHunter(exists: boolean) {
+export function markChallenger(exists: boolean) {
   try {
-    if (exists) localStorage.setItem(HUNTER_MARKER_KEY, "1");
-    else localStorage.removeItem(HUNTER_MARKER_KEY);
+    if (exists) localStorage.setItem(CHALLENGER_MARKER_KEY, "1");
+    else localStorage.removeItem(CHALLENGER_MARKER_KEY);
   } catch {
     /* ignore */
   }
 }
 
-export function hasHunterMarker(): boolean {
+export function hasChallengerMarker(): boolean {
   try {
-    return localStorage.getItem(HUNTER_MARKER_KEY) === "1";
+    return localStorage.getItem(CHALLENGER_MARKER_KEY) === "1";
   } catch {
     return false;
   }

@@ -759,6 +759,11 @@ Decisions taken while building that a future session should not undo:
   so they move to what remains (through the rotation for workouts, the newest for diets). Deleting
   is two taps and offers undo, which restores the plan and the moved logs. Workout versions are
   deleted from their list, the diet version from its editor.
+- **"Hunter" is called Challenger everywhere in the product.** The brief's Solo Leveling vocabulary
+  keeps Rank, Gate, Quest, Penalty and the Awakening, but the person using the app is a Challenger:
+  gym language rather than anime costume. Code and tests follow the product, with one exception
+  spelled out where it lives: the browser marker stays keyed `wa:has-hunter`, since renaming the
+  key would forget every browser that already carries one.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

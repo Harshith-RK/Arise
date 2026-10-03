@@ -136,7 +136,7 @@ async function onboard(page, width) {
   const next = async () => { await page.getByRole("button", { name: "Next", exact: true }).tap(); await page.waitForTimeout(350); };
   await page.goto(`${BASE}/awaken`);
   await audit(page, width, "awaken 1 identity");
-  await page.getByLabel("HUNTER NAME").fill("Mobile Hunter");
+  await page.getByLabel("CHALLENGER NAME").fill("Mobile Challenger");
   await page.getByRole("button", { name: "MALE", exact: true }).tap();
   await page.getByLabel("AGE").fill("28");
   await page.getByLabel("HEIGHT").fill("172");
@@ -176,7 +176,7 @@ async function onboard(page, width) {
 const yesterday = (() => { const d = new Date(Date.now() - 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })();
 
 for (const width of WIDTHS) {
-  // Public screens, no Hunter.
+  // Public screens, no Challenger.
   {
     const { ctx, page } = await newPhone(width);
     for (const [path, where] of [["/", "landing"], ["/legal/terms", "terms"], ["/legal/privacy", "privacy"], ["/auth", "sign in"], ["/offline", "offline"], ["/no-such-page", "404"]]) {

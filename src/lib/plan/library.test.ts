@@ -210,7 +210,7 @@ describe("generated plans", () => {
     }
   });
 
-  it("uses only the equipment a Hunter has", () => {
+  it("uses only the equipment a Challenger has", () => {
     for (const equipment of ["none", "dumbbell", "gym", "full"] as Equipment[]) {
       const { plans } = build({ equipment });
       for (const id of Object.keys(plans.workout.exercises)) {

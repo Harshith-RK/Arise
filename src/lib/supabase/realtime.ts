@@ -16,7 +16,7 @@ export const SYNCED_TABLES = [
 export type SyncedTable = (typeof SYNCED_TABLES)[number];
 
 /**
- * Subscribes to this Hunter's rows on every synced table.
+ * Subscribes to this Challenger's rows on every synced table.
  *
  * The filter is a convenience, not the security boundary: row level security is
  * what actually stops another user's rows arriving, so a tampered filter yields

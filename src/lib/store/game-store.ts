@@ -90,7 +90,7 @@ export type GameState = {
   /**
    * Overwrite the current workout version in place. Unlike saveWorkoutPlan this
    * reaches every day already logged on that version, which is the point when a
-   * Hunter is correcting a mistake, and the reason the editor says so.
+   * Challenger is correcting a mistake, and the reason the editor says so.
    * `version` defaults to the newest, which is the only one there is to edit
    * until a rotation is running.
    */
@@ -543,7 +543,7 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
           const supplies: Supplies = { weekOf: weekStart(get().today), items: plans.supplies };
           await persist(() => repo.saveSupplies(supplies));
           if (!snap.dayLogs.length) {
-            // A new Hunter: nothing refers to the starter plans, so replace them.
+            // A new Challenger: nothing refers to the starter plans, so replace them.
             const workout: WorkoutPlan = { ...plans.workout, version: 1, createdAt };
             const diet: DietPlan = { ...plans.diet, version: 1, createdAt };
             await persist(() => repo.saveWorkoutPlan(workout));
@@ -587,7 +587,7 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
         const { events } = commit({ ...snap, profile: p }, get().today);
         return {
           events,
-          notice: { tag: "Notice", text: "Hunter profile updated.", tone: "neutral" },
+          notice: { tag: "Notice", text: "Challenger profile updated.", tone: "neutral" },
           undo: prev
             ? async () => {
                 await repo.saveProfile(prev);

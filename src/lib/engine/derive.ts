@@ -89,7 +89,7 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
   const arcStart = profile?.arcStart ?? today;
   const start = arcStart <= today ? arcStart : today;
 
-  // Progress belongs to the arc. Anything dated before it started (a Hunter who
+  // Progress belongs to the arc. Anything dated before it started (a Challenger who
   // set up again, after logging against someone else's details) stays stored
   // but does not count: day 1 is day 1, with no level carried in from before.
   const weighIns = [...snap.weighIns]
@@ -126,7 +126,7 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
   let weighIdx = 0;
   // The scale is scored on direction, so each reading needs the one before it.
   // Seeded from the profile's starting weight so the very first weigh-in of the
-  // arc is measured against where the hunter began, not against nothing.
+  // arc is measured against where the challenger began, not against nothing.
   const cutting = profile ? isCutting(profile.startWeightKg, profile.targetWeightKg) : true;
   let prevWeightKg: number | null = profile?.startWeightKg ?? null;
   let clearedThisWeek = 0;

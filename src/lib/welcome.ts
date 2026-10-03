@@ -1,6 +1,6 @@
 /*
  * "Welcome back" plays once per sign-in, not once per page load. Sign-in adds
- * this marker to where it sends the Hunter; the app shell plays the sequence
+ * this marker to where it sends the Challenger; the app shell plays the sequence
  * when it sees the marker, then removes it, so a reload or a shared link does
  * not replay it.
  */

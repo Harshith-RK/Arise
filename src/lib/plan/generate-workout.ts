@@ -7,7 +7,7 @@ import { EXERCISE_BY_ID, EXERCISES, usable, type DeltFocus, type Exercise, type 
 
    A split and weekly sets per muscle in (the model's output), a week of
    sessions out:
-     1. lay the split over the Hunter's actual training days
+     1. lay the split over the Challenger's actual training days
      2. divide each muscle's weekly sets across the sessions that train it
      3. pick movements they can do with their gear, skill and injuries,
         compounds first, not repeating one within the week while others exist
@@ -104,7 +104,7 @@ const SKILL_SWEET_SPOT = { beginner: 1, intermediate: 2, advanced: 3 } as const;
 /**
  * Lower is better. Order of concerns: something new this week, loaded work when
  * there is gear to load it, the right kind of movement for the muscle, and a
- * skill level that fits the Hunter.
+ * skill level that fits the Challenger.
  */
 function rank(e: Exercise, target: Target, input: WorkoutInput, usedThisWeek = new Map<string, number>()): number {
   // Repeating a good compound twice a week is normal programming; the penalty

@@ -173,7 +173,7 @@ export const ProfileSchema = z.object({
   /**
    * Which onboarding produced this profile. Missing or older means it was made
    * when onboarding came pre-filled with one person's details, so its numbers
-   * cannot be trusted to be the Hunter's own and they set up again.
+   * cannot be trusted to be the Challenger's own and they set up again.
    */
   setupVersion: z.number().int().min(0).optional(),
 });
@@ -181,7 +181,7 @@ export const ProfileSchema = z.object({
 /** The onboarding a profile must have completed to be used. */
 export const SETUP_VERSION = 2;
 
-/** Whether this profile came from a Hunter filling in their own details. */
+/** Whether this profile came from a Challenger filling in their own details. */
 export function isSetUp(profile: Profile | null | undefined): profile is Profile {
   return !!profile && (profile.setupVersion ?? 0) >= SETUP_VERSION;
 }

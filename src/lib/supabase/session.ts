@@ -74,7 +74,7 @@ export async function signOut(): Promise<void> {
  *
  * Leaving /app happens first, on purpose. Signed out, the app falls back to
  * this device's local store, and on a device that only ever held the account
- * copy that store is empty, which the shell reads as a new Hunter and answers
+ * copy that store is empty, which the shell reads as a new Challenger and answers
  * with onboarding. Navigating away before the session ends unmounts the shell,
  * so there is nothing left to make that mistake.
  */

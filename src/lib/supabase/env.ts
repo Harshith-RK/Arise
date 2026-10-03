@@ -8,7 +8,7 @@ export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
 
 /**
  * Whether accounts are on. With a backend configured, nothing past the landing
- * page opens without signing in, and every Hunter's data lives in the database.
+ * page opens without signing in, and every Challenger's data lives in the database.
  *
  * Without one the app runs local-only, on this device, no account. The
  * end-to-end suite runs that way on purpose (NEXT_PUBLIC_ARISE_LOCAL_ONLY=1),
@@ -18,6 +18,6 @@ export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
 export const HAS_BACKEND =
   Boolean(SUPABASE_URL && SUPABASE_ANON_KEY) && process.env.NEXT_PUBLIC_ARISE_LOCAL_ONLY !== "1";
 
-/** Paths that need a signed-in Hunter when accounts are on. */
+/** Paths that need a signed-in Challenger when accounts are on. */
 export const isProtectedPath = (pathname: string) =>
   pathname === "/awaken" || pathname.startsWith("/awaken/") || pathname === "/app" || pathname.startsWith("/app/");

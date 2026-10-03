@@ -1,7 +1,7 @@
 import type { DayKey } from "./types";
 
 /**
- * Local-calendar date keys (YYYY-MM-DD). Everything is keyed by the Hunter's
+ * Local-calendar date keys (YYYY-MM-DD). Everything is keyed by the Challenger's
  * local day so "today" rolls over at local midnight, never at UTC.
  */
 export function toKey(d: Date): string {

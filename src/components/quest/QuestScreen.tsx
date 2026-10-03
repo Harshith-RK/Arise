@@ -68,7 +68,7 @@ export function QuestScreen({ date }: { date: string }) {
   }, [snapshot, progress, date]);
 
   // The first unfinished category is derived, not stored: the panel opens
-  // itself until the Hunter makes a choice.
+  // itself until the Challenger makes a choice.
   const defaultCategory: Category | null = !view
     ? null
     : view.rest
@@ -246,7 +246,7 @@ export function QuestScreen({ date }: { date: string }) {
           )}
 
           {/* Cardio closes the session. Rest days do not carry one: the bonus
-              quest above already offers abs or cardio if the Hunter wants it. */}
+              quest above already offers abs or cardio if the Challenger wants it. */}
           {rest ? null : (
             <div className="border-t border-line-1">
               <CardioRow

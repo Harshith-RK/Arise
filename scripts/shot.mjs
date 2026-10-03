@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Dev screenshot helper. Uses a persistent browser profile so the Hunter
+ * Dev screenshot helper. Uses a persistent browser profile so the Challenger
  * seeded by scripts/walk.mjs (IndexedDB) survives between captures.
  *
  *   node scripts/shot.mjs /app/quest [--w 390] [--h 900] [--out name]

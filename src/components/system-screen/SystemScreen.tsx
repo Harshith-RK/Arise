@@ -53,8 +53,8 @@ export function SystemScreen() {
     <>
       <PageHeader title="System" meta={<span className="t-micro text-frost-2">V1.0</span>} />
 
-      {/* Hunter profile */}
-      <Panel title="Hunter" className="mb-4">
+      {/* Challenger profile */}
+      <Panel title="Challenger" className="mb-4">
         <div className="grid gap-3 border-t border-line-1 px-4 py-4 sm:grid-cols-2">
           <Field label="NAME" value={profile.name} onChange={(v) => void saveProfile({ name: v })} />
           <Field label="HEIGHT" suffix="CM" type="number" step={0.1} value={profile.heightCm} onChange={(v) => void saveProfile({ heightCm: Number(v) })} />
@@ -211,7 +211,7 @@ export function SystemScreen() {
             <div className="mt-4 border border-line-2 px-4 py-4">
               <p className="t-readout text-frost-0">Replace everything with this backup?</p>
               <dl className="mt-3 space-y-1">
-                <Row k="HUNTER" v={preview.summary.name ?? "Not set"} />
+                <Row k="CHALLENGER" v={preview.summary.name ?? "Not set"} />
                 <Row k="DAYS LOGGED" v={String(preview.summary.days)} />
                 <Row k="WEIGH-INS" v={String(preview.summary.weighIns)} />
                 <Row k="RANGE" v={preview.summary.from ? `${preview.summary.from} TO ${preview.summary.to}` : "NONE"} />

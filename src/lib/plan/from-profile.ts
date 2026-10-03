@@ -2,7 +2,7 @@ import type { Profile } from "@/lib/engine/types";
 import type { Equipment, Experience, Goal, Sex } from "./rules";
 import type { PlanInput } from "./targets";
 
-/** Cut, maintain or bulk, read from where the Hunter is and where they want to be. */
+/** Cut, maintain or bulk, read from where the Challenger is and where they want to be. */
 export function goalFor(startKg: number, targetKg: number): Goal {
   if (targetKg < startKg - 0.5) return "cut";
   if (targetKg > startKg + 0.5) return "bulk";

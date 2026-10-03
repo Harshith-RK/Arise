@@ -15,7 +15,7 @@ const MUSCLE_LABEL: Record<string, string> = {
 };
 
 /**
- * What the System calculated. Three numbers up front, the ones a Hunter acts on
+ * What the System calculated. Three numbers up front, the ones a Challenger acts on
  * each day; everything behind them (BMR, TDEE, body fat, split, volume) is one
  * tap away rather than a wall of rows.
  */

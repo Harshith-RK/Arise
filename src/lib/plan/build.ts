@@ -28,7 +28,7 @@ export type BuiltPlans = {
 };
 
 /**
- * Both plans from one profile. `override` is what the Hunter typed over the
+ * Both plans from one profile. `override` is what the Challenger typed over the
  * calculation, and wins. A refused profile has no calculated targets, so it
  * builds only from override numbers, and trains at the gentlest prescription.
  */

@@ -5,7 +5,7 @@ import { useAuth, useSignOut } from "@/lib/supabase/session";
 
 /**
  * A way out of an account from a screen that has no settings to put one in.
- * Onboarding sends every other route back to itself, so without this a Hunter
+ * Onboarding sends every other route back to itself, so without this a Challenger
  * who signed in with the wrong Google account could only leave by finishing a
  * profile they did not mean to create.
  */

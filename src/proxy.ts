@@ -5,7 +5,7 @@ import { HAS_BACKEND, isProtectedPath, SUPABASE_ANON_KEY, SUPABASE_URL } from "@
 /**
  * Refreshes the auth cookie on every navigation, and keeps signed-out visitors
  * out of the app: /app and /awaken send them to sign in, and a signed-in
- * Hunter who opens the sign in page goes straight to their quest.
+ * Challenger who opens the sign in page goes straight to their quest.
  *
  * A session that ends while a page is already open is caught in the client
  * too (GameProvider), since no navigation passes through here for that.

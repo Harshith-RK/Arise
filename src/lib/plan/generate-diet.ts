@@ -9,7 +9,7 @@ import { MEAL_TEMPLATES, type MealTemplate, type Slot } from "./library/meals";
    Targets in, a day of real meals out:
      1. schedule meal slots around the gym window
      2. share the day's macros across slots by what each slot is for
-     3. pick a dish per slot the Hunter's diet allows, avoiding repeats
+     3. pick a dish per slot the Challenger's diet allows, avoiding repeats
      4. solve portions for each meal (bounded least squares), round to what a
         kitchen can measure, then nudge portions across the whole day so the
         totals land on the targets
@@ -55,7 +55,7 @@ const mealCost = (parts: ChosenPart[]) => parts.reduce((s, p) => s + costOf(p.fo
 
 /**
  * Cost as it weighs on choosing, which is not quite what the day costs. Whey
- * only reaches a plan for a Hunter who said they take it, and they have already
+ * only reaches a plan for a Challenger who said they take it, and they have already
  * bought the tub: counting it as a fresh ₹280 per 100 g kept it out of every
  * plan, including the ones that could not reach protein without it. It still
  * counts toward the daily cost shown.
@@ -249,7 +249,7 @@ function resolve(template: MealTemplate, prefs: DietPrefs, usedAnchors: Set<stri
     parts.push({ food, amount: snap(food, comp.amount), scale: comp.scale, index });
   }
 
-  // A dairy dish can take a stir-in of milk powder, or whey for a Hunter who
+  // A dairy dish can take a stir-in of milk powder, or whey for a Challenger who
   // takes it, from nothing up. Milk powder is the cheapest protein a kirana
   // sells and a common gym-goer habit; together they give a vegetarian day a
   // lever to reach protein that soya, capped, cannot. The cost term and the
@@ -302,7 +302,7 @@ type WeekMemory = {
 /**
  * `variety` scales the week's repeat penalties: 1 is full strength. Not eating
  * yesterday's plate again is held at full strength regardless, because that is
- * the repeat the Hunter actually asked not to see.
+ * the repeat the Challenger actually asked not to see.
  */
 function generateDay(input: DietInput, day: Macro4, memory: WeekMemory, variety = 1): Meal[] {
   const slots = schedule(input.kcal, input.gymStart, input.gymEnd);
@@ -368,7 +368,7 @@ function generateDay(input: DietInput, day: Macro4, memory: WeekMemory, variety 
       const sm = sum(m.parts);
       for (const key of KEYS) t[key] += sm[key];
     }
-    // The day's totals are what the Hunter is held to. The per-meal term only
+    // The day's totals are what the Challenger is held to. The per-meal term only
     // breaks ties, so one meal does not absorb the whole correction.
     // A light cost term too, so when two portions fit equally the cheaper food
     // takes the grams.

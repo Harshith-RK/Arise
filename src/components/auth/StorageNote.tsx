@@ -4,7 +4,7 @@ import { HAS_BACKEND } from "@/lib/supabase/env";
 import { useAuth } from "@/lib/supabase/session";
 
 /**
- * Where this Hunter's data actually is, said plainly. The answer changes with
+ * Where this Challenger's data actually is, said plainly. The answer changes with
  * whether they are signed in, and a claim about data handling that is only
  * sometimes true is worse than no claim at all.
  */
