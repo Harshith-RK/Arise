@@ -99,42 +99,39 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
   const removeExercise = (id: string) =>
     update({ ...draft, days: { ...draft.days, [day]: { ...draft.days[day], exerciseIds: ids.filter((x) => x !== id) } } });
 
-  // Sets belong to the exercise; reps belong to a variant, so its box is keyed
-  // by which one.
-  const boxKey = (def: ExerciseDef, key: NumberKey, vi: number) => (key === "targetSets" ? `${def.id}:sets` : `${def.id}:${vi}:${key}`);
-  const numberValue = (def: ExerciseDef, key: NumberKey, vi: number) =>
-    key === "targetSets" ? def.targetSets : def.variants[vi][key];
+  // Sets and reps belong to the exercise: every variant shares the range.
+  const boxKey = (def: ExerciseDef, key: NumberKey) => `${def.id}:${key}`;
+  const numberValue = (def: ExerciseDef, key: NumberKey) =>
+    key === "targetSets" ? def.targetSets : def.variants[0][key];
 
   /** The problem with one number box, or null. Checks what is typed, not what was last valid. */
-  const numberError = (def: ExerciseDef, key: NumberKey, vi: number): string | null => {
-    const raw = texts[boxKey(def, key, vi)] ?? String(numberValue(def, key, vi));
+  const numberError = (def: ExerciseDef, key: NumberKey): string | null => {
+    const raw = texts[boxKey(def, key)] ?? String(numberValue(def, key));
     const { min, max, label } = LIMITS[key];
     if (raw.trim() === "") return `Enter ${label.toLowerCase()}`;
     const n = Number(raw);
     if (!Number.isInteger(n) || n < min || n > max) return `${min} to ${max}`;
     if (key === "repsMax") {
-      const lo = Number(texts[boxKey(def, "repsMin", vi)] ?? def.variants[vi].repsMin);
+      const lo = Number(texts[boxKey(def, "repsMin")] ?? def.variants[0].repsMin);
       if (Number.isInteger(lo) && n < lo) return "Below min";
     }
     return null;
   };
 
-  const setNumber = (def: ExerciseDef, key: NumberKey, vi: number, raw: string) => {
-    setTexts((t) => ({ ...t, [boxKey(def, key, vi)]: raw }));
+  const setNumber = (def: ExerciseDef, key: NumberKey, raw: string) => {
+    setTexts((t) => ({ ...t, [boxKey(def, key)]: raw }));
     setDirty(true);
     const n = Number(raw);
     const { min, max } = LIMITS[key];
     if (raw.trim() === "" || !Number.isInteger(n) || n < min || n > max) return;
     if (key === "targetSets") patchExercise(def.id, { targetSets: n });
-    else patchVariant(def, vi, { [key]: n });
+    // Every variant keeps the same range: an alternate is the same work.
+    else patchExercise(def.id, { variants: def.variants.map((v) => ({ ...v, [key]: n })) });
   };
 
-  // Every exercise in the plan, not only today's, since a save writes all of
-  // them, and every alternate, since each carries its own reps.
-  const invalid = Object.values(draft.exercises).some(
-    (def) =>
-      !!numberError(def, "targetSets", 0) ||
-      def.variants.some((_, vi) => numberError(def, "repsMin", vi) || numberError(def, "repsMax", vi)),
+  // Every exercise in the plan, not only today's, since a save writes all of them.
+  const invalid = Object.values(draft.exercises).some((def) =>
+    (["targetSets", "repsMin", "repsMax"] as NumberKey[]).some((k) => numberError(def, k)),
   );
 
   const save = async (how: "update" | "new") => {
@@ -227,9 +224,9 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
                           label={label}
                           type="number"
                           inputMode="numeric"
-                          value={texts[boxKey(def, key, 0)] ?? String(numberValue(def, key, 0))}
-                          onChange={(v) => setNumber(def, key, 0, v)}
-                          error={numberError(def, key, 0)}
+                          value={texts[boxKey(def, key)] ?? String(numberValue(def, key))}
+                          onChange={(v) => setNumber(def, key, v)}
+                          error={numberError(def, key)}
                         />
                       ))}
                     </div>
@@ -260,28 +257,12 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
                                   <IconClose size={15} />
                                 </button>
                               </div>
-                              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                                {([
-                                  ["repsMin", "REPS MIN"],
-                                  ["repsMax", "REPS MAX"],
-                                ] as [NumberKey, string][]).map(([key, label]) => (
-                                  <Field
-                                    key={key}
-                                    label={label}
-                                    type="number"
-                                    inputMode="numeric"
-                                    value={texts[boxKey(def, key, vi)] ?? String(numberValue(def, key, vi))}
-                                    onChange={(t) => setNumber(def, key, vi, t)}
-                                    error={numberError(def, key, vi)}
-                                    ariaLabel={`${v.name} ${label.toLowerCase()}`}
-                                  />
-                                ))}
-                                <div className="col-span-2 flex items-end">
-                                  <Button size="sm" className="w-full" onClick={() => makeDefault(def, vi)}>
-                                    Make the main lift
-                                  </Button>
-                                </div>
-                              </div>
+                              {/* An alternate is the same work by another
+                                  movement, so it carries the exercise's sets
+                                  and reps. Only its name is its own. */}
+                              <Button size="sm" onClick={() => makeDefault(def, vi)}>
+                                Make the main lift
+                              </Button>
                             </li>
                           );
                         })}

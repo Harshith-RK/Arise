@@ -5,23 +5,25 @@ import { awaken } from "./helpers";
 const exercise = (page: import("@playwright/test").Page) =>
   page.locator("li").filter({ has: page.getByLabel("REGION") }).first();
 
-test("an alternate can be renamed and given its own reps", async ({ page }) => {
+test("an alternate can be renamed, and shares the exercise's sets and reps", async ({ page }) => {
   await awaken(page);
   await page.goto("/app/system/plan/workout/1");
   const first = exercise(page);
   await expect(first.getByLabel("ALTERNATE 1")).toBeVisible();
 
   await first.getByLabel("ALTERNATE 1").fill("Floor chest press");
-  await first.getByLabel("Floor chest press reps min").fill("10");
-  await first.getByLabel("Floor chest press reps max").fill("15");
+  // An alternate has a name and nothing else: the range is the exercise's.
+  await expect(first.getByLabel(/Floor chest press reps/)).toHaveCount(0);
+  await first.getByLabel("REPS MIN").fill("10");
+  await first.getByLabel("REPS MAX").fill("15");
   await page.getByRole("button", { name: "Update version 1" }).first().click();
   await expect(page.getByText("[Plan Updated]")).toBeVisible();
 
   await page.reload();
   await expect(exercise(page).getByLabel("ALTERNATE 1")).toHaveValue("Floor chest press");
-  await expect(exercise(page).getByLabel("Floor chest press reps min")).toHaveValue("10");
+  await expect(exercise(page).getByLabel("REPS MIN")).toHaveValue("10");
 
-  // The quest offers the swap under its new name, inside the exercise's sheet.
+  // The quest offers the swap under its new name, and at the same range.
   // A Monday, since the seeded week rests at the weekend.
   const monday = new Date();
   monday.setDate(monday.getDate() + ((8 - monday.getDay()) % 7 || 7));

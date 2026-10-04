@@ -764,11 +764,12 @@ Decisions taken while building that a future session should not undo:
   gym language rather than anime costume. Code and tests follow the product, with one exception
   spelled out where it lives: the browser marker stays keyed `wa:has-hunter`, since renaming the
   key would forget every browser that already carries one.
-- **Alternates are edited, not just listed.** An exercise's variants are the swaps the quest sheet
-  offers when a machine is taken, and each carries its own rep range, since a dumbbell version is
-  rarely done for the same numbers. The workout editor gives every alternate a name field, its own
-  reps, a remove, and "Make the main lift", which moves it to variants[0] (what a quest opens on).
-  Up to four, the schema's limit. Variant ids are stable, so promoting or renaming never disturbs
+- **Alternates are edited, not just listed, and carry only a name.** An exercise's variants are the
+  swaps the quest sheet offers when a machine is taken. Sets and reps belong to the exercise: the
+  editor writes a changed range to every variant, so an alternate is the same work by another
+  movement rather than a second exercise to maintain. Each alternate carries a name field, a remove
+  and "Make the main lift", which moves it to variants[0] (what a quest opens on). Up to four, the
+  schema's limit. Variant ids are stable, so promoting or renaming never disturbs
   a logged set or a record.
 - **Choice and MultiChoice labels scale together, never one cell alone.** The buttons hold one
   line (`whitespace-nowrap`) and take their size from `clamp(8.5px, 2.6vw, 11px)`, shared by every
