@@ -78,6 +78,7 @@ export const IconClose = make("Close", "M4.5 4.5l11 11M15.5 4.5l-11 11");
 export const IconBack = make("Back", "M12.5 4 6.5 10l6 6");
 export const IconForward = make("Forward", "M7.5 4l6 6-6 6");
 export const IconDown = make("Down", "M4 7.5l6 6 6-6");
+export const IconUp = make("Up", "M4 12.5l6-6 6 6");
 export const IconSettings = make("Settings", [
   "M10 2.5V5M10 15v2.5M2.5 10H5M15 10h2.5M4.7 4.7l1.8 1.8M13.5 13.5l1.8 1.8M15.3 4.7l-1.8 1.8M6.5 13.5l-1.8 1.8",
   "M7 7h6v6H7Z",

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Choice } from "@/components/system/Choice";
 import { Button, PageHeader, Panel, Placeholder } from "@/components/system/primitives";
 import { Field } from "@/components/system/Field";
-import { IconClose, IconPlus, IconTrash } from "@/components/icons";
+import { IconClose, IconDown, IconPlus, IconTrash, IconUp } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
 import { DAY_TITLES, dayKeyOf } from "@/lib/engine/dates";
 import { DAY_KEYS, type DayKey, type DietPlan, type Macros, type MealDef } from "@/lib/engine/types";
@@ -158,6 +158,19 @@ export function DietPlanEditor() {
       ? update({ ...draft, days: { ...draft.days, [day]: list }, meals: day === "mon" ? list : draft.meals })
       : update({ ...draft, meals: list });
   const patch = (id: string, p: Partial<MealDef>) => setMeals(meals.map((m) => (m.id === id ? { ...m, ...p } : m)));
+
+  /**
+   * Meals are eaten in the order they are listed, so the order is the Hunter's
+   * to set: a meal added at the end can be walked up to where it belongs
+   * instead of being retyped into the middle.
+   */
+  const move = (index: number, by: 1 | -1) => {
+    const to = index + by;
+    if (to < 0 || to >= meals.length) return;
+    const next = [...meals];
+    [next[index], next[to]] = [next[to], next[index]];
+    setMeals(next);
+  };
   const scope = perDay ? day : "all";
   const slotOf = (id: string) => `${scope}/${id}`;
 
@@ -252,7 +265,7 @@ export function DietPlanEditor() {
 
       <Panel title="Meals" meta={`${meals.length} ${perDay ? `ON ${DAY_TITLES[day].toUpperCase()}` : "PER DAY"}`}>
         <ul className="border-t border-line-1">
-          {meals.map((meal) => (
+          {meals.map((meal, index) => (
             <li key={meal.id} className="row-rule px-4 py-4">
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1 space-y-3">
@@ -277,14 +290,34 @@ export function DietPlanEditor() {
                     setText={setText}
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setMeals(meals.filter((m) => m.id !== meal.id))}
-                  className="pressable flex h-11 w-11 shrink-0 items-center justify-center text-frost-2 transition-none hov:text-fault"
-                  aria-label={`Remove ${meal.name}`}
-                >
-                  <IconClose size={15} />
-                </button>
+                <div className="flex shrink-0 flex-col">
+                  <button
+                    type="button"
+                    disabled={index === 0}
+                    onClick={() => move(index, -1)}
+                    className="pressable flex h-11 w-11 items-center justify-center text-frost-2 transition-none disabled:opacity-30 hov:text-frost-0"
+                    aria-label={`Move ${meal.name} earlier`}
+                  >
+                    <IconUp size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={index === meals.length - 1}
+                    onClick={() => move(index, 1)}
+                    className="pressable flex h-11 w-11 items-center justify-center text-frost-2 transition-none disabled:opacity-30 hov:text-frost-0"
+                    aria-label={`Move ${meal.name} later`}
+                  >
+                    <IconDown size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMeals(meals.filter((m) => m.id !== meal.id))}
+                    className="pressable flex h-11 w-11 items-center justify-center text-frost-2 transition-none hov:text-fault"
+                    aria-label={`Remove ${meal.name}`}
+                  >
+                    <IconClose size={15} />
+                  </button>
+                </div>
               </div>
             </li>
           ))}

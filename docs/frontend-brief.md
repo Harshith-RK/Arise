@@ -811,6 +811,10 @@ Decisions taken while building that a future session should not undo:
   with the ranks marked where they land (D at 20, C at 86, B at 198 on roughly 220 XP a day) and
   "AND ON / RANK A, THEN S" where the ninetieth-day badge used to be. The brief's section 7 still
   describes the ninety-day arc; the product outgrew it.
+- **Meals can be moved up and down the day.** A meal is added at the end, and the order is the
+  order they are eaten in, so without this a meal that belongs in the middle had to be retyped
+  into place. Each row carries move-earlier, move-later and remove; the ends disable rather than
+  disappear. Moving is a plan edit like any other, so it saves with the version.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 
