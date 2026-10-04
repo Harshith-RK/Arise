@@ -68,7 +68,12 @@ function WorkoutTab() {
                 <p className="t-micro mt-1 text-frost-2">
                   {DAY_TITLES[day].toUpperCase()}
                   {isToday ? " / TODAY" : ""}
-                  {exercises.length ? ` / ${exercises.length} EXERCISES` : ""}
+                  {/* A rest day can hold a session; it is offered, never owed. */}
+                  {exercises.length
+                    ? rest
+                      ? ` / ${d?.title ?? "SESSION"} OPTIONAL`.toUpperCase()
+                      : ` / ${exercises.length} EXERCISES`
+                    : ""}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-3">

@@ -6,7 +6,7 @@ import { deriveProgress } from "./derive";
 import { BADGES } from "./badges";
 import { diffProgress } from "./events";
 import { epley, setScore } from "./pr";
-import type { DayLog, Snapshot, WeighIn } from "./types";
+import type { DayLog, ExerciseDef, Snapshot, WeighIn } from "./types";
 import { isCutting, levelForXp, rankForLevel, shieldXp, weighInDrift, XP, xpForLevel } from "./xp";
 
 /* ---------- fixtures ---------- */
@@ -399,6 +399,39 @@ describe("rest days", () => {
     expect(sat.workoutMandatory).toBe(false);
     expect(mon.isRest).toBe(false);
     expect(mon.workoutMandatory).toBe(true);
+  });
+
+  it("offers a rest day's session without ever requiring it", () => {
+    // Abs on a Saturday: planned, but the day clears on diet alone, and doing
+    // it pays like any other work.
+    const sat = addDays(MONDAY, 5);
+    const abs: ExerciseDef = {
+      id: "abs-crunch",
+      muscleRegion: "Abs",
+      targetSets: 3,
+      bodyweight: true,
+      variants: [{ id: "abs-crunch.a", name: "Crunch", repsMin: 12, repsMax: 20 }],
+    };
+    const withAbs = {
+      ...workoutPlan,
+      days: { ...workoutPlan.days, sat: { title: "Abs", exerciseIds: [abs.id] } },
+      exercises: { ...workoutPlan.exercises, [abs.id]: abs },
+    };
+    const base = { ...snap([dayLog(sat, { workout: false, cardio: false })]), workoutPlans: [withAbs] };
+
+    const skipped = deriveProgress(base, sat).days[sat];
+    expect(skipped.workoutMandatory).toBe(false);
+    expect(skipped.cleared).toBe(true);
+
+    // The same day with the session done: still cleared, and worth more.
+    const done = structuredClone(base);
+    done.dayLogs[0].exercises[abs.id] = {
+      variantId: abs.variants[0].id,
+      sets: Array.from({ length: abs.targetSets }, () => ({ done: true, weight: 0, reps: 15 })),
+    };
+    const doneDay = deriveProgress(done, sat).days[sat];
+    expect(doneDay.cleared).toBe(true);
+    expect(doneDay.xp).toBeGreaterThan(skipped.xp);
   });
 
   it("does not ask for cardio on a rest day", () => {

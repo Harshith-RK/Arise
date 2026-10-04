@@ -799,6 +799,13 @@ Decisions taken while building that a future session should not undo:
   Correcting a set is untick, change the weight, tick again, and reusing the stored weight made
   that impossible: the set came back at its old number. Unticking leaves the stored numbers alone,
   since nothing was lifted.
+- **A rest day can hold a session, and it stays optional.** Put exercises on a rest day in the
+  workout editor (name the day Abs, Mobility, whatever) and the quest offers them behind "Do abs
+  today" rather than listing them: the day is still a rest day, clears on diet alone, and doing the
+  work pays the usual exercise XP. The engine already allowed this (`workoutMandatory` is false on
+  a rest day), so the change is what the screens show. The session reopens by itself once a set is
+  logged. Which days rest is the profile's business, not the plan's, which is what the editor's
+  helper now says.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

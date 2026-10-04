@@ -41,6 +41,9 @@ export function QuestScreen({ date }: { date: string }) {
     return () => clearInterval(id);
   }, []);
   const [prExercises, setPrExercises] = useState<Set<string>>(new Set());
+  // A rest day's session is hidden until it is asked for: the day is cleared
+  // without it, and it should not read as work that is owed.
+  const [sessionOpen, setSessionOpen] = useState(false);
   const lastUndo = useRef<(() => Promise<void>) | null>(null);
   const rowRefs = useRef<HTMLElement[]>([]);
 
@@ -155,7 +158,39 @@ export function QuestScreen({ date }: { date: string }) {
   // The week's one free miss is gone once a day in it has used it.
   const thisWeek = weekStart(today);
   const freeMissLeft = !Object.values(progress.days).some((d) => d.forgiven && weekStart(d.date) === thisWeek);
+  // Once a set is in, the session stays open: it is work already begun.
+  const sessionStarted = exercises.some((def) => (log?.exercises[def.id]?.sets.length ?? 0) > 0);
   const arcDay = snapshot.profile ? Math.max(1, 1 + daysBetween(snapshot.profile.arcStart, date)) : 1;
+
+  // The same rows serve a training day and a rest day's optional session.
+  const exerciseRows = exercises.map((def) => {
+    const exLog = log?.exercises[def.id];
+    const variantId = exLog?.variantId ?? def.variants[0].id;
+    return (
+      <ExerciseRow
+        key={def.id}
+        def={def}
+        variantId={variantId}
+        sets={exLog?.sets ?? []}
+        done={(exLog?.sets.filter((s) => s.done).length ?? 0) >= def.targetSets}
+        isPr={prExercises.has(def.id)}
+        lastSession={lastSessionFor(snapshot, def.id, variantId, date)}
+        readOnly={readOnly}
+        onCompleteAll={(weight, reps, source) => {
+          const origin = source === "pointer" ? document.activeElement : null;
+          void run(() => actions.completeExercise(date, def.id, weight, reps), origin);
+          if (source === "pointer") vibrate(10);
+          setRestKey(Date.now());
+        }}
+        onReopen={() => void run(() => actions.reopenExercise(date, def.id))}
+        onToggleSet={(i, patch) => {
+          void run(() => actions.logSet(date, def.id, i, patch));
+          if (patch.done) setRestKey(Date.now());
+        }}
+        onVariant={(vid) => void run(() => actions.setVariant(date, def.id, vid))}
+      />
+    );
+  });
 
   return (
     <>
@@ -209,51 +244,55 @@ export function QuestScreen({ date }: { date: string }) {
           summary={rest ? "Optional. Your workout streak is banked." : `${trainingDay.title} and cardio cleared.`}
         >
           {rest ? (
-            <button
-              type="button"
-              disabled={readOnly}
-              data-quest-row
-              onClick={(e) => void run(() => actions.toggleBonus(date), e.currentTarget)}
-              aria-pressed={result.bonusDone}
-              className="pressable flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left"
-            >
-              <CompletionSquare done={result.bonusDone} />
-              <span className="min-w-0 flex-1">
-                <StrikeLabel done={result.bonusDone} className="t-body">
-                  Abs or cardio
-                </StrikeLabel>
-                <span className="t-micro mt-0.5 block text-frost-2">OPTIONAL. STREAK IS BANKED. +20 XP</span>
-              </span>
-            </button>
+            <>
+              <button
+                type="button"
+                disabled={readOnly}
+                data-quest-row
+                onClick={(e) => void run(() => actions.toggleBonus(date), e.currentTarget)}
+                aria-pressed={result.bonusDone}
+                className="pressable flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left"
+              >
+                <CompletionSquare done={result.bonusDone} />
+                <span className="min-w-0 flex-1">
+                  <StrikeLabel done={result.bonusDone} className="t-body">
+                    Abs or cardio
+                  </StrikeLabel>
+                  <span className="t-micro mt-0.5 block text-frost-2">OPTIONAL. STREAK IS BANKED. +20 XP</span>
+                </span>
+              </button>
+
+              {/* A session planned for a rest day: abs, mobility, whatever was
+                  put there. Hidden until asked for, and the day clears without
+                  it either way. */}
+              {exercises.length ? (
+                sessionOpen || sessionStarted ? (
+                  <div className="border-t border-line-1">
+                    <p className="t-micro px-4 pt-3 text-frost-2">
+                      {trainingDay.title.toUpperCase()} / OPTIONAL / {exercises.length} EXERCISE
+                      {exercises.length === 1 ? "" : "S"}
+                    </p>
+                    {exerciseRows}
+                  </div>
+                ) : (
+                  <div className="border-t border-line-1 p-3">
+                    <button
+                      type="button"
+                      disabled={readOnly}
+                      onClick={() => setSessionOpen(true)}
+                      className="pressable t-readout h-12 w-full border border-line-2 text-frost-1 transition-none hov:border-frost-2 hov:text-frost-0"
+                    >
+                      Do {trainingDay.title.toLowerCase()} today
+                    </button>
+                    <p className="t-micro mt-2 text-frost-2">
+                      {exercises.length} EXERCISE{exercises.length === 1 ? "" : "S"} PLANNED. THE DAY CLEARS WITHOUT THEM.
+                    </p>
+                  </div>
+                )
+              ) : null}
+            </>
           ) : exercises.length ? (
-            exercises.map((def) => {
-              const exLog = log?.exercises[def.id];
-              const variantId = exLog?.variantId ?? def.variants[0].id;
-              return (
-                <ExerciseRow
-                  key={def.id}
-                  def={def}
-                  variantId={variantId}
-                  sets={exLog?.sets ?? []}
-                  done={(exLog?.sets.filter((s) => s.done).length ?? 0) >= def.targetSets}
-                  isPr={prExercises.has(def.id)}
-                  lastSession={lastSessionFor(snapshot, def.id, variantId, date)}
-                  readOnly={readOnly}
-                  onCompleteAll={(weight, reps, source) => {
-                    const origin = source === "pointer" ? document.activeElement : null;
-                    void run(() => actions.completeExercise(date, def.id, weight, reps), origin);
-                    if (source === "pointer") vibrate(10);
-                    setRestKey(Date.now());
-                  }}
-                  onReopen={() => void run(() => actions.reopenExercise(date, def.id))}
-                  onToggleSet={(i, patch) => {
-                    void run(() => actions.logSet(date, def.id, i, patch));
-                    if (patch.done) setRestKey(Date.now());
-                  }}
-                  onVariant={(vid) => void run(() => actions.setVariant(date, def.id, vid))}
-                />
-              );
-            })
+            exerciseRows
           ) : (
             <p className="t-small px-4 py-6 text-frost-2">No exercises scheduled for this day.</p>
           )}

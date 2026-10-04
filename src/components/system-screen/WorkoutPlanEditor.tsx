@@ -46,6 +46,9 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
   const draft = edited ?? current;
 
   const ids = draft.days[day]?.exerciseIds ?? [];
+  // Which days rest is the profile's business, not the plan's: a rest day can
+  // still hold a session, and it stays optional.
+  const isRest = (snapshot.profile?.restDays ?? []).includes(day);
   const update = (next: WorkoutPlan) => {
     setEdited(next);
     setDirty(true);
@@ -189,13 +192,17 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
         ))}
       </div>
 
-      <Panel title={DAY_TITLES[day]} meta={`${ids.length} EXERCISES`}>
+      <Panel title={DAY_TITLES[day]} meta={isRest ? `REST / ${ids.length} OPTIONAL` : `${ids.length} EXERCISES`}>
         <div className="border-t border-line-1 px-4 py-4">
           <Field
             label="DAY TITLE"
             value={draft.days[day]?.title ?? ""}
             onChange={(v) => update({ ...draft, days: { ...draft.days, [day]: { title: v, exerciseIds: ids } } })}
-            helper="Leave the exercise list empty to make this a rest day."
+            helper={
+              isRest
+                ? "A rest day. Anything here is offered on the quest but never required: name it Abs, Mobility, whatever you might do."
+                : "Rest days are chosen in System, under rest days."
+            }
           />
         </div>
 
