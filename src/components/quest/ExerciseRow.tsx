@@ -194,12 +194,17 @@ export function ExerciseRow(props: ExerciseRowProps) {
                         key={i}
                         type="button"
                         disabled={readOnly}
+                        // Ticking a set records what the stepper says now, not
+                        // what this set held before: changing the weight and
+                        // ticking again is how a set gets corrected. Unticking
+                        // leaves the old numbers alone, since nothing was done.
                         onClick={() =>
-                          props.onToggleSet(i, {
-                            done: !isDone,
-                            weight: s?.weight ?? weight,
-                            reps: s?.reps ?? reps,
-                          })
+                          props.onToggleSet(
+                            i,
+                            isDone
+                              ? { done: false, weight: s?.weight ?? weight, reps: s?.reps ?? reps }
+                              : { done: true, weight, reps },
+                          )
                         }
                         aria-pressed={isDone}
                         className="pressable t-micro h-14 min-w-[72px] flex-1 border border-line-2 text-frost-2 transition-none aria-pressed:border-ember aria-pressed:bg-ember-3 aria-pressed:text-ember"

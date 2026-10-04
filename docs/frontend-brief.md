@@ -795,6 +795,10 @@ Decisions taken while building that a future session should not undo:
   badges read "Reach day 30", the data is "your training", and the System screen offers "Reset
   everything". The schema keeps `arcStart`, `arcDay` and `arcLength`, since those are persisted
   field names and renaming them would orphan saved profiles.
+- **Ticking a set records the stepper's weight at that moment**, not whatever the set held before.
+  Correcting a set is untick, change the weight, tick again, and reusing the stored weight made
+  that impossible: the set came back at its old number. Unticking leaves the stored numbers alone,
+  since nothing was lifted.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 
