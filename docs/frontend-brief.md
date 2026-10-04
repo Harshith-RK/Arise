@@ -790,6 +790,11 @@ Decisions taken while building that a future session should not undo:
   there rather than in evaluateDay. Today is never charged: it is still winnable, and the penalty
   zone banner says what missing it will cost. Total XP keeps its floor of zero, so an arc can be
   emptied but never put in debt.
+- **The product never says "arc".** The word was the brief's framing for a fixed ninety days, and
+  there is no fixed length any more, so the copy says what it means: days count as "12 DAYS IN",
+  badges read "Reach day 30", the data is "your training", and the System screen offers "Reset
+  everything". The schema keeps `arcStart`, `arcDay` and `arcLength`, since those are persisted
+  field names and renaming them would orphan saved profiles.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

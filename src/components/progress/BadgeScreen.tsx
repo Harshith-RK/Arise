@@ -28,7 +28,7 @@ export function BadgeScreen({ id }: { id: string }) {
 
   const state = progress.badges[id];
   const unlocked = !!state?.unlockedOn;
-  const target = def.id === "arc-complete" ? Math.max(def.target, state?.current ?? def.target) : def.target;
+  const target = def.target;
 
   return (
     <>

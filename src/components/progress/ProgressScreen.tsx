@@ -150,7 +150,7 @@ function Badges() {
         {BADGES.map((t) => {
           const state = progress.badges[t.id];
           const isUnlocked = !!state?.unlockedOn;
-          const target = t.id === "arc-complete" ? Math.max(t.target, state?.current ?? t.target) : t.target;
+          const target = t.target;
           return (
             <li key={t.id}>
               <Link

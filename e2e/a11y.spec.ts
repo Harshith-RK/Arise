@@ -48,6 +48,12 @@ test.describe("accessibility", () => {
   }
 
   test("keyboard reaches and clears a quest", async ({ page }) => {
+    // Late in the evening, so no meal is still locked behind its time: a
+    // disabled row cannot take focus, and which ones are locked otherwise
+    // depends on the hour the suite happens to run.
+    const night = new Date();
+    night.setHours(23, 0, 0, 0);
+    await page.clock.setFixedTime(night);
     await page.goto("/app/quest");
     await page.waitForTimeout(600);
     const row = page.locator("[data-quest-row]").first();

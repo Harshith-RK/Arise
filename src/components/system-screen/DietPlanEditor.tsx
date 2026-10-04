@@ -63,17 +63,17 @@ function MealMacros({
           "COUNTED FROM THE ITEMS ABOVE."
         ) : countable ? (
           <>
-            THE ITEMS COUNT AS {counted.macros.kcal} KCAL, {counted.macros.protein} G PROTEIN.{" "}
-            <button
-              type="button"
+            THE ITEMS COUNT AS {counted.macros.kcal} KCAL, {counted.macros.protein} G PROTEIN.
+            <Button
+              size="sm"
+              className="mt-2 flex"
               onClick={() => {
                 for (const [, key] of MACRO_FIELDS) setText(`${slot}:${key}`, String(counted.macros[key]));
                 patch(meal.id, counted.macros);
               }}
-              className="pressable text-ember underline underline-offset-2 transition-none"
             >
-              USE THAT
-            </button>
+              Use that
+            </Button>
           </>
         ) : counted.needAmount.length === counted.uncounted.length ? (
           // Known food, unsaid quantity. Saying how to write it is the fix.

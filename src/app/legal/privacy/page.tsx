@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <p className="t-micro mt-2 text-frost-2">LAST UPDATED {UPDATED.toUpperCase()}</p>
 
       <p className="t-body mt-8 text-frost-1">
-        Arise needs an account. Your arc is stored in our database under that account, so it follows you between
+        Arise needs an account. Your training log is stored in our database under that account, so it follows you between
         devices, and access rules make it readable by you and nobody else. There is no analytics, no tracking and no
         advertising.
       </p>
@@ -85,7 +85,7 @@ export default function PrivacyPage() {
           signed in.
         </p>
         <p className="t-body mt-3 text-frost-1">
-          Signing out clears any unfinished setup answers from the device. Your arc stays in your account until you
+          Signing out clears any unfinished setup answers from the device. Your training log stays in your account until you
           delete it.
         </p>
       </section>
@@ -93,9 +93,9 @@ export default function PrivacyPage() {
       <section id="your-control" className="mt-10">
         <h2 className="t-title text-frost-0">Export and deletion</h2>
         <p className="t-body mt-3 text-frost-1">
-          The System screen exports everything as a JSON file you keep, and imports one back. Reset arc erases every
+          The System screen exports everything as a JSON file you keep, and imports one back. Reset everything erases every
           log in your account. Clearing site data in your browser removes your preferences from that device. To remove
-          the email attached to your account as well, reset the arc and then ask us to delete the account; both are
+          the email attached to your account as well, reset everything and then ask us to delete the account; both are
           permanent.
         </p>
       </section>

@@ -118,7 +118,7 @@ const noSubscription = () => () => {};
 function welcomeLines(name: string | null, progress: Progress | null): string[] {
   // Three lines from the first frame, whether or not the arc has loaded yet:
   // the panel reserves a slot per line, and each is written as it plays.
-  if (!progress) return ["SYSTEM RECONNECTED", name ? `WELCOME BACK, ${name.toUpperCase()}` : "WELCOME BACK, CHALLENGER", "READING YOUR ARC"];
+  if (!progress) return ["SYSTEM RECONNECTED", name ? `WELCOME BACK, ${name.toUpperCase()}` : "WELCOME BACK, CHALLENGER", "READING YOUR RECORD"];
   const streak = Math.max(0, ...Object.values(progress.streaks).map((s) => (s.state === "broken" ? 0 : s.count)));
   const standing =
     streak > 0

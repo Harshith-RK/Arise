@@ -230,7 +230,7 @@ export function StatusScreen() {
           </div>
           {deficit < 250 ? (
             <p className="t-micro mt-3 text-glacier">
-              A deficit under 250 kcal moves slowly. Lower the calorie target in System to speed the arc up.
+              A deficit under 250 kcal moves slowly. Lower the calorie target in System to speed this up.
               Rest days carry no target.
             </p>
           ) : null}

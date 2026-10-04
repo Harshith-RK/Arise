@@ -212,7 +212,7 @@ test.describe("app", () => {
 
     await page.waitForURL("**/awaken", { timeout: 15000 });
     await expect(page.getByText(/NEEDS YOUR DETAILS FROM THE START/)).toBeVisible();
-    await expect(page.getByText(/BEGINS AGAIN AT DAY 1/)).toBeVisible();
+    await expect(page.getByText(/YOU BEGIN AGAIN AT DAY 1/)).toBeVisible();
     await expect(page.getByLabel("CHALLENGER NAME")).toHaveValue("");
     await expect(page.getByLabel("HEIGHT")).toHaveValue("");
 

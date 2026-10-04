@@ -173,7 +173,15 @@ async function onboard(page, width) {
   await page.waitForURL(/app\/quest/, { timeout: 30000 });
 }
 
-const yesterday = (() => { const d = new Date(Date.now() - 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })();
+const key = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const yesterday = key(new Date(Date.now() - 86400000));
+// The seeded week rests at the weekend, so the sets sheet needs the last day
+// that actually had exercises on it, whatever day the audit happens to run.
+const lastTrainingDay = (() => {
+  const d = new Date(Date.now() - 86400000);
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1);
+  return key(d);
+})();
 
 for (const width of WIDTHS) {
   // Public screens, no Challenger.
@@ -228,13 +236,13 @@ for (const width of WIDTHS) {
     const details = page.getByRole("button", { name: /^(Open details|Details)/ }).first();
     if (await details.count()) { await details.tap(); await audit(page, width, "meal details sheet"); await page.keyboard.press("Escape"); }
 
-    await page.goto(`${BASE}/app/quest/${yesterday}`);
+    await page.goto(`${BASE}/app/quest/${lastTrainingDay}`);
     await page.waitForTimeout(800);
     const workout = page.getByRole("button", { name: /^Workout|^Bonus quest/ });
     if ((await workout.getAttribute("aria-expanded")) !== "true") await workout.tap();
     const sets = page.locator("section").filter({ has: workout }).getByRole("button", { name: /^Open details for/ }).first();
     if (await sets.count()) { await sets.tap(); await audit(page, width, "sets sheet"); await page.keyboard.press("Escape"); }
-    else note(width, "sets sheet", "not audited", "no exercise on yesterday's plan");
+    else note(width, "sets sheet", "not audited", `no exercise on ${lastTrainingDay}`);
 
     // Streak calendar, from Status.
     await page.goto(`${BASE}/app/status`);

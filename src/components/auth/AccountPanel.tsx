@@ -26,7 +26,7 @@ export function AccountPanel({ className }: { className?: string }) {
             <p className="t-micro text-frost-2">SIGNED IN AS</p>
             <p className="t-body mt-1 break-all text-frost-0">{auth.email ?? "your account"}</p>
             <p className="t-micro mt-3 text-frost-2">
-              YOUR ARC SAVES TO YOUR ACCOUNT AND UPDATES LIVE ON EVERY DEVICE YOU SIGN IN ON.
+              YOUR TRAINING SAVES TO YOUR ACCOUNT AND UPDATES LIVE ON EVERY DEVICE YOU SIGN IN ON.
             </p>
             <Button
               className="mt-4"
@@ -41,7 +41,7 @@ export function AccountPanel({ className }: { className?: string }) {
           </>
         ) : (
           <>
-            <p className="t-body text-frost-0">This arc lives on this device only.</p>
+            <p className="t-body text-frost-0">Your training lives on this device only.</p>
             <p className="t-micro mt-2 text-frost-2">
               SIGN IN TO KEEP IT ON YOUR ACCOUNT. WHAT IS ALREADY HERE COMES WITH YOU.
             </p>

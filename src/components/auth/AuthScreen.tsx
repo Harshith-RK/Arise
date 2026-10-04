@@ -83,13 +83,13 @@ export function AuthScreen() {
           </h1>
           <p className="t-micro mt-1.5 text-frost-2">
             {mode === "in"
-              ? "YOUR ARC FOLLOWS YOU TO EVERY DEVICE."
+              ? "YOUR TRAINING FOLLOWS YOU TO EVERY DEVICE."
               : "EMAIL AND A PASSWORD. NOTHING TO CONFIRM."}
           </p>
 
           {signedOut ? (
           <p className="t-micro mt-5 border border-line-2 px-3 py-2 text-frost-1" role="status">
-            SIGNED OUT. YOUR ARC IS SAFE ON YOUR ACCOUNT.
+            SIGNED OUT. YOUR TRAINING IS SAFE ON YOUR ACCOUNT.
           </p>
         ) : null}
 

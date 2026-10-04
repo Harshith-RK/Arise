@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 
 // Below the fold, and both pull in GSAP ScrollTrigger.
 const HowItWorks = dynamic(() => import("@/components/landing/HowItWorks").then((m) => m.HowItWorks));
-const ArcStrip = dynamic(() => import("@/components/landing/ArcStrip").then((m) => m.ArcStrip));
+const DayStrip = dynamic(() => import("@/components/landing/DayStrip").then((m) => m.DayStrip));
 import { BeginButton } from "@/components/landing/BeginButton";
 import { APP_VERSION } from "@/lib/version";
 
@@ -50,7 +50,7 @@ export default function LandingPage() {
         </section>
 
         <HowItWorks />
-        <ArcStrip />
+        <DayStrip />
 
         {/* Close */}
         <section className="mx-auto max-w-[760px] px-4 pb-28 text-center">
@@ -68,7 +68,7 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-[1100px] flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <Brand size={20} />
-            <p className="t-micro text-frost-2">YOUR ARC, ON YOUR ACCOUNT.</p>
+            <p className="t-micro text-frost-2">YOUR TRAINING, ON YOUR ACCOUNT.</p>
           </div>
           <nav className="flex items-center gap-6" aria-label="Legal">
             <Link href="/legal/terms" className="inline-flex min-h-11 items-center t-micro text-frost-2 transition-none hov:text-frost-0">

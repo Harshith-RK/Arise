@@ -485,7 +485,7 @@ export function AwakenFlow() {
 
         {existing && step === 0 ? (
           <p className="t-micro mt-5 border border-line-2 px-3 py-2 text-frost-1">
-            THE SYSTEM NEEDS YOUR DETAILS FROM THE START. YOUR ARC BEGINS AGAIN AT DAY 1.
+            THE SYSTEM NEEDS YOUR DETAILS FROM THE START. YOU BEGIN AGAIN AT DAY 1.
           </p>
         ) : null}
 

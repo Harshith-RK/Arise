@@ -16,7 +16,7 @@ function dayForRank(rank: Rank): number {
 }
 
 /** Ninety days of heat, filling as you scroll, with the ranks marked. */
-export function ArcStrip() {
+export function DayStrip() {
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -39,7 +39,7 @@ export function ArcStrip() {
 
   return (
     <section ref={root} className="mx-auto max-w-[900px] px-4 py-24">
-      <h2 className="t-display-1 text-frost-0">The arc</h2>
+      <h2 className="t-display-1 text-frost-0">Ninety days</h2>
       <p className="t-body mt-3 max-w-[58ch] text-frost-1">
         Ninety days, one square each. Clear every mandatory quest and the day lights. At roughly {XP_PER_DAY} XP a day,
         here is where the ranks land.
@@ -62,7 +62,7 @@ export function ArcStrip() {
         ))}
         <div>
           <dt className="t-micro text-frost-2">DAY {DAYS}</dt>
-          <dd className="t-readout mt-1 text-brass">ARC COMPLETE</dd>
+          <dd className="t-readout mt-1 text-brass">NINETY CLEARED</dd>
         </div>
       </dl>
     </section>

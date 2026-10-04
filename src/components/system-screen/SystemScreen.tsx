@@ -241,7 +241,7 @@ export function SystemScreen() {
           {resetOpen ? (
             <div>
               <p className="t-small text-frost-1">
-                This erases every log, weigh-in and record on this device, and starts a new arc. Type RESET to confirm.
+                This erases every log, weigh-in and record on this device, and starts you over. Type RESET to confirm.
               </p>
               <div className="mt-3 flex gap-3">
                 <input
@@ -259,7 +259,7 @@ export function SystemScreen() {
                     setResetText("");
                   }}
                 >
-                  Reset arc
+                  Reset everything
                 </Button>
               </div>
               <button type="button" className="t-micro mt-3 text-frost-2 hov:text-frost-0" onClick={() => setResetOpen(false)}>
@@ -269,7 +269,7 @@ export function SystemScreen() {
           ) : (
             <Button variant="danger" onClick={() => setResetOpen(true)}>
               <IconReset size={15} />
-              Reset arc
+              Reset everything
             </Button>
           )}
         </div>
