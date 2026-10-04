@@ -22,7 +22,7 @@ export default function LandingPage() {
         <section className="mx-auto max-w-[1180px] px-4 pb-20 pt-8 lg:pt-12">
           {/* The headline gets the full measure, so it lands on two lines. */}
           <h1 className="t-display-1 text-[34px] text-frost-0 sm:text-[40px] lg:text-[48px] xl:text-[56px]">
-            <span className="lg:block">Ninety days. One System.</span>{" "}
+            <span className="lg:block">One System.</span>{" "}
             <span className="lg:block">Every rep logged.</span>
           </h1>
 

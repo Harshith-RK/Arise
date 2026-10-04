@@ -806,6 +806,11 @@ Decisions taken while building that a future session should not undo:
   a rest day), so the change is what the screens show. The session reopens by itself once a set is
   logged. Which days rest is the profile's business, not the plan's, which is what the editor's
   helper now says.
+- **The landing page no longer sells ninety days.** The hero reads "One System. Every rep logged.",
+  and the strip is "Day by day": squares that fade out at the tail rather than stopping at a wall,
+  with the ranks marked where they land (D at 20, C at 86, B at 198 on roughly 220 XP a day) and
+  "AND ON / RANK A, THEN S" where the ninetieth-day badge used to be. The brief's section 7 still
+  describes the ninety-day arc; the product outgrew it.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 
