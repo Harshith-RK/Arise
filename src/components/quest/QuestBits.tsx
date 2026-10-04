@@ -136,7 +136,9 @@ export function WeightStepper({
         type="button"
         onClick={onOpenKeypad}
         disabled={disabled}
-        className={`t-readout flex h-11 min-w-[92px] items-center justify-center gap-1 border-x px-2 transition-none hov:bg-ink-3 ${
+        // The value takes the slack, so the two steppers stay 44px squares
+        // however wide the control is asked to be.
+        className={`t-readout flex h-11 min-w-[92px] flex-1 items-center justify-center gap-1 border-x px-2 transition-none hov:bg-ink-3 ${
           disabled ? "border-line-1 text-frost-2" : "border-line-2 text-frost-0"
         }`}
         aria-label={`${label}: ${value} ${suffix}. Edit`}
