@@ -272,12 +272,13 @@ export function DietPlanEditor() {
                   <div className="grid grid-cols-3 gap-3">
                     <Field label="TIME" type="time" value={meal.time} onChange={(v) => patch(meal.id, { time: v })} />
                     <div className="col-span-2">
-                      <Field label="NAME" value={meal.name} onChange={(v) => patch(meal.id, { name: v })} />
+                      <Field label="NAME" value={meal.name} maxLength={80} onChange={(v) => patch(meal.id, { name: v })} />
                     </div>
                   </div>
                   <Field
                     label="ITEMS"
                     value={meal.items.join(", ")}
+                    maxLength={12 * 81}
                     onChange={(v) => setItems(meal, v)}
                     helper="Separate items with a comma, and give each an amount: Paneer 100g, 2 chapati, 1 katori dal."
                   />
@@ -325,6 +326,9 @@ export function DietPlanEditor() {
         <div className="border-t border-line-1 p-3">
           <Button
             className="w-full"
+            // Twelve is what a day can hold. Past that a plan cannot be saved,
+            // so the button stops rather than the save failing later.
+            disabled={meals.length >= 12}
             onClick={() =>
               setMeals([
                 ...meals,
@@ -345,6 +349,7 @@ export function DietPlanEditor() {
             <IconPlus size={15} />
             Add meal
           </Button>
+          {meals.length >= 12 ? <p className="t-micro mt-2 text-frost-2">TWELVE MEALS IS THE LIMIT FOR ONE DAY.</p> : null}
         </div>
       </Panel>
 

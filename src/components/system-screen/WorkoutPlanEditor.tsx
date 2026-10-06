@@ -194,6 +194,7 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
           <Field
             label="DAY TITLE"
             value={draft.days[day]?.title ?? ""}
+            maxLength={40}
             onChange={(v) => update({ ...draft, days: { ...draft.days, [day]: { title: v, exerciseIds: ids } } })}
             helper={
               isRest
@@ -211,9 +212,9 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
               <li key={id} className="row-rule px-4 py-4">
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1 space-y-3">
-                    <Field label="NAME" value={def.variants[0].name} onChange={(v) => patchVariant(def, 0, { name: v })} />
+                    <Field label="NAME" value={def.variants[0].name} maxLength={60} onChange={(v) => patchVariant(def, 0, { name: v })} />
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      <Field label="REGION" value={def.muscleRegion} onChange={(v) => patchExercise(id, { muscleRegion: v })} />
+                      <Field label="REGION" value={def.muscleRegion} maxLength={40} onChange={(v) => patchExercise(id, { muscleRegion: v })} />
                       {([
                         ["targetSets", "SETS"],
                         ["repsMin", "REPS MIN"],
@@ -246,7 +247,7 @@ export function WorkoutPlanEditor({ version, mode = "edit" }: { version?: number
                             <li key={v.id} className="space-y-2">
                               <div className="flex items-end gap-2">
                                 <div className="min-w-0 flex-1">
-                                  <Field label={`ALTERNATE ${vi}`} value={v.name} onChange={(t) => patchVariant(def, vi, { name: t })} />
+                                  <Field label={`ALTERNATE ${vi}`} value={v.name} maxLength={60} onChange={(t) => patchVariant(def, vi, { name: t })} />
                                 </div>
                                 <button
                                   type="button"

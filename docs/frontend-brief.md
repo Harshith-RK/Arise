@@ -816,6 +816,15 @@ Decisions taken while building that a future session should not undo:
   order they are eaten in, so without this a meal that belongs in the middle had to be retyped
   into place. Each row carries move-earlier, move-later and remove; the ends disable rather than
   disappear. Moving is a plan edit like any other, so it saves with the version.
+- **"Empty" must mean empty.** The store seeds a fresh arc whenever a load comes back empty, so the
+  account repository may only answer null when the account holds no rows at all. It used to answer
+  null when a row failed its schema, and the next launch then wrote a seed over a real account
+  through `replaceAll`, which clears every table first: that is how an arc disappeared. A row that
+  will not parse now throws ("Your saved diet plan could not be read"), the fault screen says so,
+  and nothing is touched. Writes are checked against the same schemas before they are sent, and
+  `replaceAll` validates every payload before it deletes anything, so a payload the reader would
+  refuse can never reach the tables. `adoptLocalArc` runs on every launch, so it adopts only into
+  an account that is wholly empty, never one that merely has no profile yet.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

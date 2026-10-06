@@ -10,6 +10,8 @@ async function mealNames(page: import("@playwright/test").Page) {
 test("meals can be moved up and down, and the order sticks", async ({ page }) => {
   await awaken(page);
   await page.goto("/app/system/plan/diet");
+  // The editor paints before the plan is read back.
+  await expect(page.getByLabel("NAME").first()).toBeVisible();
 
   const before = await mealNames(page);
   expect(before.length).toBeGreaterThan(2);

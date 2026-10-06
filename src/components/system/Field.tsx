@@ -22,6 +22,7 @@ export function Field({
   placeholder,
   autoComplete,
   ariaLabel,
+  maxLength,
   name,
 }: {
   label: string;
@@ -41,6 +42,8 @@ export function Field({
   autoComplete?: string;
   /** Spoken name, when the visible label is a one-letter abbreviation. */
   ariaLabel?: string;
+  /** Hard stop on length, matched to what the schema will accept. */
+  maxLength?: number;
   name?: string;
 }) {
   const id = useId();
@@ -66,6 +69,7 @@ export function Field({
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
           aria-label={ariaLabel}
+          maxLength={maxLength}
           aria-invalid={!!error}
           aria-describedby={error ? errorId : helper ? helperId : undefined}
           className="t-body h-12 w-full bg-ink-2 px-3 text-frost-0 outline-none placeholder:text-frost-2"

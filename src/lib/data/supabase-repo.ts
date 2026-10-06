@@ -30,18 +30,46 @@ import {
 
 type Row = { payload: unknown };
 
-/** Rows that fail their schema are dropped, not crashed on. */
-function parseAll<T>(rows: Row[] | null, schema: { safeParse(v: unknown): { success: boolean; data?: T } }): T[] {
+/**
+ * A row that does not match its schema is a fault, never a missing row. The
+ * difference matters more than anything else in this file: the store seeds a
+ * fresh account when a load comes back empty, so answering "empty" to a
+ * question we could not read would delete the account it was asked about.
+ */
+class UnreadableArc extends Error {
+  constructor(what: string, detail: string) {
+    super(`Your saved ${what} could not be read (${detail}). Nothing has been changed.`);
+    this.name = "UnreadableArc";
+  }
+}
+
+function parseAll<T>(
+  what: string,
+  rows: Row[] | null,
+  schema: { safeParse(v: unknown): { success: boolean; data?: T; error?: { issues: { message: string }[] } } },
+): T[] {
   const out: T[] = [];
   for (const r of rows ?? []) {
     const p = schema.safeParse(r.payload);
-    if (p.success && p.data !== undefined) out.push(p.data);
+    if (!p.success || p.data === undefined) throw new UnreadableArc(what, p.error?.issues[0]?.message ?? "unexpected shape");
+    out.push(p.data);
   }
   return out;
 }
 
 export function createSupabaseRepo(db: SupabaseClient, userId: string): Repository {
   const own = { user_id: userId };
+
+  /**
+   * Everything is checked on the way in as well as on the way out. A payload
+   * the reader would refuse must never reach the table: the write looks fine,
+   * and the account becomes unreadable on the next launch.
+   */
+  const checked = <T>(what: string, schema: { safeParse(v: unknown): { success: boolean; error?: { issues: { message: string }[] } } }, value: T): T => {
+    const p = schema.safeParse(value);
+    if (!p.success) throw new Error(`This ${what} cannot be saved: ${p.error?.issues[0]?.message ?? "unexpected shape"}.`);
+    return value;
+  };
 
   const upsert = async (table: string, row: Record<string, unknown>) => {
     const { error } = await db.from(table).upsert({ ...own, ...row });
@@ -71,43 +99,75 @@ export function createSupabaseRepo(db: SupabaseClient, userId: string): Reposito
         if (r.error) throw new Error(r.error.message);
       }
 
-      const parsedSettings = settings.data ? SettingsSchema.safeParse(settings.data.payload) : null;
-      const parsedSupplies = supplies.data ? SuppliesSchema.safeParse(supplies.data.payload) : null;
-      const plans = parseAll<WorkoutPlan>(workoutPlans.data, WorkoutPlanSchema);
-      const diets = parseAll<DietPlan>(dietPlans.data, DietPlanSchema);
+      // An account with nothing in it at all is a new Challenger, and the only
+      // case that may answer "empty". Anything else present means the account
+      // exists, so a part that will not parse is reported, not swallowed.
+      const empty =
+        !settings.data &&
+        !supplies.data &&
+        !profile.data &&
+        !(workoutPlans.data ?? []).length &&
+        !(dietPlans.data ?? []).length &&
+        !(dayLogs.data ?? []).length &&
+        !(weighIns.data ?? []).length;
+      if (empty) return null;
 
-      // An account with no seed yet is not an error, it is a new Challenger.
-      if (!parsedSettings?.success || !parsedSupplies?.success || !plans.length || !diets.length) return null;
+      const parsedSettings = settings.data ? SettingsSchema.safeParse(settings.data.payload) : null;
+      if (!parsedSettings?.success) {
+        throw new UnreadableArc("settings", parsedSettings ? (parsedSettings.error?.issues[0]?.message ?? "unexpected shape") : "missing");
+      }
+      const parsedSupplies = supplies.data ? SuppliesSchema.safeParse(supplies.data.payload) : null;
+      if (!parsedSupplies?.success) {
+        throw new UnreadableArc("supply list", parsedSupplies ? (parsedSupplies.error?.issues[0]?.message ?? "unexpected shape") : "missing");
+      }
+
+      const plans = parseAll<WorkoutPlan>("workout plan", workoutPlans.data, WorkoutPlanSchema);
+      const diets = parseAll<DietPlan>("diet plan", dietPlans.data, DietPlanSchema);
+      if (!plans.length) throw new UnreadableArc("workout plan", "missing");
+      if (!diets.length) throw new UnreadableArc("diet plan", "missing");
 
       const parsedProfile = profile.data ? ProfileSchema.safeParse(profile.data.payload) : null;
+      if (profile.data && !parsedProfile?.success) {
+        throw new UnreadableArc("profile", parsedProfile?.error?.issues[0]?.message ?? "unexpected shape");
+      }
 
       return {
         profile: parsedProfile?.success ? parsedProfile.data : null,
         settings: parsedSettings.data,
         supplies: parsedSupplies.data,
-        dayLogs: parseAll<DayLog>(dayLogs.data, DayLogSchema),
-        weighIns: parseAll<WeighIn>(weighIns.data, WeighInSchema),
+        dayLogs: parseAll<DayLog>("day log", dayLogs.data, DayLogSchema),
+        weighIns: parseAll<WeighIn>("weigh-in", weighIns.data, WeighInSchema),
         workoutPlans: plans,
         dietPlans: diets,
       };
     },
 
-    saveProfile: (p: Profile) => upsert("profiles", { payload: p }),
-    saveSettings: (s: Settings) => upsert("settings", { payload: s }),
-    saveSupplies: (s: Supplies) => upsert("supplies", { payload: s }),
+    saveProfile: async (p: Profile) => upsert("profiles", { payload: checked("profile", ProfileSchema, p) }),
+    saveSettings: async (s: Settings) => upsert("settings", { payload: checked("setting", SettingsSchema, s) }),
+    saveSupplies: async (s: Supplies) => upsert("supplies", { payload: checked("supply list", SuppliesSchema, s) }),
 
-    saveDayLog: (l: DayLog) => upsert("day_logs", { date: l.date, payload: l }),
+    saveDayLog: async (l: DayLog) => upsert("day_logs", { date: l.date, payload: checked("day", DayLogSchema, l) }),
     deleteDayLog: (date: string) => remove("day_logs", { date }),
 
-    saveWeighIn: (w: WeighIn) => upsert("weigh_ins", { date: w.date, payload: w }),
+    saveWeighIn: async (w: WeighIn) => upsert("weigh_ins", { date: w.date, payload: checked("weigh-in", WeighInSchema, w) }),
     deleteWeighIn: (date: string) => remove("weigh_ins", { date }),
 
-    saveWorkoutPlan: (p: WorkoutPlan) => upsert("workout_plans", { version: p.version, payload: p }),
+    saveWorkoutPlan: async (p: WorkoutPlan) => upsert("workout_plans", { version: p.version, payload: checked("workout plan", WorkoutPlanSchema, p) }),
     deleteWorkoutPlan: (version: number) => remove("workout_plans", { version }),
-    saveDietPlan: (p: DietPlan) => upsert("diet_plans", { version: p.version, payload: p }),
+    saveDietPlan: async (p: DietPlan) => upsert("diet_plans", { version: p.version, payload: checked("diet plan", DietPlanSchema, p) }),
     deleteDietPlan: (version: number) => remove("diet_plans", { version }),
 
     async replaceAll(s: Snapshot) {
+      // Checked before anything is deleted: this wipes the account first, so a
+      // payload that cannot be written must stop the whole operation here.
+      if (s.profile) checked("profile", ProfileSchema, s.profile);
+      checked("setting", SettingsSchema, s.settings);
+      checked("supply list", SuppliesSchema, s.supplies);
+      for (const p of s.workoutPlans) checked("workout plan", WorkoutPlanSchema, p);
+      for (const p of s.dietPlans) checked("diet plan", DietPlanSchema, p);
+      for (const l of s.dayLogs) checked("day", DayLogSchema, l);
+      for (const w of s.weighIns) checked("weigh-in", WeighInSchema, w);
+
       await this.clear();
       const rows = <T,>(list: T[], key: (t: T) => Record<string, unknown>) =>
         list.map((t) => ({ ...own, ...key(t), payload: t }));
