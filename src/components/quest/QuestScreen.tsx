@@ -9,7 +9,6 @@ import { CategoryPanel } from "./CategoryPanel";
 import { ExerciseRow } from "./ExerciseRow";
 import { MealRow } from "./MealRow";
 import { CompletionSquare, StrikeLabel, WeightStepper } from "./QuestBits";
-import { RestTimer } from "./RestTimer";
 import { RecoveryRow } from "./RecoveryRow";
 import { IconBack, IconBonus, IconCalendar, IconDumbbell, IconForward, IconMeal, IconSleep } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
@@ -22,6 +21,7 @@ import { sendHeat } from "@/lib/heat-transfer";
 import { xpGained } from "@/lib/store/apply-outcome";
 import type { Outcome } from "@/lib/store/game-store";
 import { vibrate } from "@/lib/motion";
+import { startRest } from "@/lib/rest-timer";
 
 type Category = "workout" | "diet" | "recovery";
 
@@ -33,7 +33,6 @@ export function QuestScreen({ date }: { date: string }) {
 
   // undefined means "not chosen yet", which falls back to the derived default.
   const [chosenCategory, setChosenCategory] = useState<Category | null | undefined>(undefined);
-  const [restKey, setRestKey] = useState<number | null>(null);
   // Ticks so a meal unlocks itself the moment its time arrives.
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -180,12 +179,12 @@ export function QuestScreen({ date }: { date: string }) {
           const origin = source === "pointer" ? document.activeElement : null;
           void run(() => actions.completeExercise(date, def.id, weight, reps), origin);
           if (source === "pointer") vibrate(10);
-          setRestKey(Date.now());
+          startRest(snapshot.settings.restSeconds);
         }}
         onReopen={() => void run(() => actions.reopenExercise(date, def.id))}
         onToggleSet={(i, patch) => {
           void run(() => actions.logSet(date, def.id, i, patch));
-          if (patch.done) setRestKey(Date.now());
+          if (patch.done) startRest(snapshot.settings.restSeconds);
         }}
         onVariant={(vid) => void run(() => actions.setVariant(date, def.id, vid))}
       />
@@ -370,13 +369,6 @@ export function QuestScreen({ date }: { date: string }) {
         </CategoryPanel>
       </div>
 
-      <RestTimer
-        key={restKey ?? "idle"}
-        seconds={snapshot.settings.restSeconds}
-        runKey={restKey}
-        sound={snapshot.settings.sound}
-        onClose={() => setRestKey(null)}
-      />
     </>
   );
 }

@@ -825,6 +825,12 @@ Decisions taken while building that a future session should not undo:
   `replaceAll` validates every payload before it deletes anything, so a payload the reader would
   refuse can never reach the tables. `adoptLocalArc` runs on every launch, so it adopts only into
   an account that is wholly empty, never one that merely has no profile yet.
+- **The rest between sets lives in the shell, not on the quest screen** (src/lib/rest-timer.ts).
+  It was page state, so walking to Progress unmounted it and the rest ended; it is now a small
+  store the shell renders above the nav, and any screen can start one. It holds the moment the
+  rest ends rather than a number counted down each second, so a sleeping screen or a throttled
+  background tab cannot slow it: the tick only advances the clock, and what is left is worked out
+  from it at render.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

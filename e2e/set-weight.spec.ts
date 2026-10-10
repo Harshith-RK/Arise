@@ -28,7 +28,8 @@ test("re-ticking a set records the weight on the stepper now", async ({ page }) 
   await expect(set1).toContainText("TAP");
   for (let i = 0; i < 3; i++) await sheet.getByRole("button", { name: "Increase Weight" }).click();
   await set1.click();
-  await expect(set1).not.toContainText("BW");
+  // "not BW" is also true of the unticked "TAP", so wait for the weight itself.
+  await expect(set1).toContainText("KG");
   const kg = (await set1.innerText()).match(/(\d+(?:\.\d+)?)KG/)?.[1];
   expect(kg).toBeTruthy();
 

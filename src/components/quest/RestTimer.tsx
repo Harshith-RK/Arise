@@ -4,54 +4,49 @@ import { m, AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { IconClose, IconPause, IconPlay, IconTimer } from "@/components/icons";
 import { EASE, vibrate } from "@/lib/motion";
+import { dismissRest, extendRest, pauseRest, resumeRest, secondsLeft, useRest } from "@/lib/rest-timer";
+import { useGame } from "@/lib/store/GameProvider";
 
 /**
  * Rest timer. Docks above the bottom nav when a set is logged, counts down,
  * and gets out of the way. Tap to pause, +30s to extend, close to dismiss.
+ *
+ * Lives in the shell rather than on the quest screen, because a rest outlasts
+ * whatever page the Challenger wanders to while it runs.
  */
-export function RestTimer({
-  seconds,
-  runKey,
-  sound,
-  onClose,
-}: {
-  seconds: number;
-  runKey: number | null;
-  sound: boolean;
-  onClose: () => void;
-}) {
-  // The parent remounts this on each new set (key={runKey}), so the
-  // countdown simply starts from its initial state.
-  const [remaining, setRemaining] = useState(seconds);
-  const [paused, setPaused] = useState(false);
-  const doneRef = useRef(false);
+export function RestTimer() {
+  const rest = useRest();
+  const sound = useGame((s) => s.snapshot?.settings.sound ?? false);
+  const running = rest.endsAt !== null;
+  const paused = rest.pausedWith !== null;
+  const [now, setNow] = useState(() => Date.now());
+  const rang = useRef<number | null>(null);
 
+  // The tick only moves the clock on. What is left is worked out from it at
+  // render, so a throttled tab catches up instead of falling behind.
   useEffect(() => {
-    if (runKey === null || paused) return;
-    const id = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          clearInterval(id);
-          if (!doneRef.current) {
-            doneRef.current = true;
-            vibrate([20, 60, 20]);
-            if (sound) beep();
-          }
-          return 0;
-        }
-        return r - 1;
-      });
-    }, 1000);
+    if (!running || paused) return;
+    const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
-  }, [runKey, paused, sound]);
+  }, [running, paused]);
+
+  const remaining = secondsLeft(rest, now);
+
+  // Rung once per rest, by the end it was given.
+  useEffect(() => {
+    if (!running || remaining > 0 || rang.current === rest.endsAt) return;
+    rang.current = rest.endsAt;
+    vibrate([20, 60, 20]);
+    if (sound) beep();
+  }, [running, remaining, rest.endsAt, sound]);
 
   const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
   const ss = String(remaining % 60).padStart(2, "0");
-  const ratio = seconds === 0 ? 0 : remaining / seconds;
+  const ratio = rest.total === 0 ? 0 : remaining / rest.total;
 
   return (
     <AnimatePresence>
-      {runKey !== null ? (
+      {running ? (
         <m.div
           initial={{ y: 16, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -69,7 +64,7 @@ export function RestTimer({
             </div>
             <button
               type="button"
-              onClick={() => setPaused((p) => !p)}
+              onClick={() => (paused ? resumeRest() : pauseRest())}
               className="pressable flex h-11 w-11 items-center justify-center text-frost-1 transition-none hov:text-frost-0"
               aria-label={paused ? "Resume rest timer" : "Pause rest timer"}
             >
@@ -77,7 +72,7 @@ export function RestTimer({
             </button>
             <button
               type="button"
-              onClick={() => setRemaining((r) => r + 30)}
+              onClick={() => extendRest(30)}
               className="pressable t-micro h-11 px-2 text-frost-1 transition-none hov:text-frost-0"
               aria-label="Add thirty seconds"
             >
@@ -85,7 +80,7 @@ export function RestTimer({
             </button>
             <button
               type="button"
-              onClick={onClose}
+              onClick={dismissRest}
               className="pressable flex h-11 w-11 items-center justify-center text-frost-2 transition-none hov:text-frost-0"
               aria-label="Dismiss rest timer"
             >

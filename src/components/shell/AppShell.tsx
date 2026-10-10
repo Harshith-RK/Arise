@@ -17,6 +17,7 @@ import type { Progress } from "@/lib/engine/derive";
 // Rare surfaces: kept out of the first load so the quest screen paints fast.
 const CeremonyHost = dynamic(() => import("@/components/ceremonies/CeremonyHost").then((m) => m.CeremonyHost), { ssr: false });
 const CommandPalette = dynamic(() => import("./CommandPalette").then((m) => m.CommandPalette), { ssr: false });
+const RestTimer = dynamic(() => import("@/components/quest/RestTimer").then((m) => m.RestTimer), { ssr: false });
 // The sequence is a rare surface, so it is fetched on demand. Its ground is
 // painted the moment it is asked for, or the app would show through for as
 // long as the chunk takes to arrive, which is the flash this replaced.
@@ -93,6 +94,8 @@ function Gate({ children }: { children: ReactNode }) {
         {status === "loading" || status === "onboarding" ? <ShellSkeleton /> : children}
       </main>
       <CeremonyHost />
+      {/* A rest outlasts the screen that started it. */}
+      <RestTimer />
       <SystemToaster />
       <RolloverWatcher />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
