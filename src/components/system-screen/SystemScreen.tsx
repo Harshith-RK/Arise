@@ -243,15 +243,20 @@ export function SystemScreen() {
               <p className="t-small text-frost-1">
                 This erases every log, weigh-in and record on this device, and starts you over. Type RESET to confirm.
               </p>
-              <div className="mt-3 flex gap-3">
+              {/* The button cannot shrink: its label is one line by design. So
+                  on a phone the two stack rather than pushing out of the panel. */}
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                 <input
                   value={resetText}
                   onChange={(e) => setResetText(e.target.value)}
                   aria-label="Type RESET to confirm"
-                  className="t-readout h-12 flex-1 border border-line-2 bg-ink-2 px-3 text-frost-0 outline-none focus-visible:border-fault"
+                  // flex-1 would set the height while these are stacked, which
+                  // collapses the box: it only grows once they sit in a row.
+                  className="t-readout h-12 w-full min-w-0 border border-line-2 bg-ink-2 px-3 text-frost-0 outline-none focus-visible:border-fault sm:flex-1"
                 />
                 <Button
                   variant="danger"
+                  className="w-full sm:w-auto"
                   disabled={resetText !== "RESET"}
                   onClick={async () => {
                     await actions.resetArc();
@@ -262,7 +267,11 @@ export function SystemScreen() {
                   Reset everything
                 </Button>
               </div>
-              <button type="button" className="t-micro mt-3 text-frost-2 hov:text-frost-0" onClick={() => setResetOpen(false)}>
+              <button
+                type="button"
+                className="pressable t-micro mt-1 inline-flex min-h-11 items-center text-frost-2 transition-none hov:text-frost-0"
+                onClick={() => setResetOpen(false)}
+              >
                 CANCEL
               </button>
             </div>

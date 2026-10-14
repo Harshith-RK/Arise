@@ -838,6 +838,11 @@ Decisions taken while building that a future session should not undo:
   carry the detail. None of it is required: a rest day still clears on diet alone, and the panel
   says OPTIONAL where a training day counts its quests, since a tally reads as a demand
   (`CategoryPanel`'s `countLabel`).
+- **The mobile audit only sees what it opens.** The reset confirmation lives behind a tap, so its
+  row pushed out of the System panel on a phone unseen: a button whose label is one line cannot
+  shrink, and the field beside it could not either. They stack below `sm`. Two traps live there:
+  `flex-1` on a stacked field sets its height, not its width, which collapses the box to the text
+  inside it, and a bare text button is a 14px tap target. The audit now opens that state.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

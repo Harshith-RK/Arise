@@ -229,6 +229,16 @@ for (const width of WIDTHS) {
     await page.getByRole("button", { name: /LOG WEIGH-IN/i }).tap();
     await audit(page, width, "weigh-in sheet");
 
+    // The reset confirmation only exists once it is asked for, which is how a
+    // row that pushed out of its panel went unseen.
+    await page.goto(`${BASE}/app/system`);
+    const reset = page.getByRole("button", { name: /^Reset everything/ }).first();
+    if (await reset.count()) {
+      await reset.tap();
+      await page.waitForTimeout(300);
+      await audit(page, width, "reset confirm");
+    }
+
     await page.goto(`${BASE}/app/quest/${yesterday}`);
     await page.waitForTimeout(800);
     const diet = page.getByRole("button", { name: /^Diet/ });
