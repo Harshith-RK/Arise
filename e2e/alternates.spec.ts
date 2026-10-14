@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { awaken } from "./helpers";
+import { toKey } from "../src/lib/engine/dates";
 
 /** The exercise block for the first exercise of the day. */
 const exercise = (page: import("@playwright/test").Page) =>
@@ -27,7 +28,9 @@ test("an alternate can be renamed, and shares the exercise's sets and reps", asy
   // A Monday, since the seeded week rests at the weekend.
   const monday = new Date();
   monday.setDate(monday.getDate() + ((8 - monday.getDay()) % 7 || 7));
-  await page.goto(`/app/quest/${monday.toISOString().slice(0, 10)}`);
+  // toKey, not toISOString: the UTC date is yesterday for half the day here,
+  // and yesterday is a rest day with nothing to swap.
+  await page.goto(`/app/quest/${toKey(monday)}`);
   await page.getByRole("button", { name: /^Open details for/ }).first().click();
   await expect(page.getByRole("button", { name: "Floor chest press" })).toBeVisible();
 });

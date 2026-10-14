@@ -18,6 +18,7 @@ export function CategoryPanel({
   open,
   onToggle,
   summary,
+  countLabel,
   locked = false,
   children,
 }: {
@@ -29,6 +30,11 @@ export function CategoryPanel({
   open: boolean;
   onToggle: () => void;
   summary?: string;
+  /**
+   * Replaces the count in the header. A tally reads as a requirement, which is
+   * wrong for work the day does not ask for.
+   */
+  countLabel?: string;
   /** Visible but not yet earned: a lock replaces the count. It still opens,
    *  so the reason it is locked can be read. */
   locked?: boolean;
@@ -50,8 +56,8 @@ export function CategoryPanel({
           {locked ? (
             <IconLock size={15} className="text-frost-2" />
           ) : (
-            <span className={`t-micro ${complete ? "text-ember" : "text-frost-2"}`}>
-              {done}/{total}
+            <span className={`t-micro ${complete && !countLabel ? "text-ember" : "text-frost-2"}`}>
+              {countLabel ?? `${done}/${total}`}
             </span>
           )}
           <m.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.18, ease: EASE.out }} className="text-frost-2">

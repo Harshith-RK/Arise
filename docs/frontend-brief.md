@@ -835,7 +835,9 @@ Decisions taken while building that a future session should not undo:
   one was a tick saying "abs or cardio": the row now appears there too, marked optional, with its
   minutes and calories. The planned session sits beside it, and the tick is the bonus for having
   done something at all, renamed "Extra work today" so it no longer competes with the rows that
-  carry the detail. None of it is required: a rest day still clears on diet alone.
+  carry the detail. None of it is required: a rest day still clears on diet alone, and the panel
+  says OPTIONAL where a training day counts its quests, since a tally reads as a demand
+  (`CategoryPanel`'s `countLabel`).
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

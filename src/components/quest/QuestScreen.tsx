@@ -241,9 +241,11 @@ export function QuestScreen({ date }: { date: string }) {
           done={rest ? (result.bonusDone ? 1 : 0) : result.exercisesDone + (result.cardioComplete ? 1 : 0)}
           total={rest ? 1 : result.exerciseTotal + 1}
           complete={rest ? result.bonusDone : result.workoutComplete && result.cardioComplete}
+          // Nothing here is owed on a rest day, so the header counts nothing.
+          countLabel={rest ? "OPTIONAL" : undefined}
           open={openCategory === "workout"}
           onToggle={() => setChosenCategory(openCategory === "workout" ? null : "workout")}
-          summary={rest ? "Optional. Your workout streak is banked." : `${trainingDay.title} and cardio cleared.`}
+          summary={rest ? "Nothing here is required today. Your workout streak is banked." : `${trainingDay.title} and cardio cleared.`}
         >
           {rest ? (
             <>
