@@ -831,6 +831,11 @@ Decisions taken while building that a future session should not undo:
   rest ends rather than a number counted down each second, so a sleeping screen or a throttled
   background tab cannot slow it: the tick only advances the clock, and what is left is worked out
   from it at render.
+- **A rest day logs what was actually done.** Cardio was hidden on rest days, so the only record of
+  one was a tick saying "abs or cardio": the row now appears there too, marked optional, with its
+  minutes and calories. The planned session sits beside it, and the tick is the bonus for having
+  done something at all, renamed "Extra work today" so it no longer competes with the rows that
+  carry the detail. None of it is required: a rest day still clears on diet alone.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

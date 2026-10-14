@@ -159,6 +159,9 @@ export function QuestScreen({ date }: { date: string }) {
   const freeMissLeft = !Object.values(progress.days).some((d) => d.forgiven && weekStart(d.date) === thisWeek);
   // Once a set is in, the session stays open: it is work already begun.
   const sessionStarted = exercises.some((def) => (log?.exercises[def.id]?.sets.length ?? 0) > 0);
+  // The plan names a rest day's session. Until it is given one, "Rest" is not
+  // a name for the work, so the offer says what it is instead.
+  const sessionName = !trainingDay.title || /^rest$/i.test(trainingDay.title) ? "the optional session" : trainingDay.title.toLowerCase();
   const arcDay = snapshot.profile ? Math.max(1, 1 + daysBetween(snapshot.profile.arcStart, date)) : 1;
 
   // The same rows serve a training day and a rest day's optional session.
@@ -255,8 +258,10 @@ export function QuestScreen({ date }: { date: string }) {
                 <CompletionSquare done={result.bonusDone} />
                 <span className="min-w-0 flex-1">
                   <StrikeLabel done={result.bonusDone} className="t-body">
-                    Abs or cardio
+                    Extra work today
                   </StrikeLabel>
+                  {/* The cardio row and the session below log what was done;
+                      this is the bonus for having done something at all. */}
                   <span className="t-micro mt-0.5 block text-frost-2">OPTIONAL. STREAK IS BANKED. +20 XP</span>
                 </span>
               </button>
@@ -268,7 +273,7 @@ export function QuestScreen({ date }: { date: string }) {
                 sessionOpen || sessionStarted ? (
                   <div className="border-t border-line-1">
                     <p className="t-micro px-4 pt-3 text-frost-2">
-                      {trainingDay.title.toUpperCase()} / OPTIONAL / {exercises.length} EXERCISE
+                      {sessionName.toUpperCase()} / OPTIONAL / {exercises.length} EXERCISE
                       {exercises.length === 1 ? "" : "S"}
                     </p>
                     {exerciseRows}
@@ -281,7 +286,7 @@ export function QuestScreen({ date }: { date: string }) {
                       onClick={() => setSessionOpen(true)}
                       className="pressable t-readout h-12 w-full border border-line-2 text-frost-1 transition-none hov:border-frost-2 hov:text-frost-0"
                     >
-                      Do {trainingDay.title.toLowerCase()} today
+                      Do {sessionName} today
                     </button>
                     <p className="t-micro mt-2 text-frost-2">
                       {exercises.length} EXERCISE{exercises.length === 1 ? "" : "S"} PLANNED. THE DAY CLEARS WITHOUT THEM.
@@ -296,22 +301,22 @@ export function QuestScreen({ date }: { date: string }) {
             <p className="t-small px-4 py-6 text-frost-2">No exercises scheduled for this day.</p>
           )}
 
-          {/* Cardio closes the session. Rest days do not carry one: the bonus
-              quest above already offers abs or cardio if the Challenger wants it. */}
-          {rest ? null : (
-            <div className="border-t border-line-1">
-              <CardioRow
-                key={`cardio-${date}`}
-                date={date}
-                done={result.cardioComplete}
-                kcal={log?.cardio.kcal ?? 200}
-                minutes={log?.cardio.minutes ?? null}
-                readOnly={readOnly}
-                onToggle={(el) => void run(() => actions.toggleCardio(date), el)}
-                onDetails={(kcal, minutes) => void run(() => actions.setCardioDetails(date, kcal, minutes))}
-              />
-            </div>
-          )}
+          {/* Cardio closes a training session, and on a rest day it is one of
+              the things a Challenger might do: either way it is logged here,
+              with its minutes and what it burned. */}
+          <div className="border-t border-line-1">
+            <CardioRow
+              key={`cardio-${date}`}
+              date={date}
+              done={result.cardioComplete}
+              kcal={log?.cardio.kcal ?? 200}
+              minutes={log?.cardio.minutes ?? null}
+              readOnly={readOnly}
+              optional={rest}
+              onToggle={(el) => void run(() => actions.toggleCardio(date), el)}
+              onDetails={(kcal, minutes) => void run(() => actions.setCardioDetails(date, kcal, minutes))}
+            />
+          </div>
         </CategoryPanel>
 
         <CategoryPanel
@@ -505,6 +510,7 @@ function CardioRow({
   kcal,
   minutes,
   readOnly,
+  optional = false,
   onToggle,
   onDetails,
 }: {
@@ -513,6 +519,8 @@ function CardioRow({
   kcal: number;
   minutes: number | null;
   readOnly: boolean;
+  /** On a rest day cardio is offered, not owed, and the row says so. */
+  optional?: boolean;
   onToggle: (el: Element | null) => void;
   onDetails: (kcal: number, minutes: number | null) => void;
 }) {
@@ -532,9 +540,10 @@ function CardioRow({
         <CompletionSquare done={done} />
         <span className="min-w-0 flex-1">
           <StrikeLabel done={done} className="t-body">
-            Daily cardio
+            {optional ? "Cardio" : "Daily cardio"}
           </StrikeLabel>
           <span className="t-micro mt-0.5 block text-frost-2">
+            {optional ? "OPTIONAL / " : ""}
             {k} KCAL / {mins} MIN / +15 XP
           </span>
         </span>

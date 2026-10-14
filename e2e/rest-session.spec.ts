@@ -38,3 +38,34 @@ test("a rest day can hold an optional session that is only shown when asked for"
   // Doing it does not change the day being a rest day.
   await expect(page.getByRole("heading", { name: "Rest day" })).toBeVisible();
 });
+
+test("cardio can be logged on a rest day, with its minutes and calories", async ({ page }) => {
+  await awaken(page);
+  await page.goto(`/app/quest/${lastSaturday()}`);
+  await page.waitForTimeout(600);
+  const panel = page.getByRole("button", { name: /^Bonus quest/ });
+  if ((await panel.getAttribute("aria-expanded")) !== "true") await panel.click();
+
+  // The row is offered, not owed.
+  // The quest rows are the tickable ones; the steppers share the word.
+  const cardio = page.locator("[data-quest-row]").filter({ hasText: "Cardio" }).first();
+  await expect(cardio).toBeVisible();
+  await expect(page.getByText(/OPTIONAL \/ \d+ KCAL/)).toBeVisible();
+
+  // What was actually done is recorded, not just that something was.
+  await page.getByRole("group", { name: "Cardio minutes" }).getByRole("button", { name: "Increase Cardio minutes" }).click();
+  await cardio.click();
+  await expect(cardio).toHaveAttribute("aria-pressed", "true");
+
+  await page.reload();
+  await page.waitForTimeout(700);
+  // The panel opens on the first unfinished thing, so it is opened again here.
+  const again = page.getByRole("button", { name: /^Bonus quest/ });
+  if ((await again.getAttribute("aria-expanded")) !== "true") await again.click();
+  const after = page.locator("[data-quest-row]").filter({ hasText: "Cardio" }).first();
+  await expect(after).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText(/50 MIN/)).toBeVisible();
+
+  // The day is still a rest day, cleared on diet alone.
+  await expect(page.getByRole("heading", { name: "Rest day" })).toBeVisible();
+});
