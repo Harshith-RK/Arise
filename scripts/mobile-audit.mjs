@@ -12,6 +12,29 @@ const WIDTHS = [320, 360, 369, 375, 390];
 const MIN_TAP = 40;
 
 const browser = await chromium.launch();
+
+/**
+ * Every measurement here is text against a box, so the real faces have to be
+ * loaded: a dev server with a cold font cache serves fallbacks, which are
+ * wider, and the audit then reports a hundred spills that do not exist.
+ */
+{
+  const page = await browser.newPage();
+  await page.goto(`${BASE}/auth`, { waitUntil: "load" });
+  await page.waitForTimeout(1500);
+  const loaded = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family);
+  });
+  await page.close();
+  const missing = ["Archivo", "Martian Mono"].filter((f) => !loaded.includes(f));
+  if (missing.length) {
+    console.error(`Fonts not loaded on the server: ${missing.join(", ")}. Measurements would be meaningless.`);
+    console.error("Restart it with a clean cache: rm -rf .next-e2e && ARISE_DIST_DIR=.next-e2e npx next dev -p 3100");
+    await browser.close();
+    process.exit(2);
+  }
+}
 const issues = [];
 const note = (width, where, kind, detail) => issues.push({ width, where, kind, detail });
 
@@ -234,9 +257,15 @@ for (const width of WIDTHS) {
     await page.goto(`${BASE}/app/system`);
     const reset = page.getByRole("button", { name: /^Reset everything/ }).first();
     if (await reset.count()) {
-      await reset.tap();
+      // The fixed bottom nav sits over the foot of this page, so the tap is
+      // forced rather than fought with: the point is to reach the state, and
+      // the state is what gets measured.
+      await reset.evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await page.waitForTimeout(200);
+      await reset.tap({ force: true });
       await page.waitForTimeout(300);
-      await audit(page, width, "reset confirm");
+      if (await page.getByLabel("Type RESET to confirm").count()) await audit(page, width, "reset confirm");
+      else note(width, "reset confirm", "not audited", "the confirmation did not open");
     }
 
     await page.goto(`${BASE}/app/quest/${yesterday}`);

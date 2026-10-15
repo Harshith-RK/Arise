@@ -65,6 +65,8 @@ export type GameState = {
   toggleCardio(date: string): Promise<Outcome>;
   setCardioDetails(date: string, kcal: number, minutes: number | null): Promise<Outcome>;
   toggleBonus(date: string): Promise<Outcome>;
+  /** Take on the rest day's bonus quest, or hand it back. */
+  setBonusAccepted(date: string, accepted: boolean): Promise<Outcome>;
   setSleep(date: string, hours: number | null, waterL: number | null): Promise<Outcome>;
 
   /* body */
@@ -461,12 +463,28 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
         );
       },
 
+      setBonusAccepted(date, accepted) {
+        return mutateDay(
+          date,
+          { kind: "bonus" },
+          (log) => {
+            // Handing it back clears the tick too: an unaccepted quest cannot
+            // be a cleared one.
+            log.bonus = accepted ? { ...log.bonus, accepted: true } : { done: false, accepted: false };
+          },
+          ({ events }) =>
+            accepted
+              ? { tag: "Bonus Quest", text: "Bonus quest accepted. Clear it for 20 XP.", tone: "ember" }
+              : { tag: "Rollback", text: `Bonus quest dropped.${xpText(xpOf(events))}`, tone: "neutral" },
+        );
+      },
+
       toggleBonus(date) {
         return mutateDay(
           date,
           { kind: "bonus" },
           (log) => {
-            log.bonus = { done: !log.bonus.done };
+            log.bonus = { ...log.bonus, done: !log.bonus.done };
           },
           ({ events, log }) =>
             log.bonus.done

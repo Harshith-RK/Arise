@@ -843,6 +843,15 @@ Decisions taken while building that a future session should not undo:
   shrink, and the field beside it could not either. They stack below `sm`. Two traps live there:
   `flex-1` on a stacked field sets its height, not its width, which collapses the box to the text
   inside it, and a bare text button is a 14px tap target. The audit now opens that state.
+- **A rest day's bonus is accepted before it is worked.** The quest screen offers "Accept the bonus
+  quest"; until it is taken on, a rest day holds nothing to tick, which is what optional should
+  look like. Acceptance lives on the day log (`bonus.accepted`, optional so older days still read),
+  so it survives a reload and reaches every device, and dropping the quest clears the tick with it.
+  Scoring is unchanged: the 20 XP is for clearing it.
+- **The mobile audit refuses to measure in fallback fonts.** Every check there is text against a
+  box, and a dev server with a cold cache serves fallback faces, which are wider: it reported 119
+  spills that did not exist. It now checks the real faces are loaded and stops with instructions
+  if they are not.
 - **Contrast tokens are load-bearing.** scripts/contrast.ts parses globals.css directly; several
   brief values were nudged to clear WCAG AA and must not be reverted to the original hexes.
 

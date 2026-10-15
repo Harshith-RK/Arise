@@ -115,7 +115,14 @@ export const DayLogSchema = z.object({
     kcal: z.number().min(0).max(3000),
     minutes: z.number().min(0).max(600).nullable(),
   }),
-  bonus: z.object({ done: z.boolean() }),
+  bonus: z.object({
+    done: z.boolean(),
+    /**
+     * The rest day's bonus quest was accepted. Absent on every day logged
+     * before it could be, which reads as not accepted.
+     */
+    accepted: z.boolean().optional(),
+  }),
   sleep: z
     .object({
       hours: z.number().min(0).max(24).nullable(),

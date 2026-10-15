@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { m } from "motion/react";
 import { SystemWindow } from "@/components/system/SystemWindow";
-import { Meter, Odometer, Placeholder, Readout } from "@/components/system/primitives";
+import { Button, Meter, Odometer, Placeholder, Readout } from "@/components/system/primitives";
 import { CategoryPanel } from "./CategoryPanel";
 import { ExerciseRow } from "./ExerciseRow";
 import { MealRow } from "./MealRow";
@@ -159,6 +159,9 @@ export function QuestScreen({ date }: { date: string }) {
   const freeMissLeft = !Object.values(progress.days).some((d) => d.forgiven && weekStart(d.date) === thisWeek);
   // Once a set is in, the session stays open: it is work already begun.
   const sessionStarted = exercises.some((def) => (log?.exercises[def.id]?.sets.length ?? 0) > 0);
+  // A day logged before the quest could be accepted, but already ticked, counts
+  // as accepted: the work was done.
+  const bonusAccepted = (log?.bonus.accepted ?? false) || result.bonusDone;
   // The plan names a rest day's session. Until it is given one, "Rest" is not
   // a name for the work, so the offer says what it is instead.
   const sessionName = !trainingDay.title || /^rest$/i.test(trainingDay.title) ? "the optional session" : trainingDay.title.toLowerCase();
@@ -249,24 +252,55 @@ export function QuestScreen({ date }: { date: string }) {
         >
           {rest ? (
             <>
-              <button
-                type="button"
-                disabled={readOnly}
-                data-quest-row
-                onClick={(e) => void run(() => actions.toggleBonus(date), e.currentTarget)}
-                aria-pressed={result.bonusDone}
-                className="pressable flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left"
-              >
-                <CompletionSquare done={result.bonusDone} />
-                <span className="min-w-0 flex-1">
-                  <StrikeLabel done={result.bonusDone} className="t-body">
-                    Extra work today
-                  </StrikeLabel>
-                  {/* The cardio row and the session below log what was done;
-                      this is the bonus for having done something at all. */}
-                  <span className="t-micro mt-0.5 block text-frost-2">OPTIONAL. STREAK IS BANKED. +20 XP</span>
-                </span>
-              </button>
+              {/* The System offers the quest; it is taken on or it is not.
+                  Until it is, a rest day asks nothing of anyone. */}
+              {!bonusAccepted ? (
+                <div className="p-4">
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    disabled={readOnly}
+                    onClick={() => void run(() => actions.setBonusAccepted(date, true))}
+                  >
+                    Accept the bonus quest
+                  </Button>
+                  <p className="t-micro mt-2 text-frost-2">
+                    ABS, CARDIO, A WALK: ANYTHING EXTRA. +20 XP WHEN YOU CLEAR IT. YOUR STREAK IS BANKED EITHER WAY.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    disabled={readOnly}
+                    data-quest-row
+                    onClick={(e) => void run(() => actions.toggleBonus(date), e.currentTarget)}
+                    aria-pressed={result.bonusDone}
+                    className="pressable flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left"
+                  >
+                    <CompletionSquare done={result.bonusDone} />
+                    <span className="min-w-0 flex-1">
+                      <StrikeLabel done={result.bonusDone} className="t-body">
+                        Extra work today
+                      </StrikeLabel>
+                      {/* The cardio row and the session below log what was done;
+                          this is the bonus for having done something at all. */}
+                      <span className="t-micro mt-0.5 block text-frost-2">ACCEPTED. +20 XP</span>
+                    </span>
+                  </button>
+                  {readOnly ? null : (
+                    <div className="px-4 pb-3">
+                      <button
+                        type="button"
+                        onClick={() => void run(() => actions.setBonusAccepted(date, false))}
+                        className="pressable t-micro inline-flex min-h-11 items-center text-frost-2 transition-none hov:text-frost-0"
+                      >
+                        DROP THE QUEST
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
 
               {/* A session planned for a rest day: abs, mobility, whatever was
                   put there. Hidden until asked for, and the day clears without

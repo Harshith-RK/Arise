@@ -69,3 +69,34 @@ test("cardio can be logged on a rest day, with its minutes and calories", async 
   // The day is still a rest day, cleared on diet alone.
   await expect(page.getByRole("heading", { name: "Rest day" })).toBeVisible();
 });
+
+test("the bonus quest is offered, accepted, cleared and can be dropped", async ({ page }) => {
+  await awaken(page);
+  await page.goto(`/app/quest/${lastSaturday()}`);
+  await page.waitForTimeout(600);
+  const panel = page.getByRole("button", { name: /^Bonus quest/ });
+  if ((await panel.getAttribute("aria-expanded")) !== "true") await panel.click();
+
+  // Offered, not owed: nothing to tick until it is taken on.
+  const accept = page.getByRole("button", { name: "Accept the bonus quest" });
+  await expect(accept).toBeVisible();
+  await expect(page.locator("[data-quest-row]").filter({ hasText: "Extra work today" })).toHaveCount(0);
+
+  await accept.click();
+  const row = page.locator("[data-quest-row]").filter({ hasText: "Extra work today" }).first();
+  await expect(row).toBeVisible();
+  await expect(accept).toHaveCount(0);
+
+  // It survives a reload: accepting is part of the day, not of this screen.
+  await page.reload();
+  await page.waitForTimeout(700);
+  const again = page.getByRole("button", { name: /^Bonus quest/ });
+  if ((await again.getAttribute("aria-expanded")) !== "true") await again.click();
+  await expect(page.locator("[data-quest-row]").filter({ hasText: "Extra work today" }).first()).toBeVisible();
+
+  // Clearing it pays, and dropping it puts the offer back.
+  await page.locator("[data-quest-row]").filter({ hasText: "Extra work today" }).first().click();
+  await expect(page.getByText("[Bonus Quest]")).toBeVisible();
+  await page.getByRole("button", { name: "DROP THE QUEST" }).click();
+  await expect(page.getByRole("button", { name: "Accept the bonus quest" })).toBeVisible();
+});
