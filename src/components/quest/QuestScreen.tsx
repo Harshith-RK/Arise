@@ -229,7 +229,7 @@ export function QuestScreen({ date }: { date: string }) {
               <p className="t-micro mt-1.5 text-glacier">MISSED. FREE MISS USED.</p>
             ) : null}
             {result.madeUpOn ? (
-              <p className="t-micro mt-1.5 text-glacier">MADE UP {formatShort(result.madeUpOn).toUpperCase()}</p>
+              <p className="t-micro mt-1.5 text-glacier">FINISHED {formatShort(result.madeUpOn).toUpperCase()}. STREAK STILL BROKEN.</p>
             ) : null}
           </div>
         </div>
@@ -343,13 +343,13 @@ export function QuestScreen({ date }: { date: string }) {
                 )
               ) : null}
 
-              {/* A gate missed earlier in the week. Nothing says it has to be
-                  repaid, but a rest day is where it can be: do the whole of it
-                  here and that day gets its workout back. */}
+              {/* A gate missed earlier in the week. The streak is gone, since
+                  it counts days in a row, but the session itself can still be
+                  finished before the week is out, and then it is not charged. */}
               {makeUp ? (
                 <div className="border-t border-line-1">
                   <p className="t-micro px-4 pt-3 text-frost-2">
-                    MAKING UP {makeUp.title.toUpperCase()} / {formatReadout(makeUp.date)} / {result.makeUpDone} OF {result.makeUpTotal} DONE
+                    FINISHING {makeUp.title.toUpperCase()} / {formatReadout(makeUp.date)} / {result.makeUpDone} OF {result.makeUpTotal} DONE
                   </p>
                   {makeUp.exercises.map(exerciseRow)}
                   {readOnly ? null : (
@@ -359,14 +359,14 @@ export function QuestScreen({ date }: { date: string }) {
                         onClick={() => void run(() => actions.setMakeUp(date, null))}
                         className="pressable t-micro inline-flex min-h-11 items-center text-frost-2 transition-none hov:text-frost-0"
                       >
-                        DROP THE MAKE-UP
+                        DROP IT
                       </button>
                     </div>
                   )}
                 </div>
               ) : misses.length && !readOnly ? (
                 <div className="border-t border-line-1 p-3">
-                  <p className="t-micro mb-2 px-1 text-frost-2">MISSED GATES / STILL OPEN</p>
+                  <p className="t-micro mb-2 px-1 text-frost-2">MISSED GATES / THIS WEEK</p>
                   <div className="flex flex-col gap-2">
                     {misses.map((miss) => (
                       <button
@@ -375,13 +375,13 @@ export function QuestScreen({ date }: { date: string }) {
                         onClick={() => void run(() => actions.setMakeUp(date, miss.date))}
                         className="pressable t-readout flex min-h-12 w-full items-center justify-between gap-3 border border-line-2 px-3 text-left text-frost-1 transition-none hov:border-frost-2 hov:text-frost-0"
                       >
-                        <span className="min-w-0 truncate">Make up {miss.title.toLowerCase()}</span>
+                        <span className="min-w-0 truncate">Finish {miss.title.toLowerCase()}</span>
                         <span className="t-micro shrink-0 text-frost-2">{formatShort(miss.date)}</span>
                       </button>
                     ))}
                   </div>
                   <p className="t-micro mt-2 px-1 text-frost-2">
-                    THE XP PAYS TODAY. CLEAR ALL OF IT AND THAT DAY COUNTS AS TRAINED.
+                    THE STREAK IS GONE EITHER WAY. FINISH ALL OF IT AND THE MISSED GATE IS NOT CHARGED.
                   </p>
                 </div>
               ) : null}

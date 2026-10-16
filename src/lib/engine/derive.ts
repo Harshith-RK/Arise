@@ -97,13 +97,14 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     .sort((a, b) => (a.date < b.date ? -1 : 1));
   const from = start;
 
-  /* Missed days that a later day has repeated in full, and the date that
-     repaid them. A make-up is only worth anything once every exercise of the
-     missed day is in, so a half-finished one leaves the miss standing. */
+  /* Missed days that a later day in the same week repeated in full, and the
+     date that repaid them. A make-up is only worth anything once every
+     exercise of the missed day is in, so a half-finished one leaves the miss
+     standing, and a week gone by closes the chance for good. */
   const madeUp = new Map<string, string>();
   for (const log of snap.dayLogs) {
     const missed = log.makeUpFor;
-    if (!missed || missed >= log.date) continue;
+    if (!missed || missed >= log.date || weekStart(missed) !== weekStart(log.date)) continue;
     const defs = exercisesOf(missed, plans.workout(logsByDate.get(missed)?.workoutPlanVersion, missed));
     if (!defs.length || !defs.every((def) => exerciseComplete(log, def))) continue;
     const already = madeUp.get(missed);
@@ -154,17 +155,15 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     days[date] = r;
     const isToday = date === today;
 
-    // ---- A missed day repeated later
-    // The workout comes back to the day it belonged to, so the streak reads as
-    // unbroken and the miss is not charged for. The XP stays on the day the
-    // work was actually done; nothing is paid twice.
+    // ---- A missed day repeated later in the week
+    // The streak is not given back: it counts days in a row, and that day was
+    // not one of them. What the make-up buys is the work itself: the XP, paid
+    // on the day it was actually done, and the missed-gate charge, which a
+    // Challenger who finished the session inside the week does not owe.
     const madeUpOn = madeUp.get(date);
-    if (madeUpOn && r.workoutMandatory && !r.workoutComplete) {
-      r.madeUpOn = madeUpOn;
-      r.workoutComplete = true;
-      r.exercisesDone = r.exerciseTotal;
-      r.cleared = r.dietComplete && (r.cardioMandatory ? r.cardioComplete : true);
-    }
+    const repaid =
+      !!madeUpOn && r.workoutMandatory && r.dietComplete && (!r.cardioMandatory || r.cardioComplete);
+    if (madeUpOn) r.madeUpOn = madeUpOn;
 
     // ---- XP from the day itself
     xp += r.xp;
@@ -173,7 +172,7 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     // Charged only once the day is over: today is still winnable, which is what
     // the penalty zone banner is for. The week's first miss is free, so one bad
     // day cannot be what ends an arc, but a habit of them is expensive.
-    if (!isToday && !r.cleared) {
+    if (!isToday && !r.cleared && !repaid) {
       const wk = weekStart(date);
       if (forgivenWeeks.has(wk)) {
         r.penalty = XP.missedDay;

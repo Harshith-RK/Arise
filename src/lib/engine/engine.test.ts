@@ -366,23 +366,50 @@ describe("missing a day", () => {
     ...(saturday ? [saturday] : []),
   ];
 
-  it("gives a missed day its workout back once the whole of it is repeated", () => {
+  it("drops the charge for a missed day finished later in the week", () => {
     const p = deriveProgress(snap(weekWithout(makeUpLog(SAT, TUE))), addDays(MONDAY, 6));
     const tue = p.days[TUE];
 
-    expect(tue.workoutComplete).toBe(true);
     expect(tue.madeUpOn).toBe(SAT);
-    expect(tue.cleared).toBe(true);
-    // Nothing was missed in the end, so nothing was charged or forgiven.
     expect(tue.penalty).toBe(0);
+    // The free miss is still there for the rest of the week: this one was
+    // worked off rather than forgiven.
     expect(tue.forgiven).toBe(false);
-    expect(p.streaks.workout.history[TUE]).toBe("done");
+  });
+
+  it("does not hand the streak back with it", () => {
+    const p = deriveProgress(snap(weekWithout(makeUpLog(SAT, TUE))), addDays(MONDAY, 6));
+
+    // A streak counts days in a row, and Tuesday was not one of them.
+    expect(p.days[TUE].workoutComplete).toBe(false);
+    expect(p.days[TUE].cleared).toBe(false);
+    expect(p.streaks.workout.history[TUE]).toBe("missed");
+    expect(p.streaks.workout.count).toBeLessThan(5);
+  });
+
+  it("still charges a day whose diet was missed too", () => {
+    // The lifts were finished on Saturday, but Tuesday went unfed and the
+    // week's free miss is already gone, so the day is still a miss.
+    const week = weekWithout(makeUpLog(SAT, TUE)).map((l) =>
+      l.date === TUE ? dayLog(TUE, { workout: false, diet: false }) : l,
+    );
+    const spent = [...week.filter((l) => l.date !== MONDAY)];
+    const p = deriveProgress(snap(spent), addDays(MONDAY, 6));
+    expect(p.days[TUE].penalty + p.days[MONDAY].penalty).toBe(XP.missedDay);
+  });
+
+  it("closes the chance once the week is out", () => {
+    // The next Monday is a new week: Tuesday's gate is gone for good.
+    const late = makeUpLog(addDays(MONDAY, 7), TUE);
+    const p = deriveProgress(snap([...weekWithout(), late]), addDays(MONDAY, 8));
+    expect(p.days[TUE].madeUpOn).toBeNull();
+    expect(p.days[TUE].forgiven || p.days[TUE].penalty > 0).toBe(true);
   });
 
   it("leaves the miss standing while the make-up is half done", () => {
     const p = deriveProgress(snap(weekWithout(makeUpLog(SAT, TUE, 1))), addDays(MONDAY, 6));
-    expect(p.days[TUE].workoutComplete).toBe(false);
     expect(p.days[TUE].madeUpOn).toBeNull();
+    expect(p.days[TUE].forgiven || p.days[TUE].penalty > 0).toBe(true);
     expect(p.days[SAT].makeUpDone).toBe(1);
     expect(p.days[SAT].makeUpTotal).toBeGreaterThan(1);
   });
