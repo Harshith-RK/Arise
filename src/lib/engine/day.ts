@@ -39,6 +39,13 @@ export function trainingDayFor(date: string, plan: WorkoutPlan): TrainingDay {
   return plan.days[dayKeyOf(date)] ?? { title: "Rest", exerciseIds: [] };
 }
 
+/** The exercises a date trains under a plan, in the order the plan lists them. */
+export function exercisesOf(date: string, plan: WorkoutPlan): ExerciseDef[] {
+  return trainingDayFor(date, plan)
+    .exerciseIds.map((id) => plan.exercises[id])
+    .filter(Boolean);
+}
+
 export function setsDone(log: DayLog | undefined, exerciseId: string): number {
   return log?.exercises[exerciseId]?.sets.filter((s) => s.done).length ?? 0;
 }
@@ -83,6 +90,12 @@ export type DayResult = {
   penalty: number;
   /** The day was missed, but the week's one free miss covered it. */
   forgiven: boolean;
+  /** A missed day being made up here, and how much of it is done. */
+  makeUpFor: string | null;
+  makeUpDone: number;
+  makeUpTotal: number;
+  /** When this day's own workout was made up later, if it was. */
+  madeUpOn: string | null;
   goodSleep: boolean;
 };
 
@@ -96,7 +109,7 @@ export function evaluateDay(
   const dPlan = plans.diet(log?.dietPlanVersion);
   const tday = trainingDayFor(date, wPlan);
   const rest = isRestDay(date, profile);
-  const defs = tday.exerciseIds.map((id) => wPlan.exercises[id]).filter(Boolean);
+  const defs = exercisesOf(date, wPlan);
   const workoutMandatory = !rest && defs.length > 0;
 
   let sets = 0;
@@ -113,6 +126,14 @@ export function evaluateDay(
   const cardioComplete = !!log?.cardio.done;
   const cardioMandatory = !rest;
   const bonusDone = !!log?.bonus.done;
+
+  /* A training day missed earlier, repeated here. The work pays on the day it
+     was actually done; what it buys back is the missed day's workout, which
+     deriveProgress hands over once every exercise of it is in. */
+  const makeUpFor = log?.makeUpFor ?? null;
+  const makeUpDefs = makeUpFor ? exercisesOf(makeUpFor, plans.workout(undefined, makeUpFor)) : [];
+  let makeUpDone = 0;
+  for (const def of makeUpDefs) if (exerciseComplete(log, def)) makeUpDone++;
 
   const eaten: Macros = { protein: 0, carbs: 0, fat: 0, kcal: 0 };
   for (const m of dayMeals) {
@@ -131,6 +152,10 @@ export function evaluateDay(
   if (dietComplete) xpBreakdown.push({ label: "Diet cleared", xp: XP.dietBonus });
   if (cardioComplete) xpBreakdown.push({ label: "Cardio", xp: XP.cardio });
   if (bonusDone && rest) xpBreakdown.push({ label: "Bonus quest", xp: XP.bonusQuest });
+  if (makeUpDone) xpBreakdown.push({ label: `${makeUpDone} made up`, xp: makeUpDone * XP.exercise });
+  if (makeUpDefs.length && makeUpDone === makeUpDefs.length) {
+    xpBreakdown.push({ label: `${trainingDayFor(makeUpFor!, plans.workout(undefined, makeUpFor!)).title} made up`, xp: XP.workoutBonusPerExercise * makeUpDefs.length });
+  }
   const xp = xpBreakdown.reduce((s, b) => s + b.xp, 0);
 
   const cleared =
@@ -158,6 +183,10 @@ export function evaluateDay(
     xpBreakdown,
     penalty: 0,
     forgiven: false,
+    makeUpFor,
+    makeUpDone,
+    makeUpTotal: makeUpDefs.length,
+    madeUpOn: null,
     goodSleep: (log?.sleep?.hours ?? 0) >= 7,
   };
 }

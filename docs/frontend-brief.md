@@ -848,6 +848,14 @@ Decisions taken while building that a future session should not undo:
   look like. Acceptance lives on the day log (`bonus.accepted`, optional so older days still read),
   so it survives a reload and reaches every device, and dropping the quest clears the tick with it.
   Scoring is unchanged: the 20 XP is for clearing it.
+- **A missed gate can be made up on a rest day.** A chest day missed on Tuesday leaves the streak
+  broken and 50 XP gone; the rest day at the end of the week offers it back. Under the bonus quest,
+  "MISSED GATES / STILL OPEN" lists the training days of the last fortnight that were never
+  cleared and are not already claimed, and taking one on (`makeUpFor` on the day log) brings its
+  exercises onto the rest day. The XP pays on the day the work is actually done, never on the day
+  being repaired. Only a whole make-up counts: once every exercise of the missed day is in,
+  `deriveProgress` hands that day its workout back, which repairs the streak and waives the missed
+  day charge. Half of one buys nothing, and the day it repairs reads "MADE UP <date>".
 - **The mobile audit refuses to measure in fallback fonts.** Every check there is text against a
   box, and a dev server with a cold cache serves fallback faces, which are wider: it reported 119
   spills that did not exist. It now checks the real faces are loaded and stops with instructions

@@ -5,10 +5,12 @@ import { todayKey, weekStart } from "@/lib/engine/dates";
 import { makePlanLookup, mealsFor, trainingDayFor } from "@/lib/engine/day";
 import { activeWorkoutPlan, rotatedVersion, rotationOf } from "@/lib/engine/rotation";
 import { canDeleteVersion } from "@/lib/engine/plan-versions";
+import { makeUpOf } from "@/lib/engine/make-up";
 import type {
   DayKey,
   DayLog,
   DietPlan,
+  ExerciseDef,
   ExerciseLog,
   Macros,
   MealLog,
@@ -67,6 +69,8 @@ export type GameState = {
   toggleBonus(date: string): Promise<Outcome>;
   /** Take on the rest day's bonus quest, or hand it back. */
   setBonusAccepted(date: string, accepted: boolean): Promise<Outcome>;
+  /** Take on a missed training day here, or hand it back. */
+  setMakeUp(date: string, missed: string | null): Promise<Outcome>;
   setSleep(date: string, hours: number | null, waterL: number | null): Promise<Outcome>;
 
   /* body */
@@ -258,15 +262,24 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
     const xpText = (n: number) => (n > 0 ? ` +${n} XP.` : n < 0 ? ` ${n} XP.` : "");
 
     function exerciseName(snap: Snapshot, log: DayLog, exerciseId: string): string {
-      const plans = makePlanLookup(snap.workoutPlans, snap.dietPlans);
-      const def = plans.workout(log.workoutPlanVersion).exercises[exerciseId] ?? latest(snap.workoutPlans).exercises[exerciseId];
+      const def = defFor(snap, log, exerciseId);
       const vId = log.exercises[exerciseId]?.variantId;
       return def?.variants.find((v) => v.id === vId)?.name ?? def?.variants[0].name ?? "Exercise";
     }
 
+    /** The exercise, looked for in this day's plan, in the plan of the day it
+     *  is making up, and finally in the newest plan there is. */
+    function defFor(snap: Snapshot, log: DayLog, exerciseId: string): ExerciseDef {
+      const plans = makePlanLookup(snap.workoutPlans, snap.dietPlans, rotationOf(snap));
+      return (
+        plans.workout(log.workoutPlanVersion).exercises[exerciseId] ??
+        (log.makeUpFor ? plans.workout(undefined, log.makeUpFor).exercises[exerciseId] : undefined) ??
+        latest(snap.workoutPlans).exercises[exerciseId]
+      );
+    }
+
     function ensureExercise(log: DayLog, snap: Snapshot, exerciseId: string): ExerciseLog {
-      const plans = makePlanLookup(snap.workoutPlans, snap.dietPlans);
-      const def = plans.workout(log.workoutPlanVersion).exercises[exerciseId] ?? latest(snap.workoutPlans).exercises[exerciseId];
+      const def = defFor(snap, log, exerciseId);
       const ex = log.exercises[exerciseId] ?? { variantId: def.variants[0].id, sets: [] };
       const variant = def.variants.find((v) => v.id === ex.variantId) ?? def.variants[0];
       while (ex.sets.length < def.targetSets) ex.sets.push({ done: false, weight: null, reps: variant.repsMin });
@@ -476,6 +489,25 @@ export function createGameStore(repo: Repository, opts: StoreOptions = {}): Game
             accepted
               ? { tag: "Bonus Quest", text: "Bonus quest accepted. Clear it for 20 XP.", tone: "ember" }
               : { tag: "Rollback", text: `Bonus quest dropped.${xpText(xpOf(events))}`, tone: "neutral" },
+        );
+      },
+
+      setMakeUp(date, missed) {
+        // Read after the commit, when the log points at the missed day.
+        const title = () => makeUpOf(get().snapshot!, date)?.title;
+        return mutateDay(
+          date,
+          { kind: "bonus" },
+          (log) => {
+            // The sets already logged stay: work done is work done, whether or
+            // not it is still pointed at a missed day.
+            if (missed) log.makeUpFor = missed;
+            else delete log.makeUpFor;
+          },
+          () =>
+            missed
+              ? { tag: "Make-up", text: `${title() ?? "The missed day"} is back on. Finish it to keep the streak.`, tone: "ember" }
+              : { tag: "Rollback", text: "Make-up dropped. The miss stands.", tone: "neutral" },
         );
       },
 

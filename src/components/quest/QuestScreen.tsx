@@ -12,14 +12,16 @@ import { CompletionSquare, StrikeLabel, WeightStepper } from "./QuestBits";
 import { RecoveryRow } from "./RecoveryRow";
 import { IconBack, IconBonus, IconCalendar, IconDumbbell, IconForward, IconMeal, IconSleep } from "@/components/icons";
 import { useGame, useGameActions } from "@/lib/store/GameProvider";
-import { addDays, diffDays, formatDaysIn, formatReadout, weekStart } from "@/lib/engine/dates";
+import { addDays, diffDays, formatDaysIn, formatReadout, formatShort, weekStart } from "@/lib/engine/dates";
 import { XP } from "@/lib/engine/xp";
 import { evaluateDay, isRestDay, makePlanLookup, mealLocked, mealsFor, trainingDayFor } from "@/lib/engine/day";
 import { activeWorkoutPlan, rotationOf } from "@/lib/engine/rotation";
+import { makeUpOf, openMisses } from "@/lib/engine/make-up";
 import { lastSessionFor, VITALITY_UNLOCK_LEVEL } from "@/lib/engine/derive";
 import { sendHeat } from "@/lib/heat-transfer";
 import { xpGained } from "@/lib/store/apply-outcome";
 import type { Outcome } from "@/lib/store/game-store";
+import type { ExerciseDef } from "@/lib/engine/types";
 import { vibrate } from "@/lib/motion";
 import { startRest } from "@/lib/rest-timer";
 
@@ -57,7 +59,9 @@ export function QuestScreen({ date }: { date: string }) {
     const wPlan = plans.workout(log?.workoutPlanVersion, date);
     const dPlan = plans.diet(log?.dietPlanVersion);
     const profile = snapshot.profile ?? { restDays: ["sat", "sun"] as const };
-    const result = evaluateDay(date, log, plans, profile);
+    // The derived day, where there is one: it knows what the arc charged and
+    // what a later make-up gave back. Only a day in the future is not in it.
+    const result = progress.days[date] ?? evaluateDay(date, log, plans, profile);
     const tday = trainingDayFor(date, wPlan);
     const rest = isRestDay(date, profile);
     return {
@@ -67,6 +71,9 @@ export function QuestScreen({ date }: { date: string }) {
       trainingDay: tday,
       exercises: tday.exerciseIds.map((id) => wPlan.exercises[id]).filter(Boolean),
       meals: mealsFor(dPlan, date),
+      // A missed gate being repeated today, and the ones still open to repeat.
+      makeUp: makeUpOf(snapshot, date),
+      misses: rest ? openMisses(snapshot, progress.days, date) : [],
     };
   }, [snapshot, progress, date]);
 
@@ -149,7 +156,7 @@ export function QuestScreen({ date }: { date: string }) {
     );
   }
 
-  const { result, meals, exercises, rest, trainingDay, log } = view;
+  const { result, meals, exercises, rest, trainingDay, log, makeUp, misses } = view;
   // What the arc actually charged for this day: evaluateDay cannot know, since
   // the cost depends on the week around it and on the day being over.
   const charged = progress.days[date]?.penalty ?? 0;
@@ -167,8 +174,9 @@ export function QuestScreen({ date }: { date: string }) {
   const sessionName = !trainingDay.title || /^rest$/i.test(trainingDay.title) ? "the optional session" : trainingDay.title.toLowerCase();
   const arcDay = snapshot.profile ? Math.max(1, 1 + daysBetween(snapshot.profile.arcStart, date)) : 1;
 
-  // The same rows serve a training day and a rest day's optional session.
-  const exerciseRows = exercises.map((def) => {
+  // The same row serves a training day, a rest day's optional session, and a
+  // missed day being repeated on one.
+  const exerciseRow = (def: ExerciseDef) => {
     const exLog = log?.exercises[def.id];
     const variantId = exLog?.variantId ?? def.variants[0].id;
     return (
@@ -195,7 +203,8 @@ export function QuestScreen({ date }: { date: string }) {
         onVariant={(vid) => void run(() => actions.setVariant(date, def.id, vid))}
       />
     );
-  });
+  };
+  const exerciseRows = exercises.map(exerciseRow);
 
   return (
     <>
@@ -218,6 +227,9 @@ export function QuestScreen({ date }: { date: string }) {
               <p className="t-micro mt-1.5 text-fault">-{charged} XP MISSED GATE</p>
             ) : forgiven ? (
               <p className="t-micro mt-1.5 text-glacier">MISSED. FREE MISS USED.</p>
+            ) : null}
+            {result.madeUpOn ? (
+              <p className="t-micro mt-1.5 text-glacier">MADE UP {formatShort(result.madeUpOn).toUpperCase()}</p>
             ) : null}
           </div>
         </div>
@@ -329,6 +341,49 @@ export function QuestScreen({ date }: { date: string }) {
                     </p>
                   </div>
                 )
+              ) : null}
+
+              {/* A gate missed earlier in the week. Nothing says it has to be
+                  repaid, but a rest day is where it can be: do the whole of it
+                  here and that day gets its workout back. */}
+              {makeUp ? (
+                <div className="border-t border-line-1">
+                  <p className="t-micro px-4 pt-3 text-frost-2">
+                    MAKING UP {makeUp.title.toUpperCase()} / {formatReadout(makeUp.date)} / {result.makeUpDone} OF {result.makeUpTotal} DONE
+                  </p>
+                  {makeUp.exercises.map(exerciseRow)}
+                  {readOnly ? null : (
+                    <div className="px-4 pb-3">
+                      <button
+                        type="button"
+                        onClick={() => void run(() => actions.setMakeUp(date, null))}
+                        className="pressable t-micro inline-flex min-h-11 items-center text-frost-2 transition-none hov:text-frost-0"
+                      >
+                        DROP THE MAKE-UP
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : misses.length && !readOnly ? (
+                <div className="border-t border-line-1 p-3">
+                  <p className="t-micro mb-2 px-1 text-frost-2">MISSED GATES / STILL OPEN</p>
+                  <div className="flex flex-col gap-2">
+                    {misses.map((miss) => (
+                      <button
+                        key={miss.date}
+                        type="button"
+                        onClick={() => void run(() => actions.setMakeUp(date, miss.date))}
+                        className="pressable t-readout flex min-h-12 w-full items-center justify-between gap-3 border border-line-2 px-3 text-left text-frost-1 transition-none hov:border-frost-2 hov:text-frost-0"
+                      >
+                        <span className="min-w-0 truncate">Make up {miss.title.toLowerCase()}</span>
+                        <span className="t-micro shrink-0 text-frost-2">{formatShort(miss.date)}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="t-micro mt-2 px-1 text-frost-2">
+                    THE XP PAYS TODAY. CLEAR ALL OF IT AND THAT DAY COUNTS AS TRAINED.
+                  </p>
+                </div>
               ) : null}
             </>
           ) : exercises.length ? (

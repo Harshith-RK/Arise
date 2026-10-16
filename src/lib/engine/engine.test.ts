@@ -341,6 +341,70 @@ describe("missing a day", () => {
     expect(p.days[charged[0]].penalty).toBe(XP.missedDay);
   });
 
+  /* ---------- making up a missed day ---------- */
+
+  // Tuesday's gate, missed, and repeated on the rest day at the end of the week.
+  const TUE = addDays(MONDAY, 1);
+  const SAT = addDays(MONDAY, 5);
+
+  function makeUpLog(date: string, missed: string, howMany = Infinity): DayLog {
+    const log = dayLog(date, { workout: false, cardio: false });
+    for (const id of workoutPlan.days[dayKeyOf(missed)].exerciseIds.slice(0, howMany)) {
+      const def = workoutPlan.exercises[id];
+      log.exercises[id] = {
+        variantId: def.variants[0].id,
+        sets: Array.from({ length: def.targetSets }, () => ({ done: true, weight: 50, reps: 10 })),
+      };
+    }
+    log.makeUpFor = missed;
+    return log;
+  }
+
+  /** The week with Tuesday's lifts missing, and whatever was done on Saturday. */
+  const weekWithout = (saturday?: DayLog) => [
+    ...clearDays(MONDAY, 5).map((l) => (l.date === TUE ? dayLog(TUE, { workout: false }) : l)),
+    ...(saturday ? [saturday] : []),
+  ];
+
+  it("gives a missed day its workout back once the whole of it is repeated", () => {
+    const p = deriveProgress(snap(weekWithout(makeUpLog(SAT, TUE))), addDays(MONDAY, 6));
+    const tue = p.days[TUE];
+
+    expect(tue.workoutComplete).toBe(true);
+    expect(tue.madeUpOn).toBe(SAT);
+    expect(tue.cleared).toBe(true);
+    // Nothing was missed in the end, so nothing was charged or forgiven.
+    expect(tue.penalty).toBe(0);
+    expect(tue.forgiven).toBe(false);
+    expect(p.streaks.workout.history[TUE]).toBe("done");
+  });
+
+  it("leaves the miss standing while the make-up is half done", () => {
+    const p = deriveProgress(snap(weekWithout(makeUpLog(SAT, TUE, 1))), addDays(MONDAY, 6));
+    expect(p.days[TUE].workoutComplete).toBe(false);
+    expect(p.days[TUE].madeUpOn).toBeNull();
+    expect(p.days[SAT].makeUpDone).toBe(1);
+    expect(p.days[SAT].makeUpTotal).toBeGreaterThan(1);
+  });
+
+  it("pays the make-up on the day the work was actually done", () => {
+    // The same Saturday either way, so the only difference is the make-up.
+    const made = deriveProgress(snap(weekWithout(makeUpLog(SAT, TUE))), addDays(MONDAY, 6));
+    const not = deriveProgress(snap(weekWithout(dayLog(SAT, { workout: false, cardio: false }))), addDays(MONDAY, 6));
+
+    // Tuesday earns no more than it did: its lifts were never done on Tuesday.
+    expect(made.days[TUE].xp).toBe(not.days[TUE].xp);
+    // Saturday earns all of it, and the arc gains exactly that much.
+    expect(made.days[SAT].xp).toBeGreaterThan(not.days[SAT].xp);
+    expect(made.xp - not.xp).toBe(made.days[SAT].xp - not.days[SAT].xp);
+  });
+
+  it("ignores a make-up pointed at a day after it", () => {
+    const ahead = makeUpLog(MONDAY, SAT);
+    const p = deriveProgress(snap([...clearDays(MONDAY, 5).filter((l) => l.date !== MONDAY), ahead]), addDays(MONDAY, 6));
+    expect(p.days[SAT].madeUpOn).toBeNull();
+  });
+
   it("never drives the total below zero", () => {
     // A fortnight of nothing: far more charged than ever earned.
     const p = deriveProgress(snap([]), addDays(MONDAY, 13));

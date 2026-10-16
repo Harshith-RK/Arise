@@ -115,6 +115,11 @@ export const DayLogSchema = z.object({
     kcal: z.number().min(0).max(3000),
     minutes: z.number().min(0).max(600).nullable(),
   }),
+  /**
+   * A training day missed earlier, being made up on this day. The work is
+   * logged here and pays here; the missed day gets its workout back.
+   */
+  makeUpFor: DateKey.optional(),
   bonus: z.object({
     done: z.boolean(),
     /**

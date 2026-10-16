@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { awaken } from "./helpers";
-import { addDays, toKey } from "../src/lib/engine/dates";
+import { toKey } from "../src/lib/engine/dates";
 
 /** The most recent day that has exercises on it: the seeded week rests at the weekend. */
 function lastTrainingDay(): string {

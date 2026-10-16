@@ -1,5 +1,5 @@
 import { dayKeyOf, diffDays, eachDay, weekStart } from "./dates";
-import { evaluateDay, makePlanLookup, type DayResult } from "./day";
+import { evaluateDay, exerciseComplete, exercisesOf, makePlanLookup, type DayResult } from "./day";
 import { round1, setScore } from "./pr";
 import { rotationOf } from "./rotation";
 import { BADGES, type BadgeState } from "./badges";
@@ -97,6 +97,19 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     .sort((a, b) => (a.date < b.date ? -1 : 1));
   const from = start;
 
+  /* Missed days that a later day has repeated in full, and the date that
+     repaid them. A make-up is only worth anything once every exercise of the
+     missed day is in, so a half-finished one leaves the miss standing. */
+  const madeUp = new Map<string, string>();
+  for (const log of snap.dayLogs) {
+    const missed = log.makeUpFor;
+    if (!missed || missed >= log.date) continue;
+    const defs = exercisesOf(missed, plans.workout(logsByDate.get(missed)?.workoutPlanVersion, missed));
+    if (!defs.length || !defs.every((def) => exerciseComplete(log, def))) continue;
+    const already = madeUp.get(missed);
+    if (!already || log.date < already) madeUp.set(missed, log.date);
+  }
+
   const days: Record<string, DayResult> = {};
   const streaks: Record<StreakCategory, Streak> = {
     workout: emptyStreak("workout"),
@@ -140,6 +153,18 @@ export function deriveProgress(snap: Snapshot, today: string): Progress {
     const r = evaluateDay(date, log, plans, profile ?? { restDays: ["sat", "sun"] });
     days[date] = r;
     const isToday = date === today;
+
+    // ---- A missed day repeated later
+    // The workout comes back to the day it belonged to, so the streak reads as
+    // unbroken and the miss is not charged for. The XP stays on the day the
+    // work was actually done; nothing is paid twice.
+    const madeUpOn = madeUp.get(date);
+    if (madeUpOn && r.workoutMandatory && !r.workoutComplete) {
+      r.madeUpOn = madeUpOn;
+      r.workoutComplete = true;
+      r.exercisesDone = r.exerciseTotal;
+      r.cleared = r.dietComplete && (r.cardioMandatory ? r.cardioComplete : true);
+    }
 
     // ---- XP from the day itself
     xp += r.xp;
